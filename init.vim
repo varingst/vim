@@ -42,6 +42,7 @@ Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-projectionist' | Plug 'tpope/vim-rake'
 Plug 'tpope/vim-rails'
 Plug 'danchoi/ri.vim'
+Plug 'mileszs/ack.vim'
 
 " f/t enhancer/easymotion replacement
 Plug 'justinmk/vim-sneak'
@@ -627,6 +628,11 @@ function! s:UtlOrTag()
 endfun
 "nnoremap <silent><C-]> call s:UtlOrTag()<CR>
 "nnoremap <silent><C-]> call s:UtlOrTag()<CR>
+
+" === ACK === {{{2
+if executable('ag')
+  let g:ackprg = 'ag --vimgrep'
+endif
 
 " ========== FUNCTIONS ========== {{{1
 
