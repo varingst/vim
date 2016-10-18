@@ -33,7 +33,7 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-endwise'
 " Run builds and test suites
 Plug 'tpope/vim-dispatch'
-" make '.' handle plugins nicers
+" make '.' handle plugins nicer
 Plug 'tpope/vim-repeat'
 " Smarter substitution ++
 Plug 'tpope/vim-abolish'
@@ -41,8 +41,14 @@ Plug 'tpope/vim-abolish'
 Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-projectionist' | Plug 'tpope/vim-rake'
 Plug 'tpope/vim-rails'
+
+" ri doc searcher
 Plug 'danchoi/ri.vim'
+" code grepper (ag/ack) wapper
 Plug 'mileszs/ack.vim'
+
+" lusty exploration
+Plug 'vim-scripts/LustyJuggler'
 
 " f/t enhancer/easymotion replacement
 Plug 'justinmk/vim-sneak'
@@ -50,14 +56,18 @@ Plug 'justinmk/vim-sneak'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'michaeljsmith/vim-indent-object'
 
+" universal text linking
+Plug 'vim-scripts/utl.vim'
+
 " orgmode
 Plug 'tpope/vim-speeddating' | Plug 'jceb/vim-orgmode'
 Plug 'tpope/vim-repeat'
-Plug 'takac/vim-hardtime'
 Plug 'vim-scripts/SyntaxRange'
 
-" vim bdd
+" vim testing
 Plug 'tomtom/spec_vim'
+Plug 'junegunn/vader.vim'
+Plug 'h1mesuke/vim-unittest'
 
 " Language support
 Plug 'gerw/vim-latex-suite'
@@ -389,7 +399,7 @@ endfun
 " Utl lookup
 " FIXME: These conflict and does not work as intended
 "nnoremap <silent><C-]> :call GetUtls()<CR>
-nnoremap <expr> <silent> <C-]> (synIDattr(synID(line("."), col("."), 1), "name") == "UtlUrl") ? "\<ESC>:Utl\<CR>" : "\<C-]>"
+"nnoremap <expr> <silent> <C-]> (synIDattr(synID(line("."), col("."), 1), "name") == "UtlUrl") ? "\<ESC>:Utl\<CR>" : "\<C-]>"
 
 " This is also a candidate for Blistering enhancement
 "nnoremap <silent> <bar> :call AutoTab()<CR>
@@ -477,7 +487,7 @@ omap T <Plug>Sneak_T
 if !has("nvim")
   " passive filetypes uses clang or eclim instead
   let g:syntastic_mode_map = { 'mode': 'active', 
-          \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java', 'ruby' ] }
+          \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ] }
   " auto opens the window on errors, autocloses when none detected
   let g:syntastic_auto_loc_list=1
   " jump to fist error on open or save
@@ -633,6 +643,13 @@ endfun
 if executable('ag')
   let g:ackprg = 'ag --vimgrep'
 endif
+nmap <leader>a :Ack 
+
+" === LUSTY JUGGLER === {{{2
+nmap <leader>f :LustyJuggler<CR>
+
+" === SURROUND === {{{2
+"imap <leader>s <ESC>Isurround<CR>
 
 " ========== FUNCTIONS ========== {{{1
 
