@@ -59,6 +59,9 @@ Plug 'michaeljsmith/vim-indent-object'
 " universal text linking
 Plug 'vim-scripts/utl.vim'
 
+" ANSI color coding
+Plug 'vim-scripts/AnsiEsc.vim'
+
 " orgmode
 Plug 'tpope/vim-speeddating' | Plug 'jceb/vim-orgmode'
 Plug 'tpope/vim-repeat'
@@ -77,6 +80,7 @@ Plug 'pangloss/vim-javascript'
 Plug 'kchmck/vim-coffee-script'
 Plug 'leafgarland/typescript-vim'
 Plug 'bitc/vim-hdevtools'
+Plug 'eagletmt/neco-ghc'
 Plug 'tpope/vim-fireplace'
 
 " Sass's SCSS syntax
@@ -92,7 +96,8 @@ call plug#end()
 filetype plugin indent on
 syntax enable
 set background=dark
-let g:solarized_termcolors=256
+let g:solarized_termcolors = 256
+let g:solarized_termtrans = 1
 colorscheme solarized
 
 set relativenumber        " number lines relative to current line
@@ -557,17 +562,33 @@ let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
 let g:ycm_autoclose_preview_window_after_insertion = 1
 
-"let g:ycm_semantic_triggers = {
-  "\   'c' : ['->', '.'],
-  "\   'objc' : ['->', '.'],
-  "\   'ocaml' : ['.', '#'],
-  "\   'cpp,objcpp' : ['->', '.', '::'],
-  "\   'perl' : ['->'],
-  "\   'php' : ['->', '::'],
-  "\   'cs,java,javascript,d,vim,ruby,python,perl6,scala,vb,elixir,go' : ['.'],
-  "\   'lua' : ['.', ':'],
-  "\   'erlang' : [':'],
-  "\ }
+let s:dot_triggers = join([
+      \ 'cs',
+      \ 'd',
+      \ 'elixir',
+      \ 'haskell',
+      \ 'java',
+      \ 'javascript',
+      \ 'python',
+      \ 'perl6',
+      \ 'ruby',
+      \ 'scala',
+      \ 'vb',
+      \ 'vim' ], ',')
+
+
+let g:ycm_semantic_triggers = {
+  \   'c' : ['->', '.'],
+  \   'objc' : ['->', '.'],
+  \   'ocaml' : ['.', '#'],
+  \   'cpp,objcpp' : ['->', '.', '::'],
+  \   'perl' : ['->'],
+  \   'php' : ['->', '::'],
+  \   s:dot_triggers : ['.'],
+  \   'lua' : ['.', ':'],
+  \   'erlang' : [':'],
+  \ }
+
 fun! s:YouCompleteMeCompileOptions(pairs)
   let opt_string = ' --clang-completer'
   for [exe, opt] in items(a:pairs)
