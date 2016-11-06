@@ -16,6 +16,7 @@ Plug 'scrooloose/syntastic'
 Plug 'Valloric/YouCompleteMe'
 
 Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
 
 " plantuml
 Plug 'aklt/plantuml-syntax'
@@ -173,9 +174,9 @@ set conceallevel=2                            " conceal, replace if defined char
 set concealcursor=nc                          " conceal in normal and commandmode
 
 set textwidth=130
-set colorcolumn=73,81,+1,+2
-"hi OverLength cterm=underline
-"exe "au BufWinEnter * match OverLength '\%".&textwidth."v.*'"
+"set colorcolumn=73,81,+1,+2
+hi OverLength cterm=underline
+exe "au BufWinEnter * match OverLength '\%".&textwidth."v.*'"
 
 " ========== FOLDING ========= " {{{1
 " {{{2
@@ -278,7 +279,7 @@ map <right> <C-W>l
 
 "inoremap <C-C> <ESC>
 inoremap ,. ->
-inoremap ., =>
+inoremap ., <-
 
 " Command mode mappings {{{2
 " forgot to sudo? force it with w!!
@@ -496,57 +497,55 @@ omap T <Plug>Sneak_T
 
 " === SYNTASTIC / NEOMAKE === {{{2
 "{{{3
-if !has("nvim")
-  " passive filetypes uses clang or eclim instead
-  let g:syntastic_mode_map = { 'mode': 'active', 
-          \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ] }
-  " auto close, but no auto open
-  let g:syntastic_auto_loc_list = 2
-  " jump to fist error on open or save
+" passive filetypes uses clang or eclim instead
+let g:syntastic_mode_map = { 'mode': 'active', 
+        \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ] }
+" auto close, but no auto open
+let g:syntastic_auto_loc_list = 2
+" jump to fist error on open or save
 
-  let g:syntastic_always_populate_loc_list = 1
-  let g:syntastic_check_on_open = 1
-  let g:syntastic_check_on_wq = 0
-  " when running multiple checkers, put all errors in one window
-  let g:syntastic_aggregate_errors = 1
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+" when running multiple checkers, put all errors in one window
+let g:syntastic_aggregate_errors = 1
 
-  "let g:syntastic_auto_jump=1
-  " statusline format: [Err: 20 #5, Warn: 10 #1] .. 20 errors, first on line 5
-  let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
-  let g:syntastic_enable_balloons = 0
+"let g:syntastic_auto_jump=1
+" statusline format: [Err: 20 #5, Warn: 10 #1] .. 20 errors, first on line 5
+let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
+let g:syntastic_enable_balloons = 0
 
-  " use this over the standard 'sh' checker
-  let g:syntastic_sh_checkers = [ 'bashate' ]
+" use this over the standard 'sh' checker
+let g:syntastic_sh_checkers = [ 'bashate' ]
 
-  let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
-  let g:syntastic_ruby_rubocop_args = "-D"
+let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
+let g:syntastic_ruby_rubocop_args = "-D"
 
-  nmap <F2> :Errors<CR>
-  imap <F2> <ESC>:Errors<CR>
-  nmap <F3> :set relativenumber!<CR>
+nnoremap <F2> :Errors<CR>
+inoremap <F2> <ESC>:Errors<CR>
+nnoremap <F5> :set relativenumber!<CR>
 
-  nnoremap <expr> <silent> <C-I> len(b:syntastic_loclist) > 0 ? ":call LocListIncr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-I>"
-  nnoremap <expr> <silent> <C-O> len(b:syntastic_loclist) > 0 ? ":call LocListDecr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-O>"
-  " Location/Jump list movement {{{3
-  " Use the jump list movement keys to navigate
-  " the syntactic error list, if it is active
-  fun! LocListIncr() " {{{
-    if !exists("b:loclistpos") || b:loclistpos >= len(b:syntastic_loclist)
-      let b:loclistpos = 0
-    endif
-    let b:loclistpos += 1
-    exe ":lfirst ".b:loclistpos
-  endfun
 
-  fun! LocListDecr()
-    if !exists("b:loclistpos") || b:loclistpos <= 1
-      let b:loclistpos = len(b:syntastic_loclist) + 1
-    endif
-    let b:loclistpos -= 1
-    exe ":lfirst ".b:loclistpos
-  endfun " }}}
-else
-endif
+nnoremap <expr> <silent> <C-I> len(b:syntastic_loclist) > 0 ? ":call LocListIncr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-I>"
+nnoremap <expr> <silent> <C-O> len(b:syntastic_loclist) > 0 ? ":call LocListDecr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-O>"
+" Location/Jump list movement {{{3
+" Use the jump list movement keys to navigate
+" the syntactic error list, if it is active
+fun! LocListIncr() " {{{
+  if !exists("b:loclistpos") || b:loclistpos >= len(b:syntastic_loclist)
+    let b:loclistpos = 0
+  endif
+  let b:loclistpos += 1
+  exe ":lfirst ".b:loclistpos
+endfun
+
+fun! LocListDecr()
+  if !exists("b:loclistpos") || b:loclistpos <= 1
+    let b:loclistpos = len(b:syntastic_loclist) + 1
+  endif
+  let b:loclistpos -= 1
+  exe ":lfirst ".b:loclistpos
+endfun " }}}
 
 " === YOU COMPLETE ME === {{{2
 
@@ -690,6 +689,10 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
       \ --ignore .DS_Store
       \ -g ""'
 " TODO: Check out neovim bg running, and global ag config file for ignores
+" === ULTISNIPS === {{{2
+
+let g:UltiSnipsListSnippets = "<leader><TAB>"
+
 " ========== FUNCTIONS ========== {{{1
 
 " TODO: refactor these
