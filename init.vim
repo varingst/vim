@@ -11,13 +11,11 @@ Plug 'godlygeek/tabular' | Plug 'dhruvasagar/vim-table-mode'
 " markdown, DEP: godlygeek/tabular
 Plug 'plasticboy/vim-markdown'
 
-if has("nvim")
-  Plug 'benekastah/neomake'
-else
-  Plug 'scrooloose/syntastic'
-endif
+Plug 'scrooloose/syntastic'
 
 Plug 'Valloric/YouCompleteMe'
+
+Plug 'SirVer/ultisnips'
 
 " plantuml
 Plug 'aklt/plantuml-syntax'
@@ -25,10 +23,12 @@ Plug 'aklt/plantuml-syntax'
 " scrum, DEP: plasticboy/vim-markdown
 Plug 'mmai/vim-markdown-wiki' | Plug 'mmai/vim-scrum-markdown'
 
+" -- the mightly tim pope quality of life section -- {{{2
 " Git wrapper
 Plug 'tpope/vim-fugitive'
 " XML tags, brackets, quotes, etc
 Plug 'tpope/vim-surround'
+Plug 'tpope/vim-speeddating'
 " adding endfunction/endif/end in vimscript, ruby, bourne shell, etc, etc
 Plug 'tpope/vim-endwise'
 " Run builds and test suites
@@ -41,6 +41,10 @@ Plug 'tpope/vim-abolish'
 Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-projectionist' | Plug 'tpope/vim-rake'
 Plug 'tpope/vim-rails'
+" RubyGems Automatic Ctags Invoker
+Plug 'tpope/gem-ctags'
+Plug 'tpope/vim-fireplace'
+" --- }}}
 
 " ri doc searcher
 Plug 'danchoi/ri.vim'
@@ -49,6 +53,8 @@ Plug 'mileszs/ack.vim'
 
 " lusty exploration
 Plug 'vim-scripts/LustyJuggler'
+
+Plug 'ctrlpvim/ctrlp.vim'
 
 " f/t enhancer/easymotion replacement
 Plug 'justinmk/vim-sneak'
@@ -63,8 +69,7 @@ Plug 'vim-scripts/utl.vim'
 Plug 'vim-scripts/AnsiEsc.vim'
 
 " orgmode
-Plug 'tpope/vim-speeddating' | Plug 'jceb/vim-orgmode'
-Plug 'tpope/vim-repeat'
+Plug 'jceb/vim-orgmode'
 Plug 'vim-scripts/SyntaxRange'
 
 " vim testing
@@ -81,7 +86,9 @@ Plug 'kchmck/vim-coffee-script'
 Plug 'leafgarland/typescript-vim'
 Plug 'bitc/vim-hdevtools'
 Plug 'eagletmt/neco-ghc'
-Plug 'tpope/vim-fireplace'
+
+" slim
+Plug 'slim-template/vim-slim'
 
 " Sass's SCSS syntax
 Plug 'hail2u/vim-css3-syntax'
@@ -493,8 +500,8 @@ if !has("nvim")
   " passive filetypes uses clang or eclim instead
   let g:syntastic_mode_map = { 'mode': 'active', 
           \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ] }
-  " auto opens the window on errors, autocloses when none detected
-  let g:syntastic_auto_loc_list=1
+  " auto close, but no auto open
+  let g:syntastic_auto_loc_list = 2
   " jump to fist error on open or save
 
   let g:syntastic_always_populate_loc_list = 1
@@ -507,14 +514,16 @@ if !has("nvim")
   " statusline format: [Err: 20 #5, Warn: 10 #1] .. 20 errors, first on line 5
   let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
   let g:syntastic_enable_balloons = 0
-  "let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
 
   " use this over the standard 'sh' checker
   let g:syntastic_sh_checkers = [ 'bashate' ]
 
-  " get syntastic
+  let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
   let g:syntastic_ruby_rubocop_args = "-D"
-  command! Rubocop SyntasticCheck rubocop
+
+  nmap <F2> :Errors<CR>
+  imap <F2> <ESC>:Errors<CR>
+  nmap <F3> :set relativenumber!<CR>
 
   nnoremap <expr> <silent> <C-I> len(b:syntastic_loclist) > 0 ? ":call LocListIncr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-I>"
   nnoremap <expr> <silent> <C-O> len(b:syntastic_loclist) > 0 ? ":call LocListDecr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-O>"
@@ -672,6 +681,15 @@ nmap <leader>f :LustyJuggler<CR>
 " === SURROUND === {{{2
 "imap <leader>s <ESC>Isurround<CR>
 
+" === CTRL-P === {{{2
+let g:ctrlp_cache_dir = $HOME . '/.cache/ctrlp'
+let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
+      \ --ignore .git
+      \ --ignore .svn
+      \ --ignore .hg
+      \ --ignore .DS_Store
+      \ -g ""'
+" TODO: Check out neovim bg running, and global ag config file for ignores
 " ========== FUNCTIONS ========== {{{1
 
 " TODO: refactor these
