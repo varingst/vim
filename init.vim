@@ -172,11 +172,11 @@ set list                                      " vim builtin whitespace display
 set listchars=tab:>-,trail:.,extends:#,nbsp:.
 set conceallevel=2                            " conceal, replace if defined char
 set concealcursor=nc                          " conceal in normal and commandmode
+set textwidth=80
 
-set textwidth=130
-"set colorcolumn=73,81,+1,+2
-hi OverLength cterm=underline
-exe "au BufWinEnter * match OverLength '\%".&textwidth."v.*'"
+set viewoptions="cursor,folds"
+
+set colorcolumn=81,+1,+2,130
 
 " ========== FOLDING ========= " {{{1
 " {{{2
@@ -227,16 +227,17 @@ set foldtext=FoldText()
 
 " auto save and load folds, options, and cursor
 au BufWinLeave *.* mkview
-au BufWinEnter *.* silent! loadview | normal! zMzv
+au BufWinEnter *.* silent! loadview
+"| normal! zMzv
 
-" when editing a file, always jump to the last cursor position
-autocmd BufReadPost *
-         \ if ! exists("g:leave_my_cursor_position_alone") |
-         \ if line("'\"") > 0 && line ("'\"") <= line("$") |
-         \ exe "normal! g'\"" |
-         \ endif |
-         \ endif
-
+"" when editing a file, always jump to the last cursor position
+"autocmd BufReadPost *
+         "\ if ! exists("g:leave_my_cursor_position_alone") |
+         "\ if line("'\"") > 0 && line ("'\"") <= line("$") |
+         "\ exe "normal! g'\"" |
+         "\ endif |
+         "\ endif
+   
 " Move quickfix window to the bottom
 au FileType qf wincmd J
 
@@ -255,7 +256,6 @@ au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
 highlight Folded ctermfg=241 ctermbg=234 cterm=bold
 " tab and trailing spaces
 highlight SpecialKey cterm=none ctermfg=233 ctermbg=none
-" colorcolumn
 highlight ColorColumn ctermbg=232
 
 highlight IndentGuidesOdd ctermbg=black
@@ -644,27 +644,27 @@ let g:Imap_FreezeImap = 1 " Turn off ANNOYING AUTO INPUT CRAP
 " Markdown-compatible tables
 let g:table_mode_corner = '|'
 " === UTL === {{{2
-function! s:UtlOrTag()
-  let line = getline('.')
-  let utl_start = match(line, '<url:#r')
+"function! s:UtlOrTag()
+  "let line = getline('.')
+  "let utl_start = match(line, '<url:#r')
 
-  if (utl_start >= 0)
-    " strings are 0-indexed, while the columns are 1-indexed
-    let pos = getpos('.')
-    let pos[2] = utl_start + 1
-    call setpos('.', pos)
-    exe ":Utl"
-    return
-  elseif (match(line, '|\S\+|') >= 0)
-    let tag = substitute(line, '.*|\(\S\+\)|.*', '\1', '')
-    if len(tag)
-      exe ":ta ".tag
-      return
-    endif
-  endif
+  "if (utl_start >= 0)
+    "" strings are 0-indexed, while the columns are 1-indexed
+    "let pos = getpos('.')
+    "let pos[2] = utl_start + 1
+    "call setpos('.', pos)
+    "exe ":Utl"
+    "return
+  "elseif (match(line, '|\S\+|') >= 0)
+    "let tag = substitute(line, '.*|\(\S\+\)|.*', '\1', '')
+    "if len(tag)
+      "exe ":ta ".tag
+      "return
+    "endif
+  "endif
 
-  normal! <C-]>
-endfun
+  "normal! <C-]>
+"endfun
 "nnoremap <silent><C-]> call s:UtlOrTag()<CR>
 "nnoremap <silent><C-]> call s:UtlOrTag()<CR>
 
@@ -741,3 +741,29 @@ inoremap <silent><C-Y> <ESC>:call CopyLineUntil(-1)<CR>
 inoremap <silent><C-E> <ESC>:call CopyLineUntil(1)<CR>
 nnoremap <silent><C-Y> <ESC>:call AlignWithChar(-1)<CR>
 nnoremap <silent><C-E> <ESC>:call AlignWithChar(1)<CR>
+ 
+
+"fun! WrapSettings()
+  "verbose :set textwidth?
+  "verbose :set wrap?
+  "verbose :set wrapmargin?
+  "verbose :set formatoptions?
+"endfun
+
+"function! Rotator(list)
+  "let i = 0
+  "let c = a:list
+  "let i_last = (len(c) - 1)
+  "function! Inner() closure
+    "let i = i == i_last ? 0 : i + 1
+    "return c[i]
+  "endfunction
+  "return funcref('Inner')
+"endfun
+
+
+"let R = Rotator([ "81", "131", "+1,+2" ])
+"let R2 = Rotator([ "31", "41" ])
+
+"nmap <F5> :exe "set colorcolumn=".R()<CR>
+"nmap <F6> :exe "set colorcolumn=".R2()<CR>

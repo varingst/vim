@@ -1,79 +1,79 @@
 
-snippet opt "Single line option"
--${1/(.).*/$1/}|--${1:option}) ${0:statement};;
-endsnippet
+#snippet opt "Single line option"
+#-${1/(.).*/$1/}|--${1:option}) ${0:statement};;
+#endsnippet
 
-snippet lopt "Multi line option"
--${1/(.).*/$1/}|--${1:option})
-	${0:statement}
-;;
-endsnippet
+#snippet lopt "Multi line option"
+#-${1/(.).*/$1/}|--${1:option})
+	#${0:statement}
+#;;
+#endsnippet
 
-snippet bopt "Boolean option"
--${1/(.).*/$1/}|--${1:option}) ${1}=true;;
-endsnippet
+#snippet bopt "Boolean option"
+#-${1/(.).*/$1/}|--${1:option}) ${1}=true;;
+#endsnippet
 
-snippet aopt "Assignment option"
--${1/(.).*/$1/}|--${1:option}=*) 
-	if [[ "\$1" =~ ^-- ]]; then
-		if [[ -z \$\{1#*=\} ]]; then
-			echo "Option \$\{1%=*\} needs ${2:prerequisite}" >&2
-			exit 1
-		fi
-		declare -g "\$1"
-	else
-		if [[ "\$2" =~ ^- ]]; then
-			echo "Option \$1 needs $2"
-		declare -g "\$1"="\$2"
-		shift
-	fi
-;;
-endsnippet
+#snippet aopt "Assignment option"
+#-${1/(.).*/$1/}|--${1:option}=*) 
+	#if [[ "\$1" =~ ^-- ]]; then
+		#if [[ -z \$\{1#*=\} ]]; then
+			#echo "Option \$\{1%=*\} needs ${2:prerequisite}" >&2
+			#exit 1
+		#fi
+		#declare -g "\$1"
+	#else
+		#if [[ "\$2" =~ ^- ]]; then
+			#echo "Option \$1 needs $2"
+		#declare -g "\$1"="\$2"
+		#shift
+	#fi
+#;;
+#endsnippet
 
-snippet opts "Options parser"
-while (( \$# )); do
-	if [[ "\$1" =~ ^-[[:alnum:]]+\$ ]]; then
-		opts="-\$\{1:1:1\}"
-		for (( i=2; i<\$\{#1\}; i++ )); do opts+=" -\$\{1:i:1\}"; done
-		set -- \$opts "\$\{@:2\}"
-	fi
-	case "\$1" in
-		${0:opt/lopt/bopt/aopt}
-		--) shift; break;;
-		-*)
-			echo "\$\{FUNCNAME:-\$\{BASH_SOURCE##/*\}\}: Unrecognized option: \$1" >&2
-			[[ -z "$FUNCNAME" ]] && exit 1 || return 1
-		;;
-		*) break;;
-	esac
-	shift
-done
-endsnippet
+#snippet opts "Options parser"
+#while (( \$# )); do
+	#if [[ "\$1" =~ ^-[[:alnum:]]+\$ ]]; then
+		#opts="-\$\{1:1:1\}"
+		#for (( i=2; i<\$\{#1\}; i++ )); do opts+=" -\$\{1:i:1\}"; done
+		#set -- \$opts "\$\{@:2\}"
+	#fi
+	#case "\$1" in
+		#${0:opt/lopt/bopt/aopt}
+		#--) shift; break;;
+		#-*)
+			#echo "\$\{FUNCNAME:-\$\{BASH_SOURCE##/*\}\}: Unrecognized option: \$1" >&2
+			#[[ -z "$FUNCNAME" ]] && exit 1 || return 1
+		#;;
+		#*) break;;
+	#esac
+	#shift
+#done
+#endsnippet
 		
-snippet getopt
-version="${1:0.1a}"
-usage() {
-		cat <<- EOS
+#snippet getopt
+#version="${1:0.1a}"
+#usage() {
+		#cat <<- EOS
 
-	Usage :  $${0:0} [options] [--]
+	#Usage :  $${0:0} [options] [--]
 
-	Options:
-	-h, --help       Display this message
-	-v, --version    Display script version
+	#Options:
+	#-h, --help       Display this message
+	#-v, --version    Display script version
 
-EOS
-}
+#EOS
+#}
 
-while getopts ":hv" opt; do
-	case $opt in
+#while getopts ":hv" opt; do
+	#case $opt in
 	
-		h|help)     usage; exit 0;;
-		v|version)  echo "$${0:0} -- Version $version"; exit 0;;
-		\?)
-			echo -e "$${0:0}: Unrecognized option: $OPTARG\n"
-			usage; exit 1
-		;;
-	esac
-done
-shift $(($OPTIND-1))
-endsnippet
+		#h|help)     usage; exit 0;;
+		#v|version)  echo "$${0:0} -- Version $version"; exit 0;;
+		#\?)
+			#echo -e "$${0:0}: Unrecognized option: $OPTARG\n"
+			#usage; exit 1
+		#;;
+	#esac
+#done
+#shift $(($OPTIND-1))
+#endsnippet
