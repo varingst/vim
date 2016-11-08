@@ -177,66 +177,13 @@ set textwidth=80
 set viewoptions="cursor,folds"
 
 set colorcolumn=81,+1,+2,130
+set foldtext=do#FoldText()
 
-" ========== FOLDING ========= " {{{1
-" {{{2
-" If line contains nothing but a fold marker, use
-" the next line of non-commented text as fold text
-" TODO: Not working properly
-" Fails with NON-ALNUM CHARS
-fun! FoldText() " {{{
-  let ft = split(foldtext(), ':')
-  " this line in better, but does not work ?!
-  "let ft[1] = substitite(ft[1], ' \s*','','')
-  let ft[1] = ft[1][1:]
-  let ft[0] = " ".substitute(ft[0], '^\D*','','')." "
-  let txt = ""
-  if match(ft[1], '\S') == -1
-    let txt .= GetFirstNonComment(v:foldstart)
-  else
-    let txt .= join(ft[1:],':')
-  endif
-  let line = repeat('  ', v:foldlevel - 1).txt." "
-  let offset = &columns - ( 4 + len(line) + len(ft[0]))
-  if offset > 0
-    return line.repeat('-', offset).ft[0]
-  else
-    return line.ft[0]
-  endif
-endfun " }}}
-
-" Helper function for FoldText()
-fun! GetFirstNonComment(start) " {{{
-  let line = ""
-  let i = a:start
-  let col = 1
-  while match(synIDattr(synID(i, col, 1), "name"), 'Comment$') != -1
-    let i = nextnonblank(i+1)
-  endwhile
-  if !i | return "NO NONBLANK LINE: EMPTY FOLD?" | endif
-  let max = strlen(getline(i))
-  while col <= max && match(synIDattr(synID(i, col, 1), "name"), 'Comment$') == -1
-    let col += 1
-  endwhile
-  return substitute(getline(i)[0:col-2], '^\s*\(\S*\)', '\1', '')
-endfun
-" }}}
-set foldtext=FoldText()
-
-" ========== AUTOCOMMANDS ========== {{{1
+" ========= AUTOCOMMANDS ========== {{{1
 
 " auto save and load folds, options, and cursor
 au BufWinLeave *.* mkview
 au BufWinEnter *.* silent! loadview
-"| normal! zMzv
-
-"" when editing a file, always jump to the last cursor position
-"autocmd BufReadPost *
-         "\ if ! exists("g:leave_my_cursor_position_alone") |
-         "\ if line("'\"") > 0 && line ("'\"") <= line("$") |
-         "\ exe "normal! g'\"" |
-         "\ endif |
-         "\ endif
    
 " Move quickfix window to the bottom
 au FileType qf wincmd J
@@ -281,6 +228,12 @@ map <right> <C-W>l
 inoremap ,. ->
 inoremap ., <-
 
+" Copy next/previous line " {{{2
+inoremap <silent><C-Y> <ESC>:call do#CopyLineUntil(-1)<CR>
+inoremap <silent><C-E> <ESC>:call do#CopyLineUntil(1)<CR>
+nnoremap <silent><C-Y> <ESC>:call do#AlignWithChar(-1)<CR>
+nnoremap <silent><C-E> <ESC>:call do#AlignWithChar(1)<CR>
+ 
 " Command mode mappings {{{2
 " forgot to sudo? force it with w!!
 cmap w!! w !sudo tee % > /dev/null
@@ -317,108 +270,14 @@ nnoremap / :set hlsearch<CR>/
 nnoremap ? :set hlsearch<CR>?
 nnoremap <silent><F4> :set hlsearch!<CR>
 
-nnoremap <silent><leader>g :!guardwrapper change %<CR><CR>
-
-autocmd InsertEnter * set nohlsearch | :call InsertEnter()
-autocmd InsertLeave * :call InsertLeave()
+autocmd InsertEnter * set nohlsearch
 
 " Normal Space {{{2
 
 nnoremap <localleader>- :split %<CR>
 nnoremap <localleader>= :vsplit %<CR>
 
-
-" Insert mode enter/leave hook functions {{{2
-" TODO: Some of this is deprecated, like (f:key)
-
-function! InsertEnter()
-  "CH bar
-  if exists("g:f_key")
-    unlet g:f_key
-  endif
-  if exists("g:selectedParameter")
-    unlet g:selectedParameter
-  endif
-endfun
-
-
-function! InsertLeave()
-  "CH 0
-endfun
-
-" Insert mode movement command shortcuts {{{2
-"--Map <leader>f ForwardToChar()  i 'Move forward to char'
-"--Map <leader>F BackwardToChar() i 'Move backward to char'
-
-"--Map <leader>a <ESC>A i 'Continue insert at end of line'
-"--Map <leader>s <ESC>o i 'Continue insert on next line'
-
-"" <C-U>/<C-D> pageup/pagedown in completion menu
-"inoremap <expr> <C-U> pumvisible() ? "\<PageUp>" : "\<C-U>"
-"inoremap <expr> <C-D> pumvisible() ? "\<PageDown>" : "\<C-D>"
-"inoremap <expr> <C-J> pumvisible() ? '<Down>' : '
-"inoremap <expr> <C-J
-
-" E group prototype {{{2
-" TODO: Pull all of this out and make it a proper plugin.
-" Issue: But that's a lot of work!
-" Solution: Find time
-vnoremap <expr><silent><C-j> exists("g:selectedParameter") ? ":call NextParam()\<CR>" : "\<C-j>"
-vnoremap <expr><silent><C-k> exists("g:selectedParameter") ? ":call PrevParam()\<CR>" : "\<C-k>"
-vnoremap <expr><silent><C-l> exists("g:selectedParameter") ? ":call SelectParameter(0)\<CR>" : "\<C-l>"
-
-" MapGroup r : Replicate line, "near copy" and convenient quick edits {{{2
-"--MapGroup <leader>r iv Replicate
-inoremap <leader>r <ESC>:call RepeatToChar()<CR>
-"--Map <leader>rk SpawnVariations() i Duplicate current line with search/replace variations
-"--Map <leader>rl FixLastCase()     i Replace last [A-Z][A-Z] with [A-Z][a-z]
-" TODO: Fix this, cleanup <C-U> and <C-N> in pum menu, not needed with ycm
-inoremap <C-N> <ESC>:call RepeatToChar('.')<CR>
-
-
-
-
-" Issue: This might not have to be in a group, even though it belongs in the
-" Replicate group by association.
-" Solution: Make more visual mode replicate functions ;)
-"--Map <leader>rl SpawnMultilineVariations() v 'Insert search/replace variations'
-vnoremap <leader>rl :<C-U>call SpawnMultilineVariations()<CR>
-
-" "Pure" insert mode mappings {{{2
-"--Map <C-R> RepeatToChar(1) i 'Duplicate current line up to char'
-"Map <C-B> <Insert>        i 'Toggle Insert/Replace mode'
-"imap <C-R> <ESC>:call RepeatToChar(1)<CR>
-" {{{2
-" Move to next/prev line of same indent level as current one
-" PARAMS: dir <bool> : next line of true, prev line if false
-fun! NextSimilarIndent(dir) " {{{
-  let p = getpos(".")
-  let ind = indent(p[1])
-  let i = (a:dir ? p[1] + 1 : p[1] - 1)
-  while ((indent(i) + 1) ? (indent(i) != ind) : 0)
-    let i = (a:dir ? i + 1 : i - 1)
-  endwhile
-  if indent(i) == ind | call setpos('.', [ p[0], i, p[2], p[3] ]) | endif
-endfun
-
-" Various Normal mode convencience {{{2
-" fold with space
-"nnoremap <silent> <Space> @=(foldlevel('.')?'za':'l')<CR>
-"nnoremap <silent> <Space> @=(foldlevel('.')
-                            "\ ? (foldclosed('.') == -1 ? 'zc' : 'zx')
-                            "\ : 'l')<CR>
-
-
-" Utl lookup
-" FIXME: These conflict and does not work as intended
-"nnoremap <silent><C-]> :call GetUtls()<CR>
-"nnoremap <expr> <silent> <C-]> (synIDattr(synID(line("."), col("."), 1), "name") == "UtlUrl") ? "\<ESC>:Utl\<CR>" : "\<C-]>"
-
-" This is also a candidate for Blistering enhancement
-"nnoremap <silent> <bar> :call AutoTab()<CR>
-"vnoremap <silent> <bar> :call AutoTab(1)<CR>
-" TODO: fina another mapping for this
-" nnoremap <silent> <C-L> :call RepeatToChar()<CR>
+" Tab next and prev {{{2
 
 " TabNext - Go to next tab page
 nnoremap <C-l> gt
@@ -434,7 +293,6 @@ nnoremap <C-h> gT
 " <C-[> <ESC>
 " <C-I> <Tab>
 " <C-A> tmux mode key (insert previously inserted text and stop insert)
-" <C-S> suspend terminal (unused)
 " <C-Q> resume terminal
 " <C-C> break
 " <C-Z> kill/move to background
@@ -496,7 +354,6 @@ omap T <Plug>Sneak_T
 
 
 " === SYNTASTIC / NEOMAKE === {{{2
-"{{{3
 " passive filetypes uses clang or eclim instead
 let g:syntastic_mode_map = { 'mode': 'active', 
         \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ] }
@@ -521,35 +378,24 @@ let g:syntastic_sh_checkers = [ 'bashate' ]
 let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
 let g:syntastic_ruby_rubocop_args = "-D"
 
+" .. why? is this here
 nnoremap <F2> :Errors<CR>
 inoremap <F2> <ESC>:Errors<CR>
 nnoremap <F5> :set relativenumber!<CR>
 
-
-nnoremap <expr> <silent> <C-I> len(b:syntastic_loclist) > 0 ? ":call LocListIncr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-I>"
-nnoremap <expr> <silent> <C-O> len(b:syntastic_loclist) > 0 ? ":call LocListDecr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-O>"
+" this needs to change! throws so much errors. move the login into the function
+" you damned nub
+nnoremap <expr> <silent> <C-I> len(b:syntastic_loclist) > 0 ? ":call do#LocListIncr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-I>"
+nnoremap <expr> <silent> <C-O> len(b:syntastic_loclist) > 0 ? ":call do#LocListDecr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-O>"
 " Location/Jump list movement {{{3
 " Use the jump list movement keys to navigate
 " the syntactic error list, if it is active
-fun! LocListIncr() " {{{
-  if !exists("b:loclistpos") || b:loclistpos >= len(b:syntastic_loclist)
-    let b:loclistpos = 0
-  endif
-  let b:loclistpos += 1
-  exe ":lfirst ".b:loclistpos
-endfun
-
-fun! LocListDecr()
-  if !exists("b:loclistpos") || b:loclistpos <= 1
-    let b:loclistpos = len(b:syntastic_loclist) + 1
-  endif
-  let b:loclistpos -= 1
-  exe ":lfirst ".b:loclistpos
-endfun " }}}
 
 " === YOU COMPLETE ME === {{{2
 
-let g:ycm_core_dirs = { 'Darwin' : '/../core_darwin/', 'Linux' : '/../core_linux/' }
+" i think this was some deprecated expermentation
+" let g:ycm_core_dirs = { 'Darwin' : '/../core_darwin/', 'Linux' : '/../core_linux/' }
+
 "let g:ycm_filetype_whitelist = { '*': 1 }
 "let g:ycm_filetype_blacklist = { 'notes' : 1, 'markdown' : 1, 'text' :1 }
 "let g:ycm_filetype_specific_competion_to_disable = {}
@@ -596,37 +442,6 @@ let g:ycm_semantic_triggers = {
   \   'lua' : ['.', ':'],
   \   'erlang' : [':'],
   \ }
-
-fun! s:YouCompleteMeCompileOptions(pairs)
-  let opt_string = ' --clang-completer'
-  for [exe, opt] in items(a:pairs)
-    if executable(exe)
-      let opt_string .= ' '.opt
-    endif
-  endfor
-  return opt_string
-endfun
-
-fun! s:YouCompleteMeCompile()
-  let cwd = getcwd()
-  let vim_runtime = split(&runtimepath, ',')[0]
-  let ycm_dir = vim_runtime.'/plugged/YouCompleteMe'
-  call system('cd '.ycm_dir)
-  if v:shell_error
-    throw "YCM dir not located"
-    return
-  endif
-  let install_cmd = './install.py'.s:YouCompleteMeCompileOptions({
-        \ 'msbuild': '--omnisharp-completer',
-        \ 'go': '--gocode-completer',
-        \ 'node': '--tern-completer',
-        \ 'rustc': '--racer-completer' })
-  exe '!'.install_cmd
-  "echo install_cmd
-  call system('cd '.cwd)
-endfun
-
-command! YouCompleteMeCompile call s:YouCompleteMeCompile()<CR>
 " === ECLIM === {{{2
 
 " makes eclim play nice with YCM
@@ -644,27 +459,6 @@ let g:Imap_FreezeImap = 1 " Turn off ANNOYING AUTO INPUT CRAP
 " Markdown-compatible tables
 let g:table_mode_corner = '|'
 " === UTL === {{{2
-"function! s:UtlOrTag()
-  "let line = getline('.')
-  "let utl_start = match(line, '<url:#r')
-
-  "if (utl_start >= 0)
-    "" strings are 0-indexed, while the columns are 1-indexed
-    "let pos = getpos('.')
-    "let pos[2] = utl_start + 1
-    "call setpos('.', pos)
-    "exe ":Utl"
-    "return
-  "elseif (match(line, '|\S\+|') >= 0)
-    "let tag = substitute(line, '.*|\(\S\+\)|.*', '\1', '')
-    "if len(tag)
-      "exe ":ta ".tag
-      "return
-    "endif
-  "endif
-
-  "normal! <C-]>
-"endfun
 "nnoremap <silent><C-]> call s:UtlOrTag()<CR>
 "nnoremap <silent><C-]> call s:UtlOrTag()<CR>
 
@@ -693,77 +487,3 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
 
 let g:UltiSnipsListSnippets = "<leader><TAB>"
 
-" ========== FUNCTIONS ========== {{{1
-
-" TODO: refactor these
-
-function! CopyLineUntil(offset, ...) " {{{2
-  try
-    call FindCharPos(a:offset, a:000)
-  catch /NoMatch/
-    return
-  endtry
-  call setline(s:lnum, s:other_line[0:(s:colmatch)])
-  startinsert! 
-endfun
-
-function! AlignWithChar(offset, ...) " {{{2
-  try
-    call FindCharPos(a:offset, a:000)
-  catch /NoMatch/
-    return
-  endtry
-  let curline = getline(s:lnum)
-  call setline(s:lnum, Fill(curline, s:col, s:colmatch - s:col))
-  "call setline(s:lnum, curline[0:(s:col - 1)].repeat(' ', s:colmatch - s:col).curline[s:col :])
-  call setpos('.', [s:bufnum, s:lnum, s:colmatch + 1, s:off])
-endfun
-
-function! Fill(string, pos, width) " {{{2
-  return a:string[0:(a:pos - 1)].repeat(' ', a:width).a:string[a:pos :]
-endfun
-
-function! FindCharPos(line_offset, varargs) " {{{2
-  let params = {}
-  let ignorecase = &ignorecase
-  let char = len(a:varargs) ? a:varargs[0] : nr2char(getchar())
-  let [s:bufnum, s:lnum, s:col, s:off, s:curswant] = getcurpos()
-  let s:other_line = getline(s:lnum + a:line_offset)
-  set noignorecase
-  let s:colmatch = match(s:other_line, char, s:col)
-  if ignorecase | set ignorecase | endif
-  if s:colmatch < 0 | throw "NoMatch" | endif
-endfun
-
-" === MAPPINGS === {{{2
-
-inoremap <silent><C-Y> <ESC>:call CopyLineUntil(-1)<CR>
-inoremap <silent><C-E> <ESC>:call CopyLineUntil(1)<CR>
-nnoremap <silent><C-Y> <ESC>:call AlignWithChar(-1)<CR>
-nnoremap <silent><C-E> <ESC>:call AlignWithChar(1)<CR>
- 
-
-"fun! WrapSettings()
-  "verbose :set textwidth?
-  "verbose :set wrap?
-  "verbose :set wrapmargin?
-  "verbose :set formatoptions?
-"endfun
-
-"function! Rotator(list)
-  "let i = 0
-  "let c = a:list
-  "let i_last = (len(c) - 1)
-  "function! Inner() closure
-    "let i = i == i_last ? 0 : i + 1
-    "return c[i]
-  "endfunction
-  "return funcref('Inner')
-"endfun
-
-
-"let R = Rotator([ "81", "131", "+1,+2" ])
-"let R2 = Rotator([ "31", "41" ])
-
-"nmap <F5> :exe "set colorcolumn=".R()<CR>
-"nmap <F6> :exe "set colorcolumn=".R2()<CR>
