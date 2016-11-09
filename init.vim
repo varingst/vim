@@ -179,7 +179,7 @@ set viewoptions="cursor,folds"
 set colorcolumn=81,+1,+2,130
 set foldtext=do#FoldText()
 
-" ========= AUTOCOMMANDS ========== {{{1
+" ========== AUTOCOMMANDS ========== {{{1
 
 " auto save and load folds, options, and cursor
 au BufWinLeave *.* mkview
