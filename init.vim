@@ -488,4 +488,3 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
 " === ULTISNIPS === {{{2
 
 let g:UltiSnipsListSnippets = "<leader><TAB>"
-
