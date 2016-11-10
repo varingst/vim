@@ -7,6 +7,8 @@ filetype off
 call plug#begin()
 
 Plug 'scrooloose/nerdcommenter'
+Plug 'scrooloose/nerdtree'
+
 Plug 'godlygeek/tabular' | Plug 'dhruvasagar/vim-table-mode'
 " markdown, DEP: godlygeek/tabular
 Plug 'plasticboy/vim-markdown'
@@ -14,9 +16,9 @@ Plug 'plasticboy/vim-markdown'
 Plug 'scrooloose/syntastic'
 
 Plug 'Valloric/YouCompleteMe'
+Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
 
-Plug 'SirVer/ultisnips'
-Plug 'honza/vim-snippets'
+Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 
 " plantuml
 Plug 'aklt/plantuml-syntax'
@@ -96,7 +98,7 @@ Plug 'hail2u/vim-css3-syntax'
 
 " Homerolled prototypes
 "Plug '~/dev/cheatsheet'
-Plug 'varingst/vim-cheatsheet'
+Plug '~/.vim/proto/vim-cheatsheet'
 
 call plug#end()
 
