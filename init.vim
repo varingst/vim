@@ -6,17 +6,14 @@ filetype off
 
 call plug#begin()
 
-Plug 'scrooloose/nerdcommenter'
-Plug 'scrooloose/nerdtree'
-
-Plug 'godlygeek/tabular' | Plug 'dhruvasagar/vim-table-mode'
-" markdown, DEP: godlygeek/tabular
-Plug 'plasticboy/vim-markdown'
-
-Plug 'scrooloose/syntastic'
-
 Plug 'Valloric/YouCompleteMe'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
+
+Plug 'vim-scripts/taglist.vim'
+
+Plug 'scrooloose/syntastic'
+Plug 'scrooloose/nerdcommenter'
+Plug 'scrooloose/nerdtree'
 
 Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 
@@ -49,6 +46,10 @@ Plug 'tpope/gem-ctags'
 Plug 'tpope/vim-fireplace'
 " --- }}}
 
+Plug 'godlygeek/tabular' | Plug 'dhruvasagar/vim-table-mode'
+" markdown, DEP: godlygeek/tabular
+Plug 'plasticboy/vim-markdown'
+
 " ri doc searcher
 Plug 'danchoi/ri.vim'
 " code grepper (ag/ack) wapper
@@ -74,6 +75,7 @@ Plug 'vim-scripts/AnsiEsc.vim'
 " orgmode
 Plug 'jceb/vim-orgmode'
 Plug 'vim-scripts/SyntaxRange'
+Plug 'mattn/calendar-vim'
 
 " vim testing
 Plug 'tomtom/spec_vim'
@@ -216,9 +218,12 @@ map ; <nop>
 let mapleader   = ";"
 let g:mapleader = ";"
 
-" use default local leader: \
+map , <nop>
+let maplocalleader = ","
+let g:maplocalleader = ","
 
-nnoremap <leader>j A<br><ESC>
+
+" use default local leader: \
 
 " Make arrow keys useful
 map <up> <C-W>k
@@ -241,6 +246,7 @@ nnoremap <silent><C-E> <ESC>:call do#AlignWithChar(1)<CR>
 cmap w!! w !sudo tee % > /dev/null
 cnoremap <C-k> <up>
 cnoremap <C-j> <down>
+
 
 " Normal jkJK {{{2
 
@@ -383,7 +389,8 @@ let g:syntastic_ruby_rubocop_args = "-D"
 " .. why? is this here
 nnoremap <F2> :Errors<CR>
 inoremap <F2> <ESC>:Errors<CR>
-nnoremap <F5> :set relativenumber!<CR>
+nnoremap <F3> :set relativenumber!<CR>
+nnoremap <F5> :CheatSheet<CR>
 
 " this needs to change! throws so much errors. move the login into the function
 " you damned nub
@@ -488,3 +495,12 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
 " === ULTISNIPS === {{{2
 
 let g:UltiSnipsListSnippets = "<leader><TAB>"
+
+" === CALENDAR === {{{2
+
+let g:calendar_monday = 1
+let g:calendar_wruler = "日 月 火 水 木 金 土"
+
+" === ORGMODE === {{{2
+
+let g:org_agenda_files = [ '~/.org/*.org' ]
