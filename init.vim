@@ -15,7 +15,7 @@ Plug 'scrooloose/syntastic'
 Plug 'scrooloose/nerdcommenter'
 Plug 'scrooloose/nerdtree'
 
-Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
+" Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 
 " plantuml
 Plug 'aklt/plantuml-syntax'
@@ -90,6 +90,7 @@ Plug 'pangloss/vim-javascript'
 Plug 'kchmck/vim-coffee-script'
 Plug 'leafgarland/typescript-vim'
 Plug 'bitc/vim-hdevtools'
+Plug 'Twinside/vim-hoogle'
 Plug 'eagletmt/neco-ghc'
 
 " slim
@@ -206,7 +207,7 @@ au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
 " folding highlighting
 highlight Folded ctermfg=241 ctermbg=234 cterm=bold
 " tab and trailing spaces
-highlight SpecialKey cterm=none ctermfg=233 ctermbg=none
+highlight SpecialKey cterm=none ctermfg=233 ctermbg=red
 highlight ColorColumn ctermbg=232
 
 highlight IndentGuidesOdd ctermbg=black
@@ -380,8 +381,12 @@ let g:syntastic_aggregate_errors = 1
 let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
 let g:syntastic_enable_balloons = 0
 
+let g:syntastic_lua_checkers = [ 'luacheck' ]
+
 " use this over the standard 'sh' checker
 let g:syntastic_sh_checkers = [ 'bashate' ]
+
+let g:syntastic_haskell_checkers = [ 'hdevtools', 'hlint' ]
 
 let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
 let g:syntastic_ruby_rubocop_args = "-D"
@@ -394,8 +399,8 @@ nnoremap <F5> :CheatSheet<CR>
 
 " this needs to change! throws so much errors. move the login into the function
 " you damned nub
-nnoremap <expr> <silent> <C-I> len(b:syntastic_loclist) > 0 ? ":call do#LocListIncr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-I>"
-nnoremap <expr> <silent> <C-O> len(b:syntastic_loclist) > 0 ? ":call do#LocListDecr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-O>"
+"nnoremap <expr> <silent> <C-I> len(b:syntastic_loclist) > 0 ? ":call do#LocListIncr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-I>"
+"nnoremap <expr> <silent> <C-O> len(b:syntastic_loclist) > 0 ? ":call do#LocListDecr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-O>"
 " Location/Jump list movement {{{3
 " Use the jump list movement keys to navigate
 " the syntactic error list, if it is active
@@ -494,7 +499,7 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
 " TODO: Check out neovim bg running, and global ag config file for ignores
 " === ULTISNIPS === {{{2
 
-let g:UltiSnipsListSnippets = "<leader><TAB>"
+" let g:UltiSnipsListSnippets = "<leader><TAB>"
 
 " === CALENDAR === {{{2
 
