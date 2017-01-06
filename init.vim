@@ -99,6 +99,11 @@ Plug 'slim-template/vim-slim'
 " Sass's SCSS syntax
 Plug 'hail2u/vim-css3-syntax'
 
+" Trailing whitespace
+Plug 'vim-scripts/ShowTrailingWhitespace'
+Plug 'vim-scripts/JumpToTrailingWhitespace'
+Plug 'vim-scripts/DeleteTrailingWhitespace'
+
 " Homerolled prototypes
 "Plug '~/dev/cheatsheet'
 Plug '~/.vim/proto/vim-cheatsheet'
@@ -207,7 +212,7 @@ au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
 " folding highlighting
 highlight Folded ctermfg=241 ctermbg=234 cterm=bold
 " tab and trailing spaces
-highlight SpecialKey cterm=none ctermfg=233 ctermbg=red
+highlight SpecialKey ctermbg=none ctermfg=235
 highlight ColorColumn ctermbg=232
 
 highlight IndentGuidesOdd ctermbg=black
