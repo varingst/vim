@@ -101,6 +101,7 @@ Plug 'hail2u/vim-css3-syntax'
 
 " Trailing whitespace
 Plug 'vim-scripts/ShowTrailingWhitespace'
+Plug 'vim-scripts/CountJump'
 Plug 'vim-scripts/JumpToTrailingWhitespace'
 Plug 'vim-scripts/DeleteTrailingWhitespace'
 
