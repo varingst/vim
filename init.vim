@@ -100,6 +100,7 @@ Plug 'slim-template/vim-slim'
 Plug 'hail2u/vim-css3-syntax'
 
 " Trailing whitespace
+Plug 'vim-scripts/ingo-library'
 Plug 'vim-scripts/ShowTrailingWhitespace'
 Plug 'vim-scripts/CountJump'
 Plug 'vim-scripts/JumpToTrailingWhitespace'
@@ -195,7 +196,7 @@ set foldtext=do#FoldText()
 " auto save and load folds, options, and cursor
 au BufWinLeave *.* mkview
 au BufWinEnter *.* silent! loadview
-   
+
 " Move quickfix window to the bottom
 au FileType qf wincmd J
 
@@ -218,6 +219,8 @@ highlight ColorColumn ctermbg=232
 
 highlight IndentGuidesOdd ctermbg=black
 highlight IndentGuidesEven ctermbg=233
+
+highlight ShowTrailingWhitespace ctermbg=red
 
 " ========== KEY MAPPING ========== {{{1
 " remapping <Leader> to ;
@@ -247,7 +250,7 @@ inoremap <silent><C-Y> <ESC>:call do#CopyLineUntil(-1)<CR>
 inoremap <silent><C-E> <ESC>:call do#CopyLineUntil(1)<CR>
 nnoremap <silent><C-Y> <ESC>:call do#AlignWithChar(-1)<CR>
 nnoremap <silent><C-E> <ESC>:call do#AlignWithChar(1)<CR>
- 
+
 " Command mode mappings {{{2
 " forgot to sudo? force it with w!!
 cmap w!! w !sudo tee % > /dev/null
@@ -370,7 +373,7 @@ omap T <Plug>Sneak_T
 
 " === SYNTASTIC / NEOMAKE === {{{2
 " passive filetypes uses clang or eclim instead
-let g:syntastic_mode_map = { 'mode': 'active', 
+let g:syntastic_mode_map = { 'mode': 'active',
         \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ] }
 " auto close, but no auto open
 let g:syntastic_auto_loc_list = 2
@@ -486,7 +489,7 @@ let g:table_mode_corner = '|'
 if executable('ag')
   let g:ackprg = 'ag --vimgrep'
 endif
-nmap <leader>a :Ack 
+nmap <leader>a :Ack
 
 " === LUSTY JUGGLER === {{{2
 nmap <leader>f :LustyJuggler<CR>
