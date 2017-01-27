@@ -50,6 +50,8 @@ Plug 'godlygeek/tabular' | Plug 'dhruvasagar/vim-table-mode'
 " markdown, DEP: godlygeek/tabular
 Plug 'plasticboy/vim-markdown'
 
+Plug 'JamshedVesuna/vim-markdown-preview'
+
 " ri doc searcher
 Plug 'danchoi/ri.vim'
 " code grepper (ag/ack) wapper
