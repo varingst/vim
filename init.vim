@@ -89,6 +89,7 @@ Plug 'gerw/vim-latex-suite'
 Plug 'kana/vim-textobj-user'
 Plug 'nelstrom/vim-textobj-rubyblock'
 Plug 'pangloss/vim-javascript'
+Plug 'mxw/vim-jsx'
 Plug 'kchmck/vim-coffee-script'
 Plug 'leafgarland/typescript-vim'
 Plug 'bitc/vim-hdevtools'
@@ -402,6 +403,8 @@ let g:syntastic_haskell_checkers = [ 'hdevtools', 'hlint' ]
 let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
 let g:syntastic_ruby_rubocop_args = "-D"
 
+let g:syntastic_javascript_checkers = ['eslint']
+
 " .. why? is this here
 nnoremap <F2> :Errors<CR>
 inoremap <F2> <ESC>:Errors<CR>
@@ -467,6 +470,10 @@ let g:ycm_semantic_triggers = {
   \   'lua' : ['.', ':'],
   \   'erlang' : [':'],
   \ }
+" === JSX === {{{2
+
+" Allow JSX in normal JS files
+let g:jsx_ext_required = 0
 " === ECLIM === {{{2
 
 " makes eclim play nice with YCM
