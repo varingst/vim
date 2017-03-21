@@ -527,3 +527,7 @@ let g:calendar_wruler = "日 月 火 水 木 金 土"
 " === ORGMODE === {{{2
 
 let g:org_agenda_files = [ '~/.org/*.org' ]
+
+" === MARKDOWN PREVIEW === {{{2
+let vim_markdown_preview_github = 1
+let vim_markdown_preview_use_xdg_open = 1
