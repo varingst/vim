@@ -90,6 +90,7 @@ Plug 'kana/vim-textobj-user'
 Plug 'nelstrom/vim-textobj-rubyblock'
 Plug 'pangloss/vim-javascript'
 Plug 'mxw/vim-jsx'
+Plug 'nikvdp/ejs-syntax'
 Plug 'kchmck/vim-coffee-script'
 Plug 'leafgarland/typescript-vim'
 Plug 'bitc/vim-hdevtools'
@@ -247,6 +248,7 @@ map <right> <C-W>l
 "inoremap <C-C> <ESC>
 inoremap ,. ->
 inoremap ., <-
+inoremap ,, =>
 
 " Copy next/previous line " {{{2
 inoremap <silent><C-Y> <ESC>:call do#CopyLineUntil(-1)<CR>
