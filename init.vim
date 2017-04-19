@@ -88,8 +88,7 @@ Plug 'h1mesuke/vim-unittest'
 Plug 'gerw/vim-latex-suite'
 Plug 'kana/vim-textobj-user'
 Plug 'nelstrom/vim-textobj-rubyblock'
-Plug 'pangloss/vim-javascript'
-Plug 'mxw/vim-jsx'
+Plug 'maxmellon/vim-jsx-pretty' | Plug 'pangloss/vim-javascript'
 Plug 'nikvdp/ejs-syntax'
 Plug 'kchmck/vim-coffee-script'
 Plug 'leafgarland/typescript-vim'
@@ -474,8 +473,9 @@ let g:ycm_semantic_triggers = {
   \ }
 " === JSX === {{{2
 
-" Allow JSX in normal JS files
-let g:jsx_ext_required = 0
+" jsx highlight
+let g:vim_jsx_pretty_enable_jsx_highlight = 1
+
 " === ECLIM === {{{2
 
 " makes eclim play nice with YCM
