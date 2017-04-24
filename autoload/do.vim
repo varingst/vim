@@ -8,7 +8,7 @@ function! do#CopyLineUntil(offset, ...) " {{{2
     return
   endtry
   call setline(s:lnum, s:other_line[0:(s:colmatch)])
-  startinsert! 
+  startinsert!
 endfun
 
 function! do#AlignWithChar(offset, ...) " {{{2
@@ -21,6 +21,26 @@ function! do#AlignWithChar(offset, ...) " {{{2
   call setline(s:lnum, Fill(curline, s:col, s:colmatch - s:col))
   "call setline(s:lnum, curline[0:(s:col - 1)].repeat(' ', s:colmatch - s:col).curline[s:col :])
   call setpos('.', [s:bufnum, s:lnum, s:colmatch + 1, s:off])
+endfun
+
+function! do#Variations(...)
+  if a:0
+    let words = a:000[:]
+  else
+    call inputsave()
+    let words = split(input('match sub1 sub2 ... : '))
+    call inputrestore()
+  endif
+
+  if len(words) <= 1
+    return
+  endif
+
+  let curline = getline('.')
+  for i in range(1, len(words) - 1)
+    let words[i] = substitute(curline, words[0], words[i], 'g')
+  endfor
+  call append(line('.'), words[1: -1])
 endfun
 
 function! do#Fill(string, pos, width) " {{{2

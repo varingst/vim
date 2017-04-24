@@ -6,101 +6,22 @@ filetype off
 
 call plug#begin()
 
+" -- Programmer QoL -- {{{2
+
 Plug 'Valloric/YouCompleteMe'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
 
+Plug 'scrooloose/syntastic'       " syntax checkers
+Plug 'scrooloose/nerdcommenter'   " batch commenting +++
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
+
+Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
+
+" Code search and nav
+Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
 Plug 'vim-scripts/taglist.vim'
-
-Plug 'scrooloose/syntastic'
-Plug 'scrooloose/nerdcommenter'
-Plug 'scrooloose/nerdtree'
-
-" Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
-
-" plantuml
-Plug 'aklt/plantuml-syntax'
-
-" scrum, DEP: plasticboy/vim-markdown
-Plug 'mmai/vim-markdown-wiki' | Plug 'mmai/vim-scrum-markdown'
-
-" -- the mightly tim pope quality of life section -- {{{2
-" Git wrapper
-Plug 'tpope/vim-fugitive'
-" XML tags, brackets, quotes, etc
-Plug 'tpope/vim-surround'
-Plug 'tpope/vim-speeddating'
-" adding endfunction/endif/end in vimscript, ruby, bourne shell, etc, etc
-Plug 'tpope/vim-endwise'
-" Run builds and test suites
-Plug 'tpope/vim-dispatch'
-" make '.' handle plugins nicer
-Plug 'tpope/vim-repeat'
-" Smarter substitution ++
-Plug 'tpope/vim-abolish'
-" Ruby snaxx
-Plug 'tpope/vim-bundler'
-Plug 'tpope/vim-projectionist' | Plug 'tpope/vim-rake'
-Plug 'tpope/vim-rails'
-" RubyGems Automatic Ctags Invoker
-Plug 'tpope/gem-ctags'
-Plug 'tpope/vim-fireplace'
-" --- }}}
-
-Plug 'godlygeek/tabular' | Plug 'dhruvasagar/vim-table-mode'
-" markdown, DEP: godlygeek/tabular
-Plug 'plasticboy/vim-markdown'
-
-Plug 'JamshedVesuna/vim-markdown-preview'
-
-" ri doc searcher
-Plug 'danchoi/ri.vim'
-" code grepper (ag/ack) wapper
-Plug 'mileszs/ack.vim'
-
-" lusty exploration
-Plug 'vim-scripts/LustyJuggler'
-
-Plug 'ctrlpvim/ctrlp.vim'
-
-" f/t enhancer/easymotion replacement
-Plug 'justinmk/vim-sneak'
-
-Plug 'nathanaelkane/vim-indent-guides'
-Plug 'michaeljsmith/vim-indent-object'
-
-" universal text linking
-Plug 'vim-scripts/utl.vim'
-
-" ANSI color coding
-Plug 'vim-scripts/AnsiEsc.vim'
-
-" orgmode
-Plug 'jceb/vim-orgmode'
-Plug 'vim-scripts/SyntaxRange'
-Plug 'mattn/calendar-vim'
-
-" vim testing
-Plug 'tomtom/spec_vim'
-Plug 'junegunn/vader.vim'
-Plug 'h1mesuke/vim-unittest'
-
-" Language support
-Plug 'gerw/vim-latex-suite'
-Plug 'kana/vim-textobj-user'
-Plug 'nelstrom/vim-textobj-rubyblock'
-Plug 'maxmellon/vim-jsx-pretty' | Plug 'pangloss/vim-javascript'
-Plug 'nikvdp/ejs-syntax'
-Plug 'kchmck/vim-coffee-script'
-Plug 'leafgarland/typescript-vim'
-Plug 'bitc/vim-hdevtools'
-Plug 'Twinside/vim-hoogle'
-Plug 'eagletmt/neco-ghc'
-
-" slim
-Plug 'slim-template/vim-slim'
-
-" Sass's SCSS syntax
-Plug 'hail2u/vim-css3-syntax'
+Plug 'ctrlpvim/ctrlp.vim'         " file and buffer nav
+Plug 'easymotion/vim-easymotion'
 
 " Trailing whitespace
 Plug 'vim-scripts/ingo-library'
@@ -109,7 +30,70 @@ Plug 'vim-scripts/CountJump'
 Plug 'vim-scripts/JumpToTrailingWhitespace'
 Plug 'vim-scripts/DeleteTrailingWhitespace'
 
-" Homerolled prototypes
+" -- Programming languages -- {{{2
+
+" Ruby
+Plug 'kana/vim-textobj-user'
+Plug 'nelstrom/vim-textobj-rubyblock'
+Plug 'danchoi/ri.vim' " ri doc searcher
+
+" Haskell
+Plug 'bitc/vim-hdevtools'
+Plug 'Twinside/vim-hoogle'
+Plug 'eagletmt/neco-ghc'
+
+" JavaScript and friends
+Plug 'maxmellon/vim-jsx-pretty' | Plug 'pangloss/vim-javascript'
+Plug 'leafgarland/typescript-vim'
+Plug 'kchmck/vim-coffee-script'
+Plug 'nikvdp/ejs-syntax'
+Plug 'othree/jspc.vim'                    " function parameter completion
+Plug 'alexbyk/vim-ultisnips-react'        " react snippets
+
+" VimScript
+Plug 'tomtom/spec_vim'
+Plug 'junegunn/vader.vim'
+Plug 'h1mesuke/vim-unittest'
+
+" -- Tim Pope obviously -- {{{2
+
+Plug 'tpope/vim-fugitive'         " Git wrapper
+Plug 'tpope/vim-surround'         " XML tags, brackets, quotes, etc
+Plug 'tpope/vim-speeddating'      " increment/decrement dates +++
+Plug 'tpope/vim-endwise'          " autoadd closing symbols (end/endif/endfun)
+Plug 'tpope/vim-dispatch'         " Run builds and test suites
+Plug 'tpope/vim-repeat'           " make '.' handle plugins nicer
+Plug 'tpope/vim-abolish'          " Smarter substitution ++
+Plug 'tpope/vim-fireplace'        " Clojure
+Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
+" Ruby snaxx
+Plug 'tpope/vim-bundler'
+Plug 'tpope/vim-projectionist' | Plug 'tpope/vim-rake'
+Plug 'tpope/vim-rails'
+
+" -- Markup, Template, Formatting, et al -- {{{2
+
+Plug 'aklt/plantuml-syntax'       " plantuml
+Plug 'vim-scripts/utl.vim'        " universal text linking
+Plug 'gerw/vim-latex-suite'       " latex
+Plug 'slim-template/vim-slim'     " slim html template lang
+Plug 'vim-scripts/AnsiEsc.vim'    " ANSI color coding
+Plug 'hail2u/vim-css3-syntax'     " Sass's SCSS syntax
+
+" markdown
+Plug 'plasticboy/vim-markdown'
+Plug 'godlygeek/tabular' | Plug 'dhruvasagar/vim-table-mode'
+Plug 'JamshedVesuna/vim-markdown-preview' " preview github README.md
+
+" orgmode
+Plug 'jceb/vim-orgmode'
+Plug 'vim-scripts/SyntaxRange'
+Plug 'mattn/calendar-vim'
+
+Plug 'nathanaelkane/vim-indent-guides'
+Plug 'michaeljsmith/vim-indent-object'
+
+" -- Homerolled -- {{{2
 "Plug '~/dev/cheatsheet'
 Plug '~/.vim/proto/vim-cheatsheet'
 
@@ -155,7 +139,7 @@ set nolazyredraw " don't redraw while executing macros
 set magic        " set magic on for regex
 set hidden       " hides buffers instead of closing on new open
 
-" Statusline {{{2
+" -- Statusline -- {{{2
 set statusline=   " clear the statusline for when vimrc is reloaded
 set statusline+=%-3.3n\                      " buffer number
 set statusline+=%f\                          " file name
@@ -225,7 +209,7 @@ highlight IndentGuidesEven ctermbg=233
 
 highlight ShowTrailingWhitespace ctermbg=red
 
-" ========== KEY MAPPING ========== {{{1
+" ========== KEYS AND COMMANDS ========== {{{1
 " remapping <Leader> to ;
 map ; <nop>
 let mapleader   = ";"
@@ -235,19 +219,13 @@ map , <nop>
 let maplocalleader = ","
 let g:maplocalleader = ","
 
-
-" use default local leader: \
-
-" Make arrow keys useful
-map <up> <C-W>k
-map <down> <C-W>j
-map <left> <C-W>h
-map <right> <C-W>l
-
 "inoremap <C-C> <ESC>
 inoremap ,. ->
 inoremap ., <-
 inoremap ,, =>
+
+inoremap <C-o> <ESC>O
+inoremap <C-l> <ESC>o
 
 " Copy next/previous line " {{{2
 inoremap <silent><C-Y> <ESC>:call do#CopyLineUntil(-1)<CR>
@@ -288,19 +266,19 @@ endfor
 
 nnoremap n nzx
 nnoremap N Nzx
-nnoremap / :set hlsearch<CR>/
-nnoremap ? :set hlsearch<CR>?
-nnoremap <silent><F4> :set hlsearch!<CR>
+"nnoremap / :set hlsearch<CR>/
+"nnoremap ? :set hlsearch<CR>?
+"nnoremap <silent><F4> :set hlsearch!<CR>
 
-autocmd InsertEnter * set nohlsearch
+"autocmd InsertEnter * set nohlsearch
 
 " Normal Space {{{2
 
 nnoremap <localleader>- :split %<CR>
 nnoremap <localleader>= :vsplit %<CR>
 
-" Tab next and prev {{{2
 
+" Cycle Tabs {{{2
 " TabNext - Go to next tab page
 nnoremap <C-l> gt
 " TabPrev - Got to previous tab page
@@ -319,10 +297,15 @@ nnoremap <C-h> gT
 " <C-C> break
 " <C-Z> kill/move to background
 
+" Commands {{{2
+command! -nargs=* Variations call do#Variations(<f-args>)<CR>
+
+
 
 " ========== PLUGINS ========== {{{1
-" === CHEATSHEET === {{{2
-nnoremap <silent> <F10> :CheatSheet<CR>
+" -- CHEATSHEET -- {{{2
+
+nnoremap <F5> :CheatSheet<CR>
 
 let g:cheatsheet_filetype_redirect = {
       \ 'sh': 'bash',
@@ -350,32 +333,20 @@ let g:cheatsheet_subtype_redirect = {
         \ 'Guardfile': 'ruby-guard'
         \ }
       \ }
-" === EASYMOTION === {{{2
-" {{{
+" -- EASYMOTION -- {{{2
 let g:EasyMotion_do_mapping = 1
-map <Space> <Plug>(easymotion_prefix)
+map <leader> <Plug>(easymotion-prefix)
 
-" === SNEAK === {{{2
+nmap s <Plug>(easymotion-overwin-f2)
 
-map H <Plug>SneakPrevious
-map L <Plug>SneakNext
+map / <Plug>(easymotion-sn)
+omap / <Plug>(easymotion-tn)
 
-nmap f <Plug>Sneak_f
-nmap F <Plug>Sneak_F
-xmap f <Plug>Sneak_f
-xmap F <Plug>Sneak_F
-omap f <Plug>Sneak_f
-omap F <Plug>Sneak_F
+let g:EasyMotion_smartcase = 1
+" use uppercase target labels and type as a lower case
+let g:EasyMotion_use_upper = 1
 
-nmap t <Plug>Sneak_t
-nmap T <Plug>Sneak_T
-xmap t <Plug>Sneak_t
-xmap T <Plug>Sneak_T
-omap t <Plug>Sneak_t
-omap T <Plug>Sneak_T
-
-
-" === SYNTASTIC / NEOMAKE === {{{2
+" -- SYNTASTIC / NEOMAKE -- {{{2
 " passive filetypes uses clang or eclim instead
 let g:syntastic_mode_map = { 'mode': 'active',
         \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ] }
@@ -404,13 +375,12 @@ let g:syntastic_haskell_checkers = [ 'hdevtools', 'hlint' ]
 let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
 let g:syntastic_ruby_rubocop_args = "-D"
 
-let g:syntastic_javascript_checkers = ['eslint']
+let g:syntastic_javascript_checkers = [ 'eslint' ]
 
 " .. why? is this here
 nnoremap <F2> :Errors<CR>
 inoremap <F2> <ESC>:Errors<CR>
 nnoremap <F3> :set relativenumber!<CR>
-nnoremap <F5> :CheatSheet<CR>
 
 " this needs to change! throws so much errors. move the login into the function
 " you damned nub
@@ -420,7 +390,7 @@ nnoremap <F5> :CheatSheet<CR>
 " Use the jump list movement keys to navigate
 " the syntactic error list, if it is active
 
-" === YOU COMPLETE ME === {{{2
+" -- YOU COMPLETE ME -- {{{2
 
 " i think this was some deprecated expermentation
 " let g:ycm_core_dirs = { 'Darwin' : '/../core_darwin/', 'Linux' : '/../core_linux/' }
@@ -471,17 +441,17 @@ let g:ycm_semantic_triggers = {
   \   'lua' : ['.', ':'],
   \   'erlang' : [':'],
   \ }
-" === JSX === {{{2
+" -- JSX -- {{{2
 
 " jsx highlight
 let g:vim_jsx_pretty_enable_jsx_highlight = 1
 
-" === ECLIM === {{{2
+" -- ECLIM -- {{{2
 
 " makes eclim play nice with YCM
 let g:EclimCompletionMethod = 'omnifunc'
 
-" === LATEX === {{{2
+" -- LATEX -- {{{2
 let g:tex_flavor='latex'
 set grepprg=grep\ -nH\ $*
 let g:Tex_DefaultTargetFormat='pdf'
@@ -489,26 +459,24 @@ let g:Tex_MultipleCompileFormats='pdf, aux'
 let g:Imap_UsePlaceHolders = 0
 let g:Imap_FreezeImap = 1 " Turn off ANNOYING AUTO INPUT CRAP
 
-" === VIM TABLE MODE === {{{2
+" -- VIM TABLE MODE -- {{{2
 " Markdown-compatible tables
 let g:table_mode_corner = '|'
-" === UTL === {{{2
+" -- UTL -- {{{2
 "nnoremap <silent><C-]> call s:UtlOrTag()<CR>
 "nnoremap <silent><C-]> call s:UtlOrTag()<CR>
 
-" === ACK === {{{2
+" -- ACK -- {{{2
 if executable('ag')
   let g:ackprg = 'ag --vimgrep'
 endif
 nmap <leader>a :Ack
 
-" === LUSTY JUGGLER === {{{2
-nmap <leader>f :LustyJuggler<CR>
 
-" === SURROUND === {{{2
+" -- SURROUND -- {{{2
 "imap <leader>s <ESC>Isurround<CR>
 
-" === CTRL-P === {{{2
+" -- CTRL-P -- {{{2
 let g:ctrlp_cache_dir = $HOME . '/.cache/ctrlp'
 let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
       \ --ignore .git
@@ -517,19 +485,24 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
       \ --ignore .DS_Store
       \ -g ""'
 " TODO: Check out neovim bg running, and global ag config file for ignores
-" === ULTISNIPS === {{{2
+" -- ULTISNIPS -- {{{2
 
-" let g:UltiSnipsListSnippets = "<leader><TAB>"
+let g:UltiSnipsExpandTrigger = "<leader>l"
+let g:UltiSnipsListSnippets = "<leader><tab>"
+let g:UltiSnipsJumpForwardTrigger = "<leader>j"
+let g:UltiSnipsJumpBackwardTrigger = "<leader>k"
 
-" === CALENDAR === {{{2
+
+" -- CALENDAR -- {{{2
 
 let g:calendar_monday = 1
 let g:calendar_wruler = "日 月 火 水 木 金 土"
 
-" === ORGMODE === {{{2
+" -- ORGMODE -- {{{2
 
 let g:org_agenda_files = [ '~/.org/*.org' ]
 
-" === MARKDOWN PREVIEW === {{{2
+" -- MARKDOWN PREVIEW -- {{{2
 let vim_markdown_preview_github = 1
 let vim_markdown_preview_use_xdg_open = 1
+
