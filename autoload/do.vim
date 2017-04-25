@@ -1,5 +1,6 @@
 " File for keeping functions out of vimrc
 
+" Change lines of code in some way {{{1
 
 function! do#CopyLineUntil(offset, ...) " {{{2
   try
@@ -23,7 +24,7 @@ function! do#AlignWithChar(offset, ...) " {{{2
   call setpos('.', [s:bufnum, s:lnum, s:colmatch + 1, s:off])
 endfun
 
-function! do#Variations(...)
+function! do#Variations(...) " {{{2
   if a:0
     let words = a:000[:]
   else
@@ -59,7 +60,7 @@ function! do#FindCharPos(line_offset, varargs) " {{{2
   if s:colmatch < 0 | throw "NoMatch" | endif
 endfun
 
-function! do#UtlOrTag()
+function! do#UtlOrTag() " {{{2
   let line = getline('.')
   let utl_start = match(line, '<url:#r')
 
@@ -81,7 +82,7 @@ function! do#UtlOrTag()
   normal! <C-]>
 endfun
 
-fun! do#LocListIncr()
+fun! do#LocListIncr() " {{{2
   if !exists("b:loclistpos") || b:loclistpos >= len(b:syntastic_loclist)
     let b:loclistpos = 0
   endif
@@ -97,9 +98,21 @@ fun! do#LocListDecr()
   exe ":lfirst ".b:loclistpos
 endfun " }}}
 
+" VIMRC purtifiers {{{1
+
+fun! do#VimRCHeadline(...)
+  let line = getline('.')
+  let words = split(line)
+  let pad = 80 - (strlen(line) - strlen(words[-2]))
+  let words[-2] = repeat(words[-2][0], pad)
+  call setline('.', join(words))
+endfun
+
+" Vim Folding {{{1
+
 " Move to next/prev line of same indent level as current one
 " PARAMS: dir <bool> : next line of true, prev line if false
-fun! NextSimilarIndent(dir) " {{{
+fun! NextSimilarIndent(dir) " {{{2
   let p = getpos(".")
   let ind = indent(p[1])
   let i = (a:dir ? p[1] + 1 : p[1] - 1)
@@ -134,7 +147,7 @@ endfun
 "nmap <F6> :exe "set colorcolumn=".R2()<CR>
 "
 " Helper function for FoldText()
-fun! s:GetFirstNonComment(start) " {{{
+fun! s:GetFirstNonComment(start) " {{{2
   let line = ""
   let i = a:start
   let col = 1
@@ -175,7 +188,9 @@ fun! do#FoldText() " {{{
   endif
 endfun " }}}
 
-fun! s:YouCompleteMeCompileOptions(pairs) " {{{1
+" Compile YCM {{{1
+
+fun! s:YouCompleteMeCompileOptions(pairs) " {{{2
   let opt_string = ' --clang-completer'
   for [exe, opt] in items(a:pairs)
     if executable(exe)
@@ -185,7 +200,7 @@ fun! s:YouCompleteMeCompileOptions(pairs) " {{{1
   return opt_string
 endfun
 
-fun! s:YouCompleteMeCompile()
+fun! s:YouCompleteMeCompile() " {{{2
   let cwd = getcwd()
   let vim_runtime = split(&runtimepath, ',')[0]
   let ycm_dir = vim_runtime.'/plugged/YouCompleteMe'

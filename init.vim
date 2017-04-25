@@ -1,12 +1,12 @@
 
-" ========== PLUG ========== " {{{1
+" == PLUG ================================================================= {{{1
 
 set nocompatible
 filetype off
 
 call plug#begin()
 
-" -- Programmer QoL -- {{{2
+" -- Programmer QoL ------------------------------------------------------- {{{2
 
 Plug 'Valloric/YouCompleteMe'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
@@ -30,7 +30,7 @@ Plug 'vim-scripts/CountJump'
 Plug 'vim-scripts/JumpToTrailingWhitespace'
 Plug 'vim-scripts/DeleteTrailingWhitespace'
 
-" -- Programming languages -- {{{2
+" -- Programming languages ------------------------------------------------ {{{2
 
 " Ruby
 Plug 'kana/vim-textobj-user'
@@ -55,7 +55,7 @@ Plug 'tomtom/spec_vim'
 Plug 'junegunn/vader.vim'
 Plug 'h1mesuke/vim-unittest'
 
-" -- Tim Pope obviously -- {{{2
+" -- Tim Pope obviously --------------------------------------------------- {{{2
 
 Plug 'tpope/vim-fugitive'         " Git wrapper
 Plug 'tpope/vim-surround'         " XML tags, brackets, quotes, etc
@@ -71,7 +71,7 @@ Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-projectionist' | Plug 'tpope/vim-rake'
 Plug 'tpope/vim-rails'
 
-" -- Markup, Template, Formatting, et al -- {{{2
+" -- Markup, Template, Formatting, et al ---------------------------------- {{{2
 
 Plug 'aklt/plantuml-syntax'       " plantuml
 Plug 'vim-scripts/utl.vim'        " universal text linking
@@ -93,13 +93,16 @@ Plug 'mattn/calendar-vim'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'michaeljsmith/vim-indent-object'
 
-" -- Homerolled -- {{{2
-"Plug '~/dev/cheatsheet'
+" -- Homerolled ----------------------------------------------------------- {{{2
+
 Plug '~/.vim/proto/vim-cheatsheet'
+
+" }}}
 
 call plug#end()
 
-" ========== OPTIONS ========= " {{{1
+" == OPTIONS ============================================================== {{{1
+
 filetype plugin indent on
 syntax enable
 set background=dark
@@ -139,7 +142,7 @@ set nolazyredraw " don't redraw while executing macros
 set magic        " set magic on for regex
 set hidden       " hides buffers instead of closing on new open
 
-" -- Statusline -- {{{2
+" -- Statusline ----------------------------------------------------------- {{{2
 set statusline=   " clear the statusline for when vimrc is reloaded
 set statusline+=%-3.3n\                      " buffer number
 set statusline+=%f\                          " file name
@@ -178,7 +181,7 @@ set viewoptions="cursor,folds"
 set colorcolumn=81,+1,+2,130
 set foldtext=do#FoldText()
 
-" ========== AUTOCOMMANDS ========== {{{1
+" == AUTOCOMMANDS ========================================================= {{{1
 
 " auto save and load folds, options, and cursor
 au BufWinLeave *.* mkview
@@ -194,10 +197,9 @@ au FileType qf wincmd J
 au BufRead,BufNewFile *.m setl filetype=objc
 
 au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
-" autosourcing vim files
-" au BufWritePost .vimrc source ~/.vimrc
-" au BufWritePost *.vim source %
-" ========== HIGHLIGHTING ========== {{{1
+
+" == HIGHLIGHTING ========================================================= {{{1
+
 " folding highlighting
 highlight Folded ctermfg=241 ctermbg=234 cterm=bold
 " tab and trailing spaces
@@ -209,8 +211,8 @@ highlight IndentGuidesEven ctermbg=233
 
 highlight ShowTrailingWhitespace ctermbg=red
 
-" ========== KEYS AND COMMANDS ========== {{{1
-" remapping <Leader> to ;
+" == KEY MAPPING ========================================================== {{{1
+
 map ; <nop>
 let mapleader   = ";"
 let g:mapleader = ";"
@@ -219,28 +221,30 @@ map , <nop>
 let maplocalleader = ","
 let g:maplocalleader = ","
 
-"inoremap <C-C> <ESC>
+" -- Awkward symbol shorthands -------------------------------------------- {{{2
 inoremap ,. ->
 inoremap ., <-
 inoremap ,, =>
 
+" -- Insert mode insert line ---------------------------------------------- {{{2
 inoremap <C-o> <ESC>O
 inoremap <C-l> <ESC>o
 
-" Copy next/previous line " {{{2
+" -- Copy next/previous line ---------------------------------------------- {{{2
+"  .. how much do I really use these?
 inoremap <silent><C-Y> <ESC>:call do#CopyLineUntil(-1)<CR>
 inoremap <silent><C-E> <ESC>:call do#CopyLineUntil(1)<CR>
 nnoremap <silent><C-Y> <ESC>:call do#AlignWithChar(-1)<CR>
 nnoremap <silent><C-E> <ESC>:call do#AlignWithChar(1)<CR>
 
-" Command mode mappings {{{2
+" -- Command mode mappings ------------------------------------------------ {{{2
+
 " forgot to sudo? force it with w!!
 cmap w!! w !sudo tee % > /dev/null
 cnoremap <C-k> <up>
 cnoremap <C-j> <down>
 
-
-" Normal jkJK {{{2
+" -- Normal jkJKG --------------------------------------------------------- {{{2
 
 " j/k on visual lines, not actual lines
 nnoremap j gj
@@ -251,8 +255,7 @@ nnoremap <expr><silent>K foldlevel('.') && (foldclosed('.') == -1 <BAR><BAR> fol
 
 nnoremap G Gzxzt
 
-
-" Normal cC : select inside (char) {{{2
+" -- Normal cC ------------------------------------------------------------ {{{2
 
 nnoremap c" vi"c
 nnoremap C" va"c
@@ -262,31 +265,20 @@ for c in split("'`(){}<>[]", '\zs')
   exe "nnoremap C".c." va".c."c"
 endfor
 
-" Normal /? {{{2
+" -- Normal nN ------------------------------------------------------------ {{{2
 
 nnoremap n nzx
 nnoremap N Nzx
-"nnoremap / :set hlsearch<CR>/
-"nnoremap ? :set hlsearch<CR>?
-"nnoremap <silent><F4> :set hlsearch!<CR>
 
-"autocmd InsertEnter * set nohlsearch
+" -- Fkeys ---------------------------------------------------------------- {{{2
+nnoremap <F2> :Errors<CR>
+inoremap <F2> <ESC>:Errors<CR>
+nnoremap <F3> :set relativenumber!<CR>
+nnoremap <F4> :set hlsearch!<CR>
+nnoremap <F5> :CheatSheet<CR>
+nnoremap <F6> :set cursorcolumn!<CR>
 
-" Normal Space {{{2
-
-nnoremap <localleader>- :split %<CR>
-nnoremap <localleader>= :vsplit %<CR>
-
-
-" Cycle Tabs {{{2
-" TabNext - Go to next tab page
-nnoremap <C-l> gt
-" TabPrev - Got to previous tab page
-nnoremap <C-h> gT
-
-
-" Unusable keys :: {{{2
-"-------------------------------------------------------------------------------
+" -- Unusable keys -------------------------------------------------------- {{{2
 
 " <C-M> <CR>
 " <C-H> <BS>
@@ -297,15 +289,12 @@ nnoremap <C-h> gT
 " <C-C> break
 " <C-Z> kill/move to background
 
-" Commands {{{2
+" == COMMANDS ============================================================= {{{1
 command! -nargs=* Variations call do#Variations(<f-args>)<CR>
 
+" == PLUGINS ============================================================== {{{1
 
-
-" ========== PLUGINS ========== {{{1
-" -- CHEATSHEET -- {{{2
-
-nnoremap <F5> :CheatSheet<CR>
+" -- CHEATSHEET ----------------------------------------------------------- {{{2
 
 let g:cheatsheet_filetype_redirect = {
       \ 'sh': 'bash',
@@ -333,7 +322,8 @@ let g:cheatsheet_subtype_redirect = {
         \ 'Guardfile': 'ruby-guard'
         \ }
       \ }
-" -- EASYMOTION -- {{{2
+
+" -- EASYMOTION ----------------------------------------------------------- {{{2
 let g:EasyMotion_do_mapping = 1
 map <leader> <Plug>(easymotion-prefix)
 
@@ -346,7 +336,7 @@ let g:EasyMotion_smartcase = 1
 " use uppercase target labels and type as a lower case
 let g:EasyMotion_use_upper = 1
 
-" -- SYNTASTIC / NEOMAKE -- {{{2
+" -- SYNTASTIC / NEOMAKE -------------------------------------------------- {{{2
 " passive filetypes uses clang or eclim instead
 let g:syntastic_mode_map = { 'mode': 'active',
         \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ] }
@@ -377,10 +367,6 @@ let g:syntastic_ruby_rubocop_args = "-D"
 
 let g:syntastic_javascript_checkers = [ 'eslint' ]
 
-" .. why? is this here
-nnoremap <F2> :Errors<CR>
-inoremap <F2> <ESC>:Errors<CR>
-nnoremap <F3> :set relativenumber!<CR>
 
 " this needs to change! throws so much errors. move the login into the function
 " you damned nub
@@ -390,10 +376,7 @@ nnoremap <F3> :set relativenumber!<CR>
 " Use the jump list movement keys to navigate
 " the syntactic error list, if it is active
 
-" -- YOU COMPLETE ME -- {{{2
-
-" i think this was some deprecated expermentation
-" let g:ycm_core_dirs = { 'Darwin' : '/../core_darwin/', 'Linux' : '/../core_linux/' }
+" -- YOU COMPLETE ME ------------------------------------------------------ {{{2
 
 "let g:ycm_filetype_whitelist = { '*': 1 }
 "let g:ycm_filetype_blacklist = { 'notes' : 1, 'markdown' : 1, 'text' :1 }
@@ -441,17 +424,19 @@ let g:ycm_semantic_triggers = {
   \   'lua' : ['.', ':'],
   \   'erlang' : [':'],
   \ }
-" -- JSX -- {{{2
+unlet! s:dot_triggers
+
+" -- JSX ------------------------------------------------------------------ {{{2
 
 " jsx highlight
 let g:vim_jsx_pretty_enable_jsx_highlight = 1
 
-" -- ECLIM -- {{{2
+" -- ECLIM ---------------------------------------------------------------- {{{2
 
 " makes eclim play nice with YCM
 let g:EclimCompletionMethod = 'omnifunc'
 
-" -- LATEX -- {{{2
+" -- LATEX ---------------------------------------------------------------- {{{2
 let g:tex_flavor='latex'
 set grepprg=grep\ -nH\ $*
 let g:Tex_DefaultTargetFormat='pdf'
@@ -459,24 +444,17 @@ let g:Tex_MultipleCompileFormats='pdf, aux'
 let g:Imap_UsePlaceHolders = 0
 let g:Imap_FreezeImap = 1 " Turn off ANNOYING AUTO INPUT CRAP
 
-" -- VIM TABLE MODE -- {{{2
+" -- VIM TABLE MODE ------------------------------------------------------- {{{2
 " Markdown-compatible tables
 let g:table_mode_corner = '|'
-" -- UTL -- {{{2
-"nnoremap <silent><C-]> call s:UtlOrTag()<CR>
-"nnoremap <silent><C-]> call s:UtlOrTag()<CR>
 
-" -- ACK -- {{{2
+" -- ACK ------------------------------------------------------------------ {{{2
 if executable('ag')
   let g:ackprg = 'ag --vimgrep'
 endif
 nmap <leader>a :Ack
 
-
-" -- SURROUND -- {{{2
-"imap <leader>s <ESC>Isurround<CR>
-
-" -- CTRL-P -- {{{2
+" -- CTRL-P --------------------------------------------------------------- {{{2
 let g:ctrlp_cache_dir = $HOME . '/.cache/ctrlp'
 let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
       \ --ignore .git
@@ -484,25 +462,28 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
       \ --ignore .hg
       \ --ignore .DS_Store
       \ -g ""'
-" TODO: Check out neovim bg running, and global ag config file for ignores
-" -- ULTISNIPS -- {{{2
+
+" -- ULTISNIPS ------------------------------------------------------------ {{{2
 
 let g:UltiSnipsExpandTrigger = "<leader>l"
 let g:UltiSnipsListSnippets = "<leader><tab>"
 let g:UltiSnipsJumpForwardTrigger = "<leader>j"
 let g:UltiSnipsJumpBackwardTrigger = "<leader>k"
 
+let g:UltiSnipsEditSplit = 'horizontal'
+let g:UltiSnipsSnippetsDirectories = [ '~/.vim/UltiSnips', 'UltiSnips' ]
 
-" -- CALENDAR -- {{{2
+
+" -- CALENDAR ------------------------------------------------------------- {{{2
 
 let g:calendar_monday = 1
 let g:calendar_wruler = "日 月 火 水 木 金 土"
 
-" -- ORGMODE -- {{{2
+" -- ORGMODE -------------------------------------------------------------- {{{2
 
 let g:org_agenda_files = [ '~/.org/*.org' ]
 
-" -- MARKDOWN PREVIEW -- {{{2
+" -- MARKDOWN PREVIEW ----------------------------------------------------- {{{2
 let vim_markdown_preview_github = 1
 let vim_markdown_preview_use_xdg_open = 1
 
