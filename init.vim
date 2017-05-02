@@ -198,6 +198,9 @@ au BufRead,BufNewFile *.m setl filetype=objc
 
 au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
 
+au InsertEnter * highlight CursorLineNr term=bold ctermfg=Red
+au InsertLeave * highlight CursorLineNr term=bold ctermfg=Yellow
+
 " == HIGHLIGHTING ========================================================= {{{1
 
 " folding highlighting
@@ -220,6 +223,10 @@ let g:mapleader = ";"
 map , <nop>
 let maplocalleader = ","
 let g:maplocalleader = ","
+" -- Faster file Saving --------------------------------------------------- {{{2
+
+inoremap <leader>w <ESC>:w<CR>
+nnoremap <leader>w :w<CR>
 
 " -- Awkward symbol shorthands -------------------------------------------- {{{2
 inoremap ,. ->
