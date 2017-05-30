@@ -363,6 +363,7 @@ let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
 let g:syntastic_enable_balloons = 0
 
 let g:syntastic_lua_checkers = [ 'luacheck' ]
+let g:syntastic_lua_luacheck_args = "--codes"
 
 " use this over the standard 'sh' checker
 let g:syntastic_sh_checkers = [ 'bashate' ]
