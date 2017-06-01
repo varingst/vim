@@ -376,13 +376,11 @@ let g:syntastic_ruby_rubocop_args = "-D"
 let g:syntastic_javascript_checkers = [ 'eslint' ]
 
 
-" this needs to change! throws so much errors. move the login into the function
-" you damned nub
-"nnoremap <expr> <silent> <C-I> len(b:syntastic_loclist) > 0 ? ":call do#LocListIncr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-I>"
-"nnoremap <expr> <silent> <C-O> len(b:syntastic_loclist) > 0 ? ":call do#LocListDecr()\<CR>" : ":let b:loclistpos = 0\<CR>\<C-O>"
-" Location/Jump list movement {{{3
 " Use the jump list movement keys to navigate
-" the syntactic error list, if it is active
+" the syntactic error list, if it exists and has errors
+
+nnoremap <expr><silent><C-I> exists("b:syntastic_loclist") && len(b:syntastic_loclist._rawLoclist) ? ":lnext<CR>" : "<C-I>"
+nnoremap <expr><silent><C-O> exists("b:syntastic_loclist") && len(b:syntastic_loclist._rawLoclist) ? ":lprev<CR>" : "<C-O>"
 
 " -- YOU COMPLETE ME ------------------------------------------------------ {{{2
 
