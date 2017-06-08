@@ -1,5 +1,5 @@
 if !exists(':Tabularize')
-  finish " Tabular has not been bloaded
+  finish " Tabular has not been loaded
 endif
 
 let s:save_cpo = &cpo
@@ -15,6 +15,7 @@ endfun
 
 AddTabularPattern! haskell /=\||/
 AddTabularPattern! bachusneur /^[^|:]*\zs\(::=\||\)/l1r1l0
+AddTabularPattern! jsobject /^[:][^"']*\zs\("\|'\)\zs/rlr0
 call s:Add('haskell')
 call s:Add('backusnaur')
 

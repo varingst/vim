@@ -188,6 +188,31 @@ fun! do#FoldText() " {{{
   endif
 endfun " }}}
 
+fun! do#SetFoldMarker(n) " {{{2
+  if has_key(g:NERDDelimiterMap, &ft)
+    let map = g:NERDDelimiterMap[&ft]
+  elseif &ft == 'vim'
+    let map = { 'left': "\"", 'right': "" }
+  else
+    return
+  end
+  let level = a:n
+  let line = getline('.')
+  let open_fold = '{{{'
+  let pat = open_fold . '\d'
+
+  if match(line, pat) >= 0
+    let line = substitute(line, pat, open_fold . level, "")
+  else
+    let line .= " " . map['left'] . " " . open_fold . level
+    if strlen(map['right'])
+      let line .= " " . map['right']
+    end
+  endif
+
+  call setline('.', line)
+endfun
+
 " Compile YCM {{{1
 
 fun! s:YouCompleteMeCompileOptions(pairs) " {{{2
@@ -220,3 +245,5 @@ fun! s:YouCompleteMeCompile() " {{{2
 endfun
 " do this in shell
 " command! YouCompleteMeCompile call s:YouCompleteMeCompile()<CR>
+
+" MISC {{{1

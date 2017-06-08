@@ -216,6 +216,7 @@ highlight ShowTrailingWhitespace ctermbg=red
 
 " == KEY MAPPING ========================================================== {{{1
 
+" -- Leader mapping
 map ; <nop>
 let mapleader   = ";"
 let g:mapleader = ";"
@@ -223,6 +224,20 @@ let g:mapleader = ";"
 map , <nop>
 let maplocalleader = ","
 let g:maplocalleader = ","
+
+" -- Set fold markers " {{{2
+
+inoremap <leader>1 <ESC>:call do#SetFoldMarker(1)<CR>A
+inoremap <leader>2 <ESC>:call do#SetFoldMarker(2)<CR>A
+inoremap <leader>3 <ESC>:call do#SetFoldMarker(3)<CR>A
+inoremap <leader>4 <ESC>:call do#SetFoldMarker(4)<CR>A
+
+nnoremap <leader>1 :call do#SetFoldMarker(1)<CR>
+nnoremap <leader>2 :call do#SetFoldMarker(2)<CR>
+nnoremap <leader>3 :call do#SetFoldMarker(3)<CR>
+nnoremap <leader>4 :call do#SetFoldMarker(4)<CR>
+
+
 " -- Faster file Saving --------------------------------------------------- {{{2
 
 inoremap <leader>w <ESC>:w<CR>
@@ -277,6 +292,44 @@ endfor
 nnoremap n nzx
 nnoremap N Nzx
 
+" -- Tabularize
+nnoremap <bar> :Tabularize
+nnoremap <leader><bar> :vsplit ~/.vim/after/plugin/tabular_extra.vim<CR>
+
+" -- Split Window " {{{2
+nnoremap <expr>S winwidth('.') > 160 ? ":vsplit " : ":split "
+" replaces an 'cc' alias
+
+" -- Linewise Movement " {{{2
+
+" The default:
+" ^       - First CHAR of current line
+" N-      - First CHAR N lines higher
+" N_      - First CHAR N-1 lines lower
+" N+      - First CHAR N lines lower
+" N<CR>   - First CHAR N lines lower
+" N$      - End of line N-1 lines lower
+
+" What would make more sense:
+" N-      - First CHAR N lines higher
+" N^      - First CHAR N-1 lines lower
+" <CR>    - First CHAR N lines lower
+
+" N+      - End of line N lines lower
+" N$      - End of line N-1 lines lower
+" N_      - End of line N lines higher
+
+" The Fix:
+
+nnoremap ^ _
+nnoremap + $j$
+nnoremap _ -$
+
+vnoremap ^ _
+vnoremap + $j$
+vnoremap _ -$
+
+
 " -- Fkeys ---------------------------------------------------------------- {{{2
 nnoremap <F2> :Errors<CR>
 inoremap <F2> <ESC>:Errors<CR>
@@ -287,14 +340,14 @@ nnoremap <F6> :set cursorcolumn!<CR>
 
 " -- Unusable keys -------------------------------------------------------- {{{2
 
-" <C-M> <CR>
-" <C-H> <BS>
-" <C-[> <ESC>
-" <C-I> <Tab>
-" <C-A> tmux mode key (insert previously inserted text and stop insert)
-" <C-Q> resume terminal
-" <C-C> break
-" <C-Z> kill/move to background
+ "<C-M> <CR>
+ "<C-H> <BS>
+ "<C-[> <ESC>
+ "<C-I> <Tab>
+ "<C-A> tmux mode key (insert previously inserted text and stop insert)
+ "<C-Q> resume terminal
+ "<C-C> break
+ "<C-Z> kill/move to background
 
 " == COMMANDS ============================================================= {{{1
 command! -nargs=* Variations call do#Variations(<f-args>)<CR>
@@ -336,8 +389,8 @@ map <leader> <Plug>(easymotion-prefix)
 
 nmap s <Plug>(easymotion-overwin-f2)
 
-map / <Plug>(easymotion-sn)
-omap / <Plug>(easymotion-tn)
+"map / <Plug>(easymotion-sn)
+"omap / <Plug>(easymotion-tn)
 
 let g:EasyMotion_smartcase = 1
 " use uppercase target labels and type as a lower case
@@ -493,3 +546,8 @@ let g:org_agenda_files = [ '~/.org/*.org' ]
 let vim_markdown_preview_github = 1
 let vim_markdown_preview_use_xdg_open = 1
 
+" -- RI ---- {{{2
+let g:ri_no_mappings = 1
+
+" -- NERDCommenter
+let g:NERDSpaceDelims = 0
