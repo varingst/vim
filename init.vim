@@ -33,6 +33,7 @@ Plug 'vim-scripts/DeleteTrailingWhitespace'
 " -- Programming languages ------------------------------------------------ {{{2
 
 " Ruby
+Plug 'vim-ruby/vim-ruby'
 Plug 'kana/vim-textobj-user'
 Plug 'nelstrom/vim-textobj-rubyblock'
 Plug 'danchoi/ri.vim' " ri doc searcher
@@ -209,9 +210,6 @@ highlight Folded ctermfg=241 ctermbg=234 cterm=bold
 highlight SpecialKey ctermbg=none ctermfg=235
 highlight ColorColumn ctermbg=232
 
-highlight IndentGuidesOdd ctermbg=black
-highlight IndentGuidesEven ctermbg=233
-
 highlight ShowTrailingWhitespace ctermbg=red
 
 " == KEY MAPPING ========================================================== {{{1
@@ -225,7 +223,9 @@ map , <nop>
 let maplocalleader = ","
 let g:maplocalleader = ","
 
-" -- Set fold markers " {{{2
+inoremap <C-@> <C-Space>
+
+" -- Set fold markers ----------------------------------------------------- {{{2
 
 inoremap <leader>1 <ESC>:call do#SetFoldMarker(1)<CR>A
 inoremap <leader>2 <ESC>:call do#SetFoldMarker(2)<CR>A
@@ -292,15 +292,25 @@ endfor
 nnoremap n nzx
 nnoremap N Nzx
 
-" -- Tabularize
-nnoremap <bar> :Tabularize
+" -- normal ftFT -> LH ---------------------------------------------------- {{{2
+
+" L and H repeats next char, but H always <- and L always ->
+
+nnoremap <silent> f :nnoremap H ,<CR>:nnoremap L ;<CR>f
+nnoremap <silent> F :nnoremap H ;<CR>:nnoremap L ,<CR>F
+nnoremap <silent> t :nnoremap H h,<CR>:nnoremap L l;<CR>t
+nnoremap <silent> T :nnoremap H h;<CR>:nnoremap L l;<CR>T
+
+" -- Tabularize ----------------------------------------------------------- {{{2
+nnoremap <expr><bar> ":Tabularize "
+vnoremap <expr><bar> ":Tabularize "
 nnoremap <leader><bar> :vsplit ~/.vim/after/plugin/tabular_extra.vim<CR>
 
-" -- Split Window " {{{2
+" -- Split Window --------------------------------------------------------- {{{2
 nnoremap <expr>S winwidth('.') > 160 ? ":vsplit " : ":split "
 " replaces an 'cc' alias
 
-" -- Linewise Movement " {{{2
+" -- Linewise Movement ---------------------------------------------------- {{{2
 
 " The default:
 " ^       - First CHAR of current line
@@ -443,7 +453,7 @@ nnoremap <expr><silent><C-O> exists("b:syntastic_loclist") && len(b:syntastic_lo
 let g:ycm_collect_identifiers_from_tags_files = 1
 let g:ycm_seed_identifiers_with_syntax = 1
 
-"let g:ycm_key_invoke_completion = '<C-P>'
+let g:ycm_key_invoke_completion = '<C-Space>'
 let g:ycm_key_list_select_completion = ['<C-j>', '<Tab>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-k>', '<Up>']
 let g:ycm_key_detailed_diagnostics = '<leader>y'
