@@ -224,6 +224,8 @@ let maplocalleader = ","
 let g:maplocalleader = ","
 
 inoremap <C-@> <C-Space>
+inoremap <C-O><C-O> <C-O>O
+
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
@@ -248,9 +250,18 @@ inoremap ,. ->
 inoremap ., <-
 inoremap ,, =>
 
+" -- Swap quotes ---------------------------------------------------------- {{{2
+
+inoremap <leader>' <ESC>:silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
+nnoremap <leader>' :silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
+inoremap <leader>" <ESC>:silent s/[^\\]/zs"/'/ge<CR>
+nnoremap <leader>" :silent s/[^\\]/zs"/'/ge<CR>
+
 " -- Insert mode insert line ---------------------------------------------- {{{2
-inoremap <C-o> <ESC>O
-inoremap <C-l> <ESC>o
+
+
+" inoremap <C-o> <ESC>O
+" inoremap <C-l> <ESC>o
 
 " -- Copy next/previous line ---------------------------------------------- {{{2
 "  .. how much do I really use these?
@@ -559,5 +570,6 @@ let vim_markdown_preview_use_xdg_open = 1
 " -- RI ---- {{{2
 let g:ri_no_mappings = 1
 
-" -- NERDCommenter
-let g:NERDSpaceDelims = 0
+" -- NERDCommenter " {{{1
+let g:NERDSpaceDelims = 1
+let g:NERDRemoveExtraSpaces = 1
