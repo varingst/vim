@@ -66,11 +66,12 @@ Plug 'tpope/vim-dispatch'         " Run builds and test suites
 Plug 'tpope/vim-repeat'           " make '.' handle plugins nicer
 Plug 'tpope/vim-abolish'          " Smarter substitution ++
 Plug 'tpope/vim-fireplace'        " Clojure
-Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
 " Ruby snaxx
 Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-projectionist' | Plug 'tpope/vim-rake'
 Plug 'tpope/vim-rails'
+Plug 'tpope/vim-rbenv'            " Tell vim to use the right ruby
+Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
 
 " -- Markup, Template, Formatting, et al ---------------------------------- {{{2
 
