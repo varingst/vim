@@ -373,6 +373,7 @@ nnoremap <F6> :set cursorcolumn!<CR>
 
 " == COMMANDS ============================================================= {{{1
 command! -nargs=* Variations call do#Variations(<f-args>)<CR>
+command! -nargs=? -complete=file Open call do#Open(<f-args>)
 
 " == PLUGINS ============================================================== {{{1
 

@@ -213,6 +213,23 @@ fun! do#SetFoldMarker(n) " {{{2
   call setline('.', line)
 endfun
 
+" (xdg-)open wrapper
+if executable('open')
+  let s:open = 'open'
+elseif executable('xdg-open')
+  let s:open = 'xdg-open'
+endif
+
+fun! do#Open(...)
+  let path = a:0 ? a:1 : expand("<cWORD>")
+  if !strlen(path) | echoerr "Nothing to open, empty path" | return | endif
+  call system(s:open . " '" . path . "'")
+endfun
+
+fun! do#OpenUnderCursor()
+  call do#Open(expand("<cWORD>"))
+endfun
+
 " Compile YCM {{{1
 
 fun! s:YouCompleteMeCompileOptions(pairs) " {{{2
