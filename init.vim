@@ -92,6 +92,9 @@ Plug 'jceb/vim-orgmode'
 Plug 'vim-scripts/SyntaxRange'
 Plug 'mattn/calendar-vim'
 
+" grammar
+Plug 'rhysd/vim-grammarous'
+
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'michaeljsmith/vim-indent-object'
 
