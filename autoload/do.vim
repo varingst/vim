@@ -108,6 +108,58 @@ fun! do#VimRCHeadline(...)
   call setline('.', join(words))
 endfun
 
+" Function key mapping and listing
+
+let s:fkeys = {}
+fun! do#MapFkeys(keys)
+  for [key, cmd] in items(a:keys)
+    let s:fkeys[key] = cmd
+    exe 'nnoremap ' . key . ' ' . cmd . '<CR>'
+    exe 'inoremap ' . key . ' <ESC>' . cmd . '<CR>'
+  endfor
+endfun
+
+fun! do#ListFkeys()
+  for i in range(2, 12)
+    let key = '<F'.i.'>'
+    if has_key(s:fkeys, key)
+      echo key . ' ' . s:fkeys[key]
+    endif
+  endfor
+endfun
+
+" Syntastic Location List
+
+fun! do#ErrorsVisible()
+  if !(exists('b:syntastic_loclist')
+        \ && len(b:syntastic_loclist._rawLoclist))
+    return 0
+  end
+  for winnr in range(1, winnr('$'))
+    let bufnr = winbufnr(winnr)
+    if getbufvar(bufnr, '&buftype') == 'quickfix'
+      return 1
+    endif
+  endfor
+  return 0
+endfun
+
+fun! do#LNext()
+  try
+    lnext
+  catch /^Vim\%((\a\+)\)\=:E553/
+    lfirst
+  endtry
+endfun
+
+fun! do#LPrev()
+  try
+    lprev
+  catch /^Vim\%((\a\+)\)\=:E553/
+    llast
+  endtry
+endfun
+
 " Vim Folding {{{1
 
 " Move to next/prev line of same indent level as current one

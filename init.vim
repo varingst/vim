@@ -19,7 +19,7 @@ Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 
 " Code search and nav
 Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
-Plug 'vim-scripts/taglist.vim'
+Plug 'majutsushi/tagbar'
 Plug 'ctrlpvim/ctrlp.vim'         " file and buffer nav
 Plug 'easymotion/vim-easymotion'
 
@@ -55,6 +55,9 @@ Plug 'alexbyk/vim-ultisnips-react'        " react snippets
 Plug 'tomtom/spec_vim'
 Plug 'junegunn/vader.vim'
 Plug 'h1mesuke/vim-unittest'
+
+" Lua
+" Plug 'xolox/vim-lua-ftplugin' | Plug 'xolox/vim-misc'
 
 " -- Tim Pope obviously --------------------------------------------------- {{{2
 
@@ -176,10 +179,11 @@ set foldmethod=marker                         " type of folding
 set foldtext=folding#Text()
 set backspace=2                               " make backspace work like most other apps
 set list                                      " vim builtin whitespace display
-set listchars=tab:>-,trail:.,extends:#,nbsp:.
+set listchars=tab:├─,trail:.,extends:#,nbsp:.
 set conceallevel=2                            " conceal, replace if defined char
 set concealcursor=nc                          " conceal in normal and commandmode
 set textwidth=80
+set iskeyword=@,48-57,_,192-255,-
 
 set viewoptions="cursor,folds"
 
@@ -325,6 +329,16 @@ nnoremap <leader><bar> :vsplit ~/.vim/after/plugin/tabular_extra.vim<CR>
 nnoremap <expr>S winwidth('.') > 160 ? ":vsplit " : ":split "
 " replaces an 'cc' alias
 
+" -- Error List Navigation ------------------------------------------------ {{{2
+"
+" Use the jump list movement keys to navigate
+" the syntactic error list, if it exists and has errors
+
+nnoremap <expr><silent><C-I> do#ErrorsVisible()
+      \ ? ":call do#LNext()<CR>" : "<C-I>"
+nnoremap <expr><silent><C-O> do#ErrorsVisible()
+      \ ? ":call do#LPrev()<CR>" : "<C-O>"
+
 " -- Linewise Movement ---------------------------------------------------- {{{2
 
 " The default:
@@ -356,12 +370,16 @@ vnoremap _ -$
 
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
-nnoremap <F2> :Errors<CR>
-inoremap <F2> <ESC>:Errors<CR>
-nnoremap <F3> :set relativenumber!<CR>
-nnoremap <F4> :set hlsearch!<CR>
-nnoremap <F5> :CheatSheet<CR>
-nnoremap <F6> :set cursorcolumn!<CR>
+
+call do#MapFkeys({
+      \ '<leader><F1>': ':call do#ListFkeys()',
+      \ '<F2>':         ':Errors',
+      \ '<F3>':         ':set relativenumber!',
+      \ '<F4>':         ':set hlsearch!',
+      \ '<F5>':         ':CheatSheet',
+      \ '<F6>':         ':set cursorcolumn!',
+      \ '<F8>':         ':TagbarToggle',
+      \ })
 
 " -- Unusable keys -------------------------------------------------------- {{{2
 
@@ -415,17 +433,17 @@ map <leader> <Plug>(easymotion-prefix)
 
 nmap s <Plug>(easymotion-overwin-f2)
 
-"map / <Plug>(easymotion-sn)
-"omap / <Plug>(easymotion-tn)
-
 let g:EasyMotion_smartcase = 1
 " use uppercase target labels and type as a lower case
 let g:EasyMotion_use_upper = 1
 
 " -- SYNTASTIC / NEOMAKE -------------------------------------------------- {{{2
 " passive filetypes uses clang or eclim instead
-let g:syntastic_mode_map = { 'mode': 'active',
-        \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ] }
+let g:syntastic_mode_map = {
+      \ 'mode': 'active',
+      \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ]
+      \ }
+
 " auto close, but no auto open
 let g:syntastic_auto_loc_list = 2
 " jump to fist error on open or save
@@ -452,19 +470,18 @@ let g:syntastic_haskell_checkers = [ 'hdevtools', 'hlint' ]
 let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
 let g:syntastic_ruby_rubocop_args = "-D"
 
+let g:syntastic_python_checkers = [ 'python', 'pylint' ]
+
 let g:syntastic_javascript_checkers = [ 'eslint' ]
 
 
-" Use the jump list movement keys to navigate
-" the syntactic error list, if it exists and has errors
-
-nnoremap <expr><silent><C-I> exists("b:syntastic_loclist") && len(b:syntastic_loclist._rawLoclist) ? ":lnext<CR>" : "<C-I>"
-nnoremap <expr><silent><C-O> exists("b:syntastic_loclist") && len(b:syntastic_loclist._rawLoclist) ? ":lprev<CR>" : "<C-O>"
 
 " -- YOU COMPLETE ME ------------------------------------------------------ {{{2
 
 "let g:ycm_filetype_whitelist = { '*': 1 }
-"let g:ycm_filetype_blacklist = { 'notes' : 1, 'markdown' : 1, 'text' :1 }
+" let g:ycm_filetype_blacklist = {
+      " \ 'lua' : 1
+      " \}
 "let g:ycm_filetype_specific_competion_to_disable = {}
 let g:ycm_collect_identifiers_from_tags_files = 1
 let g:ycm_seed_identifiers_with_syntax = 1
@@ -511,6 +528,11 @@ let g:ycm_semantic_triggers = {
   \ }
 unlet! s:dot_triggers
 
+" -- TAGBAR --------------------------------------------------------------- {{{2
+
+" let g:tagbar_type_javascript = {
+      " \ 'ctagstype': 'js'
+      " \ }
 " -- JSX ------------------------------------------------------------------ {{{2
 
 " jsx highlight
@@ -540,6 +562,7 @@ endif
 nmap <leader>a :Ack
 
 " -- CTRL-P --------------------------------------------------------------- {{{2
+let g:ctrlp_extensions = ['tag', 'buffertag']
 let g:ctrlp_cache_dir = $HOME . '/.cache/ctrlp'
 let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
       \ --ignore .git
@@ -575,6 +598,6 @@ let vim_markdown_preview_use_xdg_open = 1
 " -- RI ---- {{{2
 let g:ri_no_mappings = 1
 
-" -- NERDCommenter " {{{1
+" -- NERDCommenter " {{{2
 let g:NERDSpaceDelims = 1
 let g:NERDRemoveExtraSpaces = 1
