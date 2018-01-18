@@ -17,11 +17,13 @@ Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
 Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 
-" Code search and nav
+" Code search, nav, vim-bling
 Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
 Plug 'majutsushi/tagbar'
 Plug 'ctrlpvim/ctrlp.vim'         " file and buffer nav
 Plug 'easymotion/vim-easymotion'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 
 " Trailing whitespace
 Plug 'vim-scripts/ingo-library'
@@ -37,6 +39,8 @@ Plug 'vim-ruby/vim-ruby'
 Plug 'kana/vim-textobj-user'
 Plug 'nelstrom/vim-textobj-rubyblock'
 Plug 'danchoi/ri.vim' " ri doc searcher
+" Enable matchit for textobj-rubyblock
+runtime macros/matchit.vim
 
 " Haskell
 Plug 'bitc/vim-hdevtools'
@@ -48,8 +52,13 @@ Plug 'maxmellon/vim-jsx-pretty' | Plug 'pangloss/vim-javascript'
 Plug 'leafgarland/typescript-vim'
 Plug 'kchmck/vim-coffee-script'
 Plug 'nikvdp/ejs-syntax'
-Plug 'othree/jspc.vim'                    " function parameter completion
+Plug 'othree/jspc.vim'                        " function parameter completion
+Plug 'othree/javascript-libraries-syntax.vim' " For underscore, angular, react, etc
 Plug 'alexbyk/vim-ultisnips-react'        " react snippets
+Plug 'moll/vim-node'
+
+" Is this required with YCM ?
+" Plug 'ternjs/tern_for_vim'
 
 " VimScript
 Plug 'tomtom/spec_vim'
@@ -84,6 +93,13 @@ Plug 'gerw/vim-latex-suite'       " latex
 Plug 'slim-template/vim-slim'     " slim html template lang
 Plug 'vim-scripts/AnsiEsc.vim'    " ANSI color coding
 Plug 'hail2u/vim-css3-syntax'     " Sass's SCSS syntax
+Plug 'othree/html5-syntax.vim'    " handles HTML5 syntax highlighting
+Plug 'othree/html5.vim'           " HTML5 autocomplete
+Plug 'groenewege/vim-less'        " indentation, completion
+" may need:
+" autocmd BufNewFile,BufRead *.less set filetype=less
+" autocmd FileType less set omnifunc=csscomplete#CompleteCSS
+" Check how this work with YCM
 
 " markdown
 Plug 'plasticboy/vim-markdown'
@@ -176,7 +192,7 @@ set shiftwidth=2                              " ident width for autoindent
 set expandtab                                 " turn tabs into whitespace
 filetype indent on                            " indent depends on filetype
 set foldmethod=marker                         " type of folding
-set foldtext=folding#Text()
+set foldtext=do#FoldText()
 set backspace=2                               " make backspace work like most other apps
 set list                                      " vim builtin whitespace display
 set listchars=tab:├─,trail:.,extends:#,nbsp:.
@@ -188,7 +204,6 @@ set iskeyword=@,48-57,_,192-255,-
 set viewoptions="cursor,folds"
 
 set colorcolumn=81,+1,+2,130
-set foldtext=do#FoldText()
 
 " == AUTOCOMMANDS ========================================================= {{{1
 
@@ -234,18 +249,22 @@ let g:maplocalleader = ","
 inoremap <C-@> <C-Space>
 inoremap <C-O><C-O> <C-O>O
 
+" -- completion menu navigation
+inoremap <expr><C-d> pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
+inoremap <expr><C-u> pumvisible() ? "\<PageUp>\<C-p>\<C-n>"   : "\<C-u>"
+
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
-inoremap <leader>1 <ESC>:call do#SetFoldMarker(1)<CR>A
-inoremap <leader>2 <ESC>:call do#SetFoldMarker(2)<CR>A
-inoremap <leader>3 <ESC>:call do#SetFoldMarker(3)<CR>A
-inoremap <leader>4 <ESC>:call do#SetFoldMarker(4)<CR>A
+" inoremap <leader>1 <ESC>:call do#SetFoldMarker(1)<CR>A
+" inoremap <leader>2 <ESC>:call do#SetFoldMarker(2)<CR>A
+" inoremap <leader>3 <ESC>:call do#SetFoldMarker(3)<CR>A
+" inoremap <leader>4 <ESC>:call do#SetFoldMarker(4)<CR>A
 
-nnoremap <leader>1 :call do#SetFoldMarker(1)<CR>
-nnoremap <leader>2 :call do#SetFoldMarker(2)<CR>
-nnoremap <leader>3 :call do#SetFoldMarker(3)<CR>
-nnoremap <leader>4 :call do#SetFoldMarker(4)<CR>
+" nnoremap <leader>1 :call do#SetFoldMarker(1)<CR>
+" nnoremap <leader>2 :call do#SetFoldMarker(2)<CR>
+" nnoremap <leader>3 :call do#SetFoldMarker(3)<CR>
+" nnoremap <leader>4 :call do#SetFoldMarker(4)<CR>
 
 
 " -- Faster file Saving --------------------------------------------------- {{{2
@@ -378,6 +397,7 @@ call do#MapFkeys({
       \ '<F4>':         ':set hlsearch!',
       \ '<F5>':         ':CheatSheet',
       \ '<F6>':         ':set cursorcolumn!',
+      \ '<F7>':         ':set paste!',
       \ '<F8>':         ':TagbarToggle',
       \ })
 
@@ -395,6 +415,8 @@ call do#MapFkeys({
 " == COMMANDS ============================================================= {{{1
 command! -nargs=* Variations call do#Variations(<f-args>)<CR>
 command! -nargs=? -complete=file Open call do#Open(<f-args>)
+" see :he :DiffOrig
+command! DiffOrig vert new | set bt=nofile | r++edit # | 0d_ | diffthis | wincmd p | diffthis
 
 " == PLUGINS ============================================================== {{{1
 
@@ -491,6 +513,8 @@ let g:ycm_key_list_select_completion = ['<C-j>', '<Tab>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-k>', '<Up>']
 let g:ycm_key_detailed_diagnostics = '<leader>y'
 
+let g:ycm_max_num_candidates = 100
+
 "let g:ycm_global_ycm_extra_conf = ''
 let g:ycm_config_extra_conf = 0
 "let g:ycm_extra_conf_globlist = []
@@ -528,11 +552,73 @@ let g:ycm_semantic_triggers = {
   \ }
 unlet! s:dot_triggers
 
+" -- AIRLINE -------------------------------------------------------------- {{{2
+
+let g:airline_theme = 'motoko'
+
+let g:airline_section_z = ''
+let g:airline#extensions#whitespace#enabled = 0
+let g:airline_mode_map = {
+  \ '__' : '一',
+  \ 'n'  : '常',
+  \ 'i'  : '挿',
+  \ 'R'  : '代',
+  \ 'c'  : '令',
+  \ 'v'  : '視',
+  \ 'V'  : '視',
+  \ '' : '視',
+  \ 's'  : '選',
+  \ 'S'  : '選',
+  \ '' : '選',
+  \}
+
+if !exists('g:airline_symbols')
+	let g:airline_symbols = {}
+endif
+
+let g:airline_symbols.branch = '別'
+let g:airline_symbols.paste = '貼'
+let g:airline_symbols.linenr = ''
+let g:airline_symbols.maxlinenr = '行'
+let g:airline_symbols.notexists = '無'
+let g:airline_symbols.readonly = '読'
+
+
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#show_tab_type = 0
+let g:airline#extensions#tabline#tab_nr_type = 1
+let g:airline#extensions#tabline#show_tab_nr = 0
+let g:airline#extensions#tabline#buffer_nr_show = 0
+let g:airline#extensions#tabline#buffer_nr_format = '%s '
+let g:airline#extensions#tabline#buffer_idx_mode = 1
+let g:airline#extensions#tabline#buffer_idx_format = {
+      \ '0': '零',
+      \ '1': '一',
+      \ '2': 'ニ',
+      \ '3': '三',
+      \ '4': '四',
+      \ '5': '五',
+      \ '6': '六',
+      \ '7': '七',
+      \ '8': '八',
+      \ '9': '九'
+      \}
+let g:airline#extensions#tabline#show_close_button = 0
+
+let g:airline#extensions#ycm#error_symbol = '誤'
+let g:airline#extensions#ycm#warning_symbol = '戒'
+
+" remove (fileencoding, fileformat)
+let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
+
 " -- TAGBAR --------------------------------------------------------------- {{{2
 
 " let g:tagbar_type_javascript = {
       " \ 'ctagstype': 'js'
       " \ }
+
+let g:tagbar_iconchars = [ 'v', '>' ]
+
 " -- JSX ------------------------------------------------------------------ {{{2
 
 " jsx highlight
@@ -550,6 +636,39 @@ let g:Tex_DefaultTargetFormat='pdf'
 let g:Tex_MultipleCompileFormats='pdf, aux'
 let g:Imap_UsePlaceHolders = 0
 let g:Imap_FreezeImap = 1 " Turn off ANNOYING AUTO INPUT CRAP
+
+" -- VIM-RUBY -------------------------------------------------------------- {{{2
+" let g:ruby_indent_access_modifyer_style = 'normal' | 'indent' | 'outdent'
+"
+" let g:ruby_indent_block_style = 'expression' | 'do'
+"
+" let g:ruby_indent_assignment_style = 'hanging' | 'variable'
+"
+" loads/evaluates code to provide completion
+let g:rubycomplete_buffer_loading = 1
+" parses entire buffer to add a list of classes to the completion results
+let g:rubycomplete_classes_in_global = 1
+" detect and load the Rails env
+let g:rubycomplete_rails = 1
+" parse a Gemfile, in case gems are being implicitly required
+let g:rubycomplete_load_gemfile = 1
+" To specify an alternative path:
+" let g:rubycomplete_gemfile_path = 'Gemfile.aux'
+" To use Bundler.require instead of parsing the Gemfile, seg:
+" let g:rubycomplete_use_bundler = 1
+
+" :he ft-ruby-syntax
+" highlighting operators
+" let ruby_operators = 1
+"
+" highlight whitespace errors
+" let ruby_space_errors = 1
+" folding
+let ruby_fold = 1
+" let ruby_foldable_ground = ' '
+let ruby_no_expensive = 1
+
+" let ruby_spellcheck_strings = 1
 
 " -- VIM TABLE MODE ------------------------------------------------------- {{{2
 " Markdown-compatible tables
