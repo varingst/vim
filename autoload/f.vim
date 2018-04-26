@@ -2,9 +2,13 @@
 
 " Change lines of code in some way {{{1
 
-function! do#CopyLineUntil(offset, ...) " {{{2
+function f#VimRcExtra()
+  command! Functions :vsplit ~/.vim/autoload/f.vim
+endfunction
+
+function! f#CopyLineUntil(offset, ...) " {{{2
   try
-    call FindCharPos(a:offset, a:000)
+    call f#FindCharPos(a:offset, a:000)
   catch /NoMatch/
     return
   endtry
@@ -12,19 +16,19 @@ function! do#CopyLineUntil(offset, ...) " {{{2
   startinsert!
 endfun
 
-function! do#AlignWithChar(offset, ...) " {{{2
+function! f#AlignWithChar(offset, ...) " {{{2
   try
-    call FindCharPos(a:offset, a:000)
+    call f#FindCharPos(a:offset, a:000)
   catch /NoMatch/
     return
   endtry
   let curline = getline(s:lnum)
-  call setline(s:lnum, Fill(curline, s:col, s:colmatch - s:col))
+  call setline(s:lnum, s:Fill(curline, s:col, s:colmatch - s:col))
   "call setline(s:lnum, curline[0:(s:col - 1)].repeat(' ', s:colmatch - s:col).curline[s:col :])
   call setpos('.', [s:bufnum, s:lnum, s:colmatch + 1, s:off])
 endfun
 
-function! do#Variations(...) " {{{2
+function! f#Variations(...) " {{{2
   if a:0
     let words = a:000[:]
   else
@@ -44,11 +48,11 @@ function! do#Variations(...) " {{{2
   call append(line('.'), words[1: -1])
 endfun
 
-function! do#Fill(string, pos, width) " {{{2
+function! s:Fill(string, pos, width) " {{{2
   return a:string[0:(a:pos - 1)].repeat(' ', a:width).a:string[a:pos :]
 endfun
 
-function! do#FindCharPos(line_offset, varargs) " {{{2
+function! f#FindCharPos(line_offset, varargs) " {{{2
   let params = {}
   let ignorecase = &ignorecase
   let char = len(a:varargs) ? a:varargs[0] : nr2char(getchar())
@@ -60,7 +64,7 @@ function! do#FindCharPos(line_offset, varargs) " {{{2
   if s:colmatch < 0 | throw "NoMatch" | endif
 endfun
 
-function! do#UtlOrTag() " {{{2
+function! f#UtlOrTag() " {{{2
   let line = getline('.')
   let utl_start = match(line, '<url:#r')
 
@@ -82,7 +86,7 @@ function! do#UtlOrTag() " {{{2
   normal! <C-]>
 endfun
 
-fun! do#LocListIncr() " {{{2
+fun! f#LocListIncr() " {{{2
   if !exists("b:loclistpos") || b:loclistpos >= len(b:syntastic_loclist)
     let b:loclistpos = 0
   endif
@@ -90,7 +94,7 @@ fun! do#LocListIncr() " {{{2
   exe ":lfirst ".b:loclistpos
 endfun
 
-fun! do#LocListDecr()
+fun! f#LocListDecr()
   if !exists("b:loclistpos") || b:loclistpos <= 1
     let b:loclistpos = len(b:syntastic_loclist) + 1
   endif
@@ -100,7 +104,7 @@ endfun " }}}
 
 " VIMRC purtifiers {{{1
 
-fun! do#VimRCHeadline(...)
+fun! f#VimRCHeadline(...)
   let line = getline('.')
   let words = split(line)
   let pad = 80 - (strlen(line) - strlen(words[-2]))
@@ -111,7 +115,7 @@ endfun
 " Function key mapping and listing
 
 let s:fkeys = {}
-fun! do#MapFkeys(keys)
+fun! f#MapFkeys(keys)
   for [key, cmd] in items(a:keys)
     let s:fkeys[key] = cmd
     exe 'nnoremap ' . key . ' ' . cmd . '<CR>'
@@ -119,7 +123,7 @@ fun! do#MapFkeys(keys)
   endfor
 endfun
 
-fun! do#ListFkeys()
+fun! f#ListFkeys()
   for i in range(2, 12)
     let key = '<F'.i.'>'
     if has_key(s:fkeys, key)
@@ -130,7 +134,7 @@ endfun
 
 " Syntastic Location List
 
-fun! do#ErrorsVisible()
+fun! f#ErrorsVisible()
   if !(exists('b:syntastic_loclist')
         \ && len(b:syntastic_loclist._rawLoclist))
     return 0
@@ -144,7 +148,7 @@ fun! do#ErrorsVisible()
   return 0
 endfun
 
-fun! do#LNext()
+fun! f#LNext()
   try
     lnext
   catch /^Vim\%((\a\+)\)\=:E553/
@@ -152,7 +156,7 @@ fun! do#LNext()
   endtry
 endfun
 
-fun! do#LPrev()
+fun! f#LPrev()
   try
     lprev
   catch /^Vim\%((\a\+)\)\=:E553/
@@ -219,7 +223,7 @@ endfun
 " the next line of non-commented text as fold text
 " TODO: Not working properly
 " Fails with NON-ALNUM CHARS
-fun! do#FoldText() " {{{
+fun! f#FoldText() " {{{
   let ft = split(foldtext(), ':')
   " this line in better, but does not work ?!
   "let ft[1] = substitite(ft[1], ' \s*','','')
@@ -240,26 +244,40 @@ fun! do#FoldText() " {{{
   endif
 endfun " }}}
 
-fun! do#SetFoldMarker(n) " {{{2
+fun! s:GetCommentMarker()
   if has_key(g:NERDDelimiterMap, &ft)
-    let map = g:NERDDelimiterMap[&ft]
+    return g:NERDDelimiterMap[&ft]
   elseif &ft == 'vim'
-    let map = { 'left': "\"", 'right': "" }
+    return { 'left': "\"", 'right': "" }
   else
-    return
+    return 0
   end
-  let level = a:n
+endfun
+
+fun! f#SetFoldMarker(level) " {{{2
+  let map = s:GetCommentMarker()
   let line = getline('.')
   let open_fold = '{{{'
   let pat = open_fold . '\d'
 
-  if match(line, pat) >= 0
-    let line = substitute(line, pat, open_fold . level, "")
+  if a:level == 0
+    " level = 0 => clear marker
+    let marker_start = match(line, '\s\+\(' . map['left'] . '\s\*\)\?' . open_fold)
+    if marker_start >= 0
+      let line = line[0:marker_start - 1]
+    else
+      return
+    endif
   else
-    let line .= " " . map['left'] . " " . open_fold . level
-    if strlen(map['right'])
-      let line .= " " . map['right']
-    end
+    " level > 0 => add/update marker
+    if match(line, pat) >= 0
+      let line = substitute(line, pat, open_fold . a:level, "")
+    else
+      let line .= " " . map['left'] . " " . open_fold . a:level
+      if strlen(map['right'])
+        let line .= " " . map['right']
+      end
+    endif
   endif
 
   call setline('.', line)
@@ -272,14 +290,32 @@ elseif executable('xdg-open')
   let s:open = 'xdg-open'
 endif
 
-fun! do#Open(...)
-  let path = a:0 ? a:1 : expand("<cWORD>")
-  if !strlen(path) | echoerr "Nothing to open, empty path" | return | endif
-  call system(s:open . " '" . path . "'")
+fun! s:FileUnderCursor()
+  let file = expand("<cWORD>")
+  if filereadable(file)
+    return file
+  endif
+  let file = expand(getline('.'))
+  if filereadable(file)
+    return file
+  endif
+  echoerr "could not find file under cursor"
 endfun
 
-fun! do#OpenUnderCursor()
-  call do#Open(expand("<cWORD>"))
+
+fun! f#Open(...)
+  let path = a:0 ? a:1 : s:FileUnderCursor()
+  if !strlen(path) | echoerr "Nothing to open, empty path" | return | endif
+  silent exec "!".(s:open . " '" . expand(path) . "'")." &"
+endfun
+
+let s:conceal_level = &conceallevel
+fun! f#ConcealToggle()
+  if &conceallevel
+    setlocal conceallevel=0
+  else
+    exe "setlocal conceallevel=".s:conceal_level
+  endif
 endfun
 
 " Compile YCM {{{1
@@ -312,7 +348,142 @@ fun! s:YouCompleteMeCompile() " {{{2
   "echo install_cmd
   call system('cd '.cwd)
 endfun
-" do this in shell
-" command! YouCompleteMeCompile call s:YouCompleteMeCompile()<CR>
+
+" let s:keys = {}
+" let s:width = {}
+" let g:no_more_keys = 0
+
+" fun! f#AddKey(...)
+  " if g:no_more_keys | return | endif
+
+  " let entry = { 'keys': a:1 }
+  " if a:0 == 2
+    " let entry['mode'] = 'n'
+    " let entry['text'] = a:2
+  " else
+    " let entry['mode'] = a:2
+    " let entry['text'] = a:3
+  " endif
+
+  " call add(s:keys, entry)
+
+  " for k in ['keys', 'mode', 'text']
+    " let s:width[k] = max([get(s:width, k, 0), strdisplaywidth(entry[k])])
+  " endfor
+" endfun
+
+" fun! f#ListKeys()
+  " if !len(s:keys)
+    " echo "no keys to list .."
+    " return
+  " endif
+
+  " let format = '%-'.(s:width['keys'] + 2).'s%-'.(s:width['mode'] + 2).'s%s'
+  " let available_width = &columns - strdisplaywidth(printf(format, '', '', '  '))
+
+  " for entry in s:keys
+    " echo printf(format, entry['keys'], entry['mode'],
+          " \ strdisplaywidth(entry['text']) > available_width
+          " \ ? entry['text'][:available_width - 2].'..'
+          " \ : entry['text'])
+  " endfor
+" endfun
+
+" fun! f#ClearKeys()
+  " let s:keys = []
+  " let s:width = {}
+  " let g:no_more_keys = 0
+" endfun
 
 " MISC {{{1
+"
+fun! f#Profile(fname)
+  exe "profile start ".a:fname
+  profile func *
+  profile file *
+endfun
+
+fun! f#ProfilePause()
+  profile pause
+endfun
+
+let s:ignore = ['define', 'pragma']
+fun! f#CreateMarkdownToc(...)
+  let toc = {
+        \ 'header': a:0 ? a:1 : 'Table of contents',
+        \ 'lines': [],
+        \ 'open': 0,
+        \ 'close': 0,
+        \ }
+  let in_embedded = 0
+  let linenr = 0
+  while linenr < line("$")
+    let linenr += 1
+    let line = getline(linenr)
+
+    if line =~ '^```'
+      let in_embedded = !in_embedded
+    endif
+
+    " skip if not a header
+    if line !~ '^#' || in_embedded
+      continue
+    " mark start of table of contents
+    elseif line =~ '^# *'.toc['header']
+      let toc['open'] = linenr
+      continue
+    end
+    " mark end of toc, by the line before the next heading
+    if !toc['close'] && toc['open'] && line =~ '^#'
+      let toc['close'] = linenr - 1
+    endif
+
+    " skip our ignored words
+    let skip = 0
+    for word in s:ignore
+      if line =~ '^# *'.word
+        let skip = 1
+        break
+      endif
+    endfor
+    if skip
+      continue
+    endif
+
+    " now lets get to the parsing
+    let title = substitute(line, '^#* *', '', '')
+    let href = tolower(substitute(title, ' ', '-', ''))
+    let pad = repeat("  ", count(line, '#') - 1)
+    call add(toc['lines'], pad . "- [" .title. "](#" .href. ")")
+  endwhile
+
+  return toc
+endfun
+
+fun! f#InsertMarkdownToc(toc)
+  " remove existing TOC
+  if a:toc['open'] && a:toc['close']
+    silent! exe ':'.a:toc['open'].','.a:toc['close'].'d'
+  " clear line to mark where TOC is to be inserted
+  elseif a:toc['open']
+    silent! exe ':'.a:toc['open'].'d'
+  " use line 3 as default if nothing set
+  else
+    let a:toc['open'] = 3
+  endif
+
+  " add empty line as spacing before first section
+  call add(a:toc['lines'], "")
+  " add heading
+  call insert(a:toc['lines'], "# ".a:toc['header'])
+
+  call append(a:toc['open'] - 1, a:toc['lines'])
+endfun
+
+fun! f#ListToc()
+  let toc = f#CreateMarkdownToc()
+  for line in s:toc['lines']
+    echo line
+  endfor
+endfun
+

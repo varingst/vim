@@ -2,7 +2,7 @@
 " == PLUG ================================================================= {{{1
 
 set nocompatible
-filetype off
+" filetype off
 
 call plug#begin()
 
@@ -15,14 +15,15 @@ Plug 'scrooloose/syntastic'       " syntax checkers
 Plug 'scrooloose/nerdcommenter'   " batch commenting +++
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
-Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
 
 " Code search, nav, vim-bling
 Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
 Plug 'majutsushi/tagbar'
 Plug 'ctrlpvim/ctrlp.vim'         " file and buffer nav
 Plug 'easymotion/vim-easymotion'
-Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline'    " statusline
 Plug 'vim-airline/vim-airline-themes'
 
 " Trailing whitespace
@@ -31,16 +32,13 @@ Plug 'vim-scripts/ShowTrailingWhitespace'
 Plug 'vim-scripts/CountJump'
 Plug 'vim-scripts/JumpToTrailingWhitespace'
 Plug 'vim-scripts/DeleteTrailingWhitespace'
+Plug 'vim-scripts/camelcasemotion' " camelcase text objects
 
 " -- Programming languages ------------------------------------------------ {{{2
 
 " Ruby
 Plug 'vim-ruby/vim-ruby'
-Plug 'kana/vim-textobj-user'
-Plug 'nelstrom/vim-textobj-rubyblock'
 Plug 'danchoi/ri.vim' " ri doc searcher
-" Enable matchit for textobj-rubyblock
-runtime macros/matchit.vim
 
 " Haskell
 Plug 'bitc/vim-hdevtools'
@@ -48,7 +46,8 @@ Plug 'Twinside/vim-hoogle'
 Plug 'eagletmt/neco-ghc'
 
 " JavaScript and friends
-Plug 'maxmellon/vim-jsx-pretty' | Plug 'pangloss/vim-javascript'
+Plug 'pangloss/vim-javascript'
+Plug 'maxmellon/vim-jsx-pretty'
 Plug 'leafgarland/typescript-vim'
 Plug 'kchmck/vim-coffee-script'
 Plug 'nikvdp/ejs-syntax'
@@ -80,22 +79,23 @@ Plug 'tpope/vim-abolish'          " Smarter substitution ++
 Plug 'tpope/vim-fireplace'        " Clojure
 " Ruby snaxx
 Plug 'tpope/vim-bundler'
-Plug 'tpope/vim-projectionist' | Plug 'tpope/vim-rake'
+Plug 'tpope/vim-rake'
+Plug 'tpope/vim-projectionist'
 Plug 'tpope/vim-rails'
 Plug 'tpope/vim-rbenv'            " Tell vim to use the right ruby
 Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
 
 " -- Markup, Template, Formatting, et al ---------------------------------- {{{2
 
-Plug 'aklt/plantuml-syntax'       " plantuml
-Plug 'vim-scripts/utl.vim'        " universal text linking
-Plug 'gerw/vim-latex-suite'       " latex
-Plug 'slim-template/vim-slim'     " slim html template lang
-Plug 'vim-scripts/AnsiEsc.vim'    " ANSI color coding
-Plug 'hail2u/vim-css3-syntax'     " Sass's SCSS syntax
-Plug 'othree/html5-syntax.vim'    " handles HTML5 syntax highlighting
-Plug 'othree/html5.vim'           " HTML5 autocomplete
-Plug 'groenewege/vim-less'        " indentation, completion
+Plug 'aklt/plantuml-syntax'        " plantuml
+Plug 'vim-scripts/utl.vim'         " universal text linking
+Plug 'gerw/vim-latex-suite'        " latex
+Plug 'slim-template/vim-slim'      " slim html template lang
+Plug 'powerman/vim-plugin-AnsiEsc' " ANSI color coding
+Plug 'hail2u/vim-css3-syntax'      " Sass's SCSS syntax
+Plug 'othree/html5-syntax.vim'     " handles HTML5 syntax highlighting
+Plug 'othree/html5.vim'            " HTML5 autocomplete
+Plug 'groenewege/vim-less'         " indentation, completion
 " may need:
 " autocmd BufNewFile,BufRead *.less set filetype=less
 " autocmd FileType less set omnifunc=csscomplete#CompleteCSS
@@ -103,13 +103,17 @@ Plug 'groenewege/vim-less'        " indentation, completion
 
 " markdown
 Plug 'plasticboy/vim-markdown'
-Plug 'godlygeek/tabular' | Plug 'dhruvasagar/vim-table-mode'
+Plug 'dhruvasagar/vim-table-mode'
+Plug 'godlygeek/tabular'
+Plug 'chmp/mdnav'
 Plug 'JamshedVesuna/vim-markdown-preview' " preview github README.md
 
-" orgmode
-Plug 'jceb/vim-orgmode'
+" Todo/Project
 Plug 'vim-scripts/SyntaxRange'
 Plug 'mattn/calendar-vim'
+Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
+Plug 'tbabej/taskwiki'
+Plug 'farseer90718/vim-taskwarrior'
 
 " grammar
 Plug 'rhysd/vim-grammarous'
@@ -125,16 +129,21 @@ Plug '~/.vim/proto/vim-cheatsheet'
 
 call plug#end()
 
+runtime macros/matchit.vim
+
 " == OPTIONS ============================================================== {{{1
 
-filetype plugin indent on
-syntax enable
+" vim-plug do these automatically
+" filetype plugin indent on
+" syntax enable
+
 set background=dark
 let g:solarized_termcolors = 256
 let g:solarized_termtrans = 1
 colorscheme solarized
 
-set relativenumber        " number lines relative to current line
+" this is sloooooooooooooooooooooow ...
+" set relativenumber        " number lines relative to current line
 set number                " current line numbered
 set scrolloff=5
 set wildmode=longest,list " bash style completion
@@ -192,7 +201,7 @@ set shiftwidth=2                              " ident width for autoindent
 set expandtab                                 " turn tabs into whitespace
 filetype indent on                            " indent depends on filetype
 set foldmethod=marker                         " type of folding
-set foldtext=do#FoldText()
+set foldtext=f#FoldText()
 set backspace=2                               " make backspace work like most other apps
 set list                                      " vim builtin whitespace display
 set listchars=tab:├─,trail:.,extends:#,nbsp:.
@@ -203,7 +212,13 @@ set iskeyword=@,48-57,_,192-255,-
 
 set viewoptions="cursor,folds"
 
-set colorcolumn=81,+1,+2,130
+" set colorcolumn=81,+1,+2,130
+" limit max number of columns to search for syntax items
+set synmaxcol=128
+" send more chars to screen for redrawing
+set ttyfast
+" don't redraw while macro is executed
+set lazyredraw
 
 " == AUTOCOMMANDS ========================================================= {{{1
 
@@ -214,16 +229,23 @@ au BufWinEnter *.* silent! loadview
 " Move quickfix window to the bottom
 au FileType qf wincmd J
 
+" Move fugitive preview to the bottom
+au FileType gitcommit wincmd J
+
 " Number in taglist window
 "au BufWinEnter __Tag_List__ setlocal number
 
 " Override matlab .m association
 au BufRead,BufNewFile *.m setl filetype=objc
 
+au BufRead,BufNewFile .eslintrc,*.tern-config set filetype=json
+
 au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
 
 au InsertEnter * highlight CursorLineNr term=bold ctermfg=Red
 au InsertLeave * highlight CursorLineNr term=bold ctermfg=Yellow
+
+au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim call f#VimRcExtra()
 
 " == HIGHLIGHTING ========================================================= {{{1
 
@@ -236,6 +258,8 @@ highlight ColorColumn ctermbg=232
 highlight ShowTrailingWhitespace ctermbg=red
 
 " == KEY MAPPING ========================================================== {{{1
+"
+call keys#clear()
 
 " -- Leader mapping
 map ; <nop>
@@ -245,26 +269,33 @@ let g:mapleader = ";"
 map , <nop>
 let maplocalleader = ","
 let g:maplocalleader = ","
+inoremap <leader><ESC> ;<ESC>
 
 inoremap <C-@> <C-Space>
 inoremap <C-O><C-O> <C-O>O
 
+nnoremap <C-B> :call keys#list()<CR>
+
 " -- completion menu navigation
-inoremap <expr><C-d> pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
-inoremap <expr><C-u> pumvisible() ? "\<PageUp>\<C-p>\<C-n>"   : "\<C-u>"
+" inoremap <expr><C-d> pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
+" inoremap <expr><C-u> pumvisible() ? "\<PageUp>\<C-p>\<C-n>"   : "\<C-u>"
 
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
-" inoremap <leader>1 <ESC>:call do#SetFoldMarker(1)<CR>A
-" inoremap <leader>2 <ESC>:call do#SetFoldMarker(2)<CR>A
-" inoremap <leader>3 <ESC>:call do#SetFoldMarker(3)<CR>A
-" inoremap <leader>4 <ESC>:call do#SetFoldMarker(4)<CR>A
+" TODO: fix setfoldmarker(0)
+nnoremap z0 :call f#SetFoldMarker(0)<CR>
+nnoremap z1 :call f#SetFoldMarker(1)<CR>
+nnoremap z2 :call f#SetFoldMarker(2)<CR>
+nnoremap z3 :call f#SetFoldMarker(3)<CR>
+nnoremap z4 :call f#SetFoldMarker(4)<CR>
 
-" nnoremap <leader>1 :call do#SetFoldMarker(1)<CR>
-" nnoremap <leader>2 :call do#SetFoldMarker(2)<CR>
-" nnoremap <leader>3 :call do#SetFoldMarker(3)<CR>
-" nnoremap <leader>4 :call do#SetFoldMarker(4)<CR>
+call keys#add('z<0-4>', 'Set foldlevel with marker')
+
+" nnoremap <leader>1 :call f#SetFoldMarker(1)<CR>
+" nnoremap <leader>2 :call f#SetFoldMarker(2)<CR>
+" nnoremap <leader>3 :call f#SetFoldMarker(3)<CR>
+" nnoremap <leader>4 :call f#SetFoldMarker(4)<CR>
 
 
 " -- Faster file Saving --------------------------------------------------- {{{2
@@ -276,6 +307,7 @@ nnoremap <leader>w :w<CR>
 inoremap ,. ->
 inoremap ., <-
 inoremap ,, =>
+inoremap <> </><ESC>2ha
 
 " -- Swap quotes ---------------------------------------------------------- {{{2
 
@@ -292,10 +324,18 @@ nnoremap <leader>" :silent s/[^\\]/zs"/'/ge<CR>
 
 " -- Copy next/previous line ---------------------------------------------- {{{2
 "  .. how much do I really use these?
-inoremap <silent><C-Y> <ESC>:call do#CopyLineUntil(-1)<CR>
-inoremap <silent><C-E> <ESC>:call do#CopyLineUntil(1)<CR>
-nnoremap <silent><C-Y> <ESC>:call do#AlignWithChar(-1)<CR>
-nnoremap <silent><C-E> <ESC>:call do#AlignWithChar(1)<CR>
+"
+call keys#add('<C-Y>', 'i', 'Copy the line above, until char <c>')
+call keys#add('<C-E>', 'i', 'Copy the line below, until char <c>')
+inoremap <silent><C-Y> <ESC>:call f#CopyLineUntil(-1)<CR>
+inoremap <silent><C-E> <ESC>:call f#CopyLineUntil(1)<CR>
+
+
+call keys#add('<C-Y', 'Align current line with first char <c> in  the line above')
+call keys#add('<C-E', 'Align current line with first char <c> in  the line below')
+nnoremap <silent><C-Y> <ESC>:call f#AlignWithChar(-1)<CR>
+nnoremap <silent><C-E> <ESC>:call f#AlignWithChar(1)<CR>
+
 
 " -- Command mode mappings ------------------------------------------------ {{{2
 
@@ -310,17 +350,21 @@ cnoremap <C-j> <down>
 nnoremap j gj
 nnoremap k gk
 " navigate folds with J/K
-nnoremap <expr><silent>J foldlevel('.') && foldclosed('.') != -1 ? "za" : "zj"
+nnoremap <expr><silent>J foldlevel('.') && foldclosed('.') != -1 ? "zo" : "zj"
 nnoremap <expr><silent>K foldlevel('.') && (foldclosed('.') == -1 <BAR><BAR> foldlevel('.') > 1) ? "zc" : "gk"
+" join <count> lines
+nnoremap <leader>j J
+" lookup keyword under cursor with 'keywordprg'
+nnoremap <leader>k K
+
+call keys#add('<leader>j', 'join <count> lines')
 
 nnoremap G Gzxzt
 
 " -- Normal cC ------------------------------------------------------------ {{{2
 
-nnoremap c" vi"c
-nnoremap C" va"c
 unlet! c
-for c in split("'`(){}<>[]", '\zs')
+for c in split("\"'`(){}<>[]", '\zs')
   exe "nnoremap c".c." vi".c."c"
   exe "nnoremap C".c." va".c."c"
 endfor
@@ -343,6 +387,9 @@ nnoremap <silent> T :nnoremap H h;<CR>:nnoremap L l;<CR>T
 nnoremap <expr><bar> ":Tabularize "
 vnoremap <expr><bar> ":Tabularize "
 nnoremap <leader><bar> :vsplit ~/.vim/after/plugin/tabular_extra.vim<CR>
+call keys#add('|', 'nv', ':Tabularize')
+call keys#add('<leader>|', ':Tabularize: edit tabular_extra')
+
 
 " -- Split Window --------------------------------------------------------- {{{2
 nnoremap <expr>S winwidth('.') > 160 ? ":vsplit " : ":split "
@@ -353,10 +400,10 @@ nnoremap <expr>S winwidth('.') > 160 ? ":vsplit " : ":split "
 " Use the jump list movement keys to navigate
 " the syntactic error list, if it exists and has errors
 
-nnoremap <expr><silent><C-I> do#ErrorsVisible()
-      \ ? ":call do#LNext()<CR>" : "<C-I>"
-nnoremap <expr><silent><C-O> do#ErrorsVisible()
-      \ ? ":call do#LPrev()<CR>" : "<C-O>"
+nnoremap <expr><silent><C-I> f#ErrorsVisible()
+      \ ? ":call f#LNext()<CR>" : "<C-I>"
+nnoremap <expr><silent><C-O> f#ErrorsVisible()
+      \ ? ":call f#LPrev()<CR>" : "<C-O>"
 
 " -- Linewise Movement ---------------------------------------------------- {{{2
 
@@ -387,11 +434,14 @@ vnoremap ^ _
 vnoremap + $j$
 vnoremap _ -$
 
+" Change <CR> to work with absolute line numbers
+nnoremap <CR> G
+vnoremap <CR> G
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
-call do#MapFkeys({
-      \ '<leader><F1>': ':call do#ListFkeys()',
+call f#MapFkeys({
+      \ '<F1>':         ':call f#ListFkeys()',
       \ '<F2>':         ':Errors',
       \ '<F3>':         ':set relativenumber!',
       \ '<F4>':         ':set hlsearch!',
@@ -399,6 +449,8 @@ call do#MapFkeys({
       \ '<F6>':         ':set cursorcolumn!',
       \ '<F7>':         ':set paste!',
       \ '<F8>':         ':TagbarToggle',
+      \ '<F9>':         ':call f#ConcealToggle()',
+      \ '<F10>':        ':Gstatus',
       \ })
 
 " -- Unusable keys -------------------------------------------------------- {{{2
@@ -412,11 +464,13 @@ call do#MapFkeys({
  "<C-C> break
  "<C-Z> kill/move to background
 
+
 " == COMMANDS ============================================================= {{{1
-command! -nargs=* Variations call do#Variations(<f-args>)<CR>
-command! -nargs=? -complete=file Open call do#Open(<f-args>)
+command! -nargs=* Variations call f#Variations(<f-args>)<CR>
+command! -nargs=? -complete=file Open call f#Open(<f-args>)
 " see :he :DiffOrig
 command! DiffOrig vert new | set bt=nofile | r++edit # | 0d_ | diffthis | wincmd p | diffthis
+command! Exe !chmod +x %
 
 " == PLUGINS ============================================================== {{{1
 
@@ -450,10 +504,14 @@ let g:cheatsheet_subtype_redirect = {
       \ }
 
 " -- EASYMOTION ----------------------------------------------------------- {{{2
-let g:EasyMotion_do_mapping = 1
-map <leader> <Plug>(easymotion-prefix)
 
-nmap s <Plug>(easymotion-overwin-f2)
+map <space> <Plug>(easymotion-prefix)
+
+" disable syntax shading (slow)
+let g:EasyMotion_do_shade = 0
+
+call keys#add('<space> j/k', "(EasyMotion) Select first char up/down")
+call keys#add('<space> s',   "(EasyMotion) Find chard forward and backward")
 
 let g:EasyMotion_smartcase = 1
 " use uppercase target labels and type as a lower case
@@ -465,6 +523,11 @@ let g:syntastic_mode_map = {
       \ 'mode': 'active',
       \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ]
       \ }
+
+" NOTE: this hooks into CursorMoved and filters the error list.
+" With huge error lists this will be choke vim to a halt.
+" Set this to 0 and restart if Syntastic is to be running
+let g:syntastic_echo_current_error = 1
 
 " auto close, but no auto open
 let g:syntastic_auto_loc_list = 2
@@ -524,31 +587,29 @@ let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
 let g:ycm_autoclose_preview_window_after_insertion = 1
 
-let s:dot_triggers = join([
-      \ 'cs',
-      \ 'd',
-      \ 'elixir',
-      \ 'haskell',
-      \ 'java',
-      \ 'javascript',
-      \ 'python',
-      \ 'perl6',
-      \ 'ruby',
-      \ 'scala',
-      \ 'vb',
-      \ 'vim' ], ',')
-
-
 let g:ycm_semantic_triggers = {
-  \   'c' : ['->', '.'],
-  \   'objc' : ['->', '.'],
-  \   'ocaml' : ['.', '#'],
-  \   'cpp,objcpp' : ['->', '.', '::'],
-  \   'perl' : ['->'],
-  \   'php' : ['->', '::'],
-  \   s:dot_triggers : ['.'],
-  \   'lua' : ['.', ':'],
-  \   'erlang' : [':'],
+  \   'c'               : ['->', '.'],
+  \   'objc'            : ['->', '.'],
+  \   'ocaml'           : ['.', '#'],
+  \   'cpp,objcpp'      : ['->', '.', '::'],
+  \   'perl'            : ['->'],
+  \   'php'             : ['->', '::'],
+  \   join([
+        \ 'cs',
+        \ 'd',
+        \ 'elixir',
+        \ 'haskell',
+        \ 'java',
+        \ 'javascript',
+        \ 'python',
+        \ 'perl6',
+        \ 'ruby',
+        \ 'scala',
+        \ 'vb',
+        \ 'vim'
+  \   ], ',')           : [ '.' ],
+  \   'lua'             : ['.', ':'],
+  \   'erlang'          : [':'],
   \ }
 unlet! s:dot_triggers
 
@@ -610,6 +671,21 @@ let g:airline#extensions#ycm#warning_symbol = '戒'
 
 " remove (fileencoding, fileformat)
 let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
+
+nmap <leader>h <Plug>AirlineSelectPrevTab
+nmap <leader>l <Plug>AirlineSelectNextTab
+nmap <leader>1 <Plug>AirlineSelectTab1
+nmap <leader>2 <Plug>AirlineSelectTab2
+nmap <leader>3 <Plug>AirlineSelectTab3
+nmap <leader>4 <Plug>AirlineSelectTab4
+nmap <leader>5 <Plug>AirlineSelectTab5
+nmap <leader>6 <Plug>AirlineSelectTab6
+nmap <leader>7 <Plug>AirlineSelectTab7
+nmap <leader>8 <Plug>AirlineSelectTab8
+nmap <leader>9 <Plug>AirlineSelectTab9
+
+call keys#add('<leader>h/l', "(Airline) Switch buffer next/prev")
+call keys#add('<leader>1-9', "(Airline) Switch to buffer (1-9)")
 
 " -- TAGBAR --------------------------------------------------------------- {{{2
 
@@ -690,6 +766,16 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
       \ --ignore .DS_Store
       \ -g ""'
 
+" open new files in vertical split
+let g:ctrlp_open_new_file = 'v'
+
+call keys#add('<C-F><C-B>', "(ctrlp) Cycle modes")
+call keys#add('<C-J><C-K>', "(ctrlp) Down/Up in list")
+call keys#add('<C-X>', "(ctrlp) Open in horizontal split")
+call keys#add('<C-V>', "(ctrlp) Open in vertical split")
+call keys#add('<C-T>', "(ctrlp) Open in new tab")
+call keys#add('<C-Y>', "(ctrlp) Open new file")
+
 " -- ULTISNIPS ------------------------------------------------------------ {{{2
 
 let g:UltiSnipsExpandTrigger = "<leader>l"
@@ -708,7 +794,7 @@ let g:calendar_wruler = "日 月 火 水 木 金 土"
 
 " -- ORGMODE -------------------------------------------------------------- {{{2
 
-let g:org_agenda_files = [ '~/.org/*.org' ]
+let g:org_agenda_files = [ '~/.org/agenda.org' ]
 
 " -- MARKDOWN PREVIEW ----------------------------------------------------- {{{2
 let vim_markdown_preview_github = 1
@@ -717,6 +803,30 @@ let vim_markdown_preview_use_xdg_open = 1
 " -- RI ---- {{{2
 let g:ri_no_mappings = 1
 
+call keys#add_ft('ruby', '<leader>ri', 'ri search prompt')
+call keys#add_ft('ruby', '<leader>rw', 'ri lookup name under cursor')
+
 " -- NERDCommenter " {{{2
 let g:NERDSpaceDelims = 1
 let g:NERDRemoveExtraSpaces = 1
+
+" -- VimWiki/TaskWIki " {{{2
+
+" :he vimwiki-local-options
+let g:vimwiki_list = [
+      \{ 'path': '~/.vimwiki/' }
+      \]
+" fold on sections and code blocks
+let g:vimwiki_folding = 'expr'
+
+for [key, desc] in [
+      \ [ '+', 'start task' ],
+      \ [ '-', 'stop task' ],
+      \ [ 'd', 'task done' ],
+      \ [ 'C', 'calendar' ]
+      \ ]
+  call keys#add_ft('vimwiki', '<leader>t'.key, '(vimwiki) '.desc)
+endfor
+
+" -- UTL ----- {{{2
+let g:utl_cfg_hdl_scm_http_system = "silent !firefox-bin '%u' &"
