@@ -478,6 +478,7 @@ command! -nargs=? -complete=file Open call f#Open(<f-args>)
 " see :he :DiffOrig
 command! DiffOrig vert new | set bt=nofile | r++edit # | 0d_ | diffthis | wincmd p | diffthis
 command! Exe !chmod +x %
+command! ClearBuffers call f#ClearBuffers()<CR>
 
 " == PLUGINS ============================================================== {{{1
 
@@ -594,7 +595,7 @@ let g:ycm_seed_identifiers_with_syntax = 1
 let g:ycm_key_invoke_completion = '<C-Space>'
 let g:ycm_key_list_select_completion = ['<C-j>', '<Tab>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-k>', '<Up>']
-let g:ycm_key_detailed_diagnostics = '<leader>y'
+let g:ycm_key_detailed_diagnostics = '<leader>yd'
 
 let g:ycm_max_num_candidates = 200
 
@@ -634,6 +635,13 @@ let g:ycm_semantic_triggers = {
   \   'lua'             : ['.', ':'],
   \   'erlang'          : [':'],
   \ }
+
+nmap <leader>yg :YcmCompleter GoTo<CR>
+nmap <leader>yt :YcmCompleter GetType<CR>
+
+call keys#add('<leader>yg', '(ycm) Goto')
+call keys#add('<leader>yt', '(ycm) GetType')
+call keys#add('<leader>yd', '(ycm) DetailedDiagnostics')
 
 " -- AIRLINE -------------------------------------------------------------- {{{2
 

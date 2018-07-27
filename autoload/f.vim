@@ -368,6 +368,15 @@ fun! s:YouCompleteMeCompile() " {{{2
   call system('cd '.cwd)
 endfun
 
+let s:bufarg = { 'listed': 1 }
+fun! f#ClearBuffers() " {{{2
+  for buf in getbufinfo(s:bufarg)
+    if !buf.changed && empty(buf.windows)
+      exe 'bdelete '.buf.bufnr
+    endif
+  endfor
+endfun
+
 " let s:keys = {}
 " let s:width = {}
 " let g:no_more_keys = 0
