@@ -88,7 +88,7 @@ let g:airline#themes#motoko#palette.tabline = {
       \}
 
 " Warnings
-let s:WI = [ '#282C34', '#E5C07B', s:term_black, s:term_yellow ]
+let s:WI = [ '#282C34', '#E5C07B', s:term_black, s:term_orange ]
 let g:airline#themes#motoko#palette.normal.airline_warning = [
       \ s:WI[0], s:WI[1], s:WI[2], s:WI[3]
       \ ]

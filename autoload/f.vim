@@ -2,7 +2,7 @@
 
 " Change lines of code in some way {{{1
 
-function f#VimRcExtra()
+fun! f#VimRcExtra()
   command! Functions :vsplit ~/.vim/autoload/f.vim
 endfunction
 
@@ -132,12 +132,18 @@ fun! f#ListFkeys()
   endfor
 endfun
 
-" Syntastic Location List
-
+" Syntastic/ALE Location List
+" DEPRECATED
 fun! f#ErrorsVisible()
-  if !(exists('b:syntastic_loclist')
-        \ && len(b:syntastic_loclist._rawLoclist))
-    return 0
+  if exists('g:loaded_ale')
+    if !(exists('b:ale_highlight_items') && len(b:ale_highlight_items))
+      return 0
+    endif
+  else
+    if !(exists('b:syntastic_loclist')
+          \ && len(b:syntastic_loclist._rawLoclist))
+      return 0
+    end
   end
   for winnr in range(1, winnr('$'))
     let bufnr = winbufnr(winnr)
@@ -162,6 +168,19 @@ fun! f#LPrev()
   catch /^Vim\%((\a\+)\)\=:E553/
     llast
   endtry
+endfun
+
+fun! f#ShowErrors()
+  if exists('g:loaded_ale')
+    lopen
+    " if f#ErrorsVisisble()
+      " lclose
+    " else
+      " lopen
+    " endif
+  elseif exists(':Errors')
+    exe ':Errors'
+  endif
 endfun
 
 " Vim Folding {{{1
@@ -485,5 +504,25 @@ fun! f#ListToc()
   for line in s:toc['lines']
     echo line
   endfor
+endfun
+
+fun! f#Profile()
+  if exists('s:profile')
+    call s:ProfileEnd()
+  else
+    call s:ProfileStart()
+  endif
+endfun
+
+fun! s:ProfileStart()
+  let s:profile = tempname()
+  exe ":profile start " . s:profile
+  exe ":profile func *"
+  exe ":profile file *"
+endfun
+
+fun! s:ProfileEnd()
+  exe ":vsplit " . s:profile
+  unlet s:profile
 endfun
 

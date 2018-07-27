@@ -11,16 +11,17 @@ call plug#begin()
 Plug 'Valloric/YouCompleteMe'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
 
-Plug 'scrooloose/syntastic'       " syntax checkers
+Plug 'scrooloose/syntastic', { 'on': 'SyntasticEnable' }       " syntax checkers
+Plug 'w0rp/ale'
 Plug 'scrooloose/nerdcommenter'   " batch commenting +++
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
-Plug 'SirVer/ultisnips'
-Plug 'honza/vim-snippets'
+Plug 'SirVer/ultisnips', { 'on' : 'UltisnipsEnable' }
+Plug 'honza/vim-snippets', { 'on' : 'UltisnipsEnable' }
 
 " Code search, nav, vim-bling
 Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
-Plug 'majutsushi/tagbar'
+Plug 'majutsushi/tagbar' " , { 'on' : 'TagbarEnable' }
 Plug 'ctrlpvim/ctrlp.vim'         " file and buffer nav
 Plug 'easymotion/vim-easymotion'
 Plug 'vim-airline/vim-airline'    " statusline
@@ -114,6 +115,7 @@ Plug 'mattn/calendar-vim'
 Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
 Plug 'tbabej/taskwiki'
 Plug 'farseer90718/vim-taskwarrior'
+Plug 'noahfrederick/vim-skeleton'
 
 " grammar
 Plug 'rhysd/vim-grammarous'
@@ -152,7 +154,7 @@ set winminheight=0        " windows may be minimized down to just a status bar
 set splitright
 set completeopt=menuone   " use popupmenu also with just one match
 
-if &modifiable && !has("nvim")
+if &modifiable && !has('nvim')
   set fileencoding=utf-8
   set encoding=utf-8
   set termencoding=utf-8
@@ -210,6 +212,7 @@ set concealcursor=nc                          " conceal in normal and commandmod
 set textwidth=80
 set iskeyword=@,48-57,_,192-255,-
 
+set splitbelow
 set viewoptions="cursor,folds"
 
 " set colorcolumn=81,+1,+2,130
@@ -263,12 +266,12 @@ call keys#clear()
 
 " -- Leader mapping
 map ; <nop>
-let mapleader   = ";"
-let g:mapleader = ";"
+let mapleader   = ';'
+let g:mapleader = ';'
 
 map , <nop>
-let maplocalleader = ","
-let g:maplocalleader = ","
+let maplocalleader = ','
+let g:maplocalleader = ','
 inoremap <leader><ESC> ;<ESC>
 
 inoremap <C-@> <C-Space>
@@ -399,11 +402,13 @@ nnoremap <expr>S winwidth('.') > 160 ? ":vsplit " : ":split "
 "
 " Use the jump list movement keys to navigate
 " the syntactic error list, if it exists and has errors
+"
+" DEPRECATED since ALE replaced Syntastic
 
-nnoremap <expr><silent><C-I> f#ErrorsVisible()
-      \ ? ":call f#LNext()<CR>" : "<C-I>"
-nnoremap <expr><silent><C-O> f#ErrorsVisible()
-      \ ? ":call f#LPrev()<CR>" : "<C-O>"
+" nnoremap <expr><silent><C-I> f#ErrorsVisible()
+      " \ ? ":call f#LNext()<CR>" : "<C-I>"
+" nnoremap <expr><silent><C-O> f#ErrorsVisible()
+      " \ ? ":call f#LPrev()<CR>" : "<C-O>"
 
 " -- Linewise Movement ---------------------------------------------------- {{{2
 
@@ -440,14 +445,16 @@ vnoremap <CR> G
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
+" \ '<F2>':         ':call f#ShowErrors()',
+
 call f#MapFkeys({
       \ '<F1>':         ':call f#ListFkeys()',
-      \ '<F2>':         ':Errors',
+      \ '<F2>':         ':ALENextWrap',
       \ '<F3>':         ':set relativenumber!',
       \ '<F4>':         ':set hlsearch!',
       \ '<F5>':         ':CheatSheet',
       \ '<F6>':         ':set cursorcolumn!',
-      \ '<F7>':         ':set paste!',
+      \ '<F7>':         ':NERDTreeToggle',
       \ '<F8>':         ':TagbarToggle',
       \ '<F9>':         ':call f#ConcealToggle()',
       \ '<F10>':        ':Gstatus',
@@ -510,8 +517,8 @@ map <space> <Plug>(easymotion-prefix)
 " disable syntax shading (slow)
 let g:EasyMotion_do_shade = 0
 
-call keys#add('<space> j/k', "(EasyMotion) Select first char up/down")
-call keys#add('<space> s',   "(EasyMotion) Find chard forward and backward")
+call keys#add('<space> j/k', '(EasyMotion) Select first char up/down')
+call keys#add('<space> s',   '(EasyMotion) Find chard forward and backward')
 
 let g:EasyMotion_smartcase = 1
 " use uppercase target labels and type as a lower case
@@ -545,7 +552,7 @@ let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
 let g:syntastic_enable_balloons = 0
 
 let g:syntastic_lua_checkers = [ 'luacheck' ]
-let g:syntastic_lua_luacheck_args = "--codes"
+let g:syntastic_lua_luacheck_args = '--codes'
 
 " use this over the standard 'sh' checker
 let g:syntastic_sh_checkers = [ 'bashate' ]
@@ -553,12 +560,25 @@ let g:syntastic_sh_checkers = [ 'bashate' ]
 let g:syntastic_haskell_checkers = [ 'hdevtools', 'hlint' ]
 
 let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
-let g:syntastic_ruby_rubocop_args = "-D"
+let g:syntastic_ruby_rubocop_args = '-D'
 
 let g:syntastic_python_checkers = [ 'python', 'pylint' ]
 
 let g:syntastic_javascript_checkers = [ 'eslint' ]
 
+" -- ALE ---------------------------------------- {{{2
+
+let g:ale_sign_error = '誤'
+let g:ale_sign_warning = '戒'
+let g:ale_sign_column_always = 1
+let g:ale_echo_msg_format = '[%linter%] %code%: %s'
+
+let g:ale_linters = {
+      \ 'sh': ['shellcheck'],
+      \ }
+
+" highlight ALEWarning ctermfg=166
+highlight ALEWarningSign ctermfg=166
 
 
 " -- YOU COMPLETE ME ------------------------------------------------------ {{{2
@@ -576,12 +596,15 @@ let g:ycm_key_list_select_completion = ['<C-j>', '<Tab>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-k>', '<Up>']
 let g:ycm_key_detailed_diagnostics = '<leader>y'
 
-let g:ycm_max_num_candidates = 100
+let g:ycm_max_num_candidates = 200
 
 "let g:ycm_global_ycm_extra_conf = ''
 let g:ycm_config_extra_conf = 0
 "let g:ycm_extra_conf_globlist = []
 "rules:: * ? [seq] [!seq]
+
+" turns off identifier completer, keeps semantic triggers
+let g:ycm_min_num_of_chars_for_completion = 99
 
 let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
@@ -611,7 +634,6 @@ let g:ycm_semantic_triggers = {
   \   'lua'             : ['.', ':'],
   \   'erlang'          : [':'],
   \ }
-unlet! s:dot_triggers
 
 " -- AIRLINE -------------------------------------------------------------- {{{2
 
@@ -669,6 +691,14 @@ let g:airline#extensions#tabline#show_close_button = 0
 let g:airline#extensions#ycm#error_symbol = '誤'
 let g:airline#extensions#ycm#warning_symbol = '戒'
 
+let g:airline#extensions#ale#enabled = 1
+let g:airline#extensions#ale#error_symbol = ''
+let g:airline#extensions#ale#warning_symbol = ''
+let g:airline#extensions#ale#open_lnum_symbol = '=>'
+let g:airline#extensions#ale#close_lnum_symbol = ''
+
+
+
 " remove (fileencoding, fileformat)
 let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
 
@@ -684,8 +714,8 @@ nmap <leader>7 <Plug>AirlineSelectTab7
 nmap <leader>8 <Plug>AirlineSelectTab8
 nmap <leader>9 <Plug>AirlineSelectTab9
 
-call keys#add('<leader>h/l', "(Airline) Switch buffer next/prev")
-call keys#add('<leader>1-9', "(Airline) Switch to buffer (1-9)")
+call keys#add('<leader>h/l', '(Airline) Switch buffer next/prev')
+call keys#add('<leader>1-9', '(Airline) Switch to buffer (1-9)')
 
 " -- TAGBAR --------------------------------------------------------------- {{{2
 
@@ -769,19 +799,19 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
 " open new files in vertical split
 let g:ctrlp_open_new_file = 'v'
 
-call keys#add('<C-F><C-B>', "(ctrlp) Cycle modes")
-call keys#add('<C-J><C-K>', "(ctrlp) Down/Up in list")
-call keys#add('<C-X>', "(ctrlp) Open in horizontal split")
-call keys#add('<C-V>', "(ctrlp) Open in vertical split")
-call keys#add('<C-T>', "(ctrlp) Open in new tab")
-call keys#add('<C-Y>', "(ctrlp) Open new file")
+call keys#add('<C-F><C-B>', '(ctrlp) Cycle modes')
+call keys#add('<C-J><C-K>', '(ctrlp) Down/Up in list')
+call keys#add('<C-X>', '(ctrlp) Open in horizontal split')
+call keys#add('<C-V>', '(ctrlp) Open in vertical split')
+call keys#add('<C-T>', '(ctrlp) Open in new tab')
+call keys#add('<C-Y>', '(ctrlp) Open new file')
 
 " -- ULTISNIPS ------------------------------------------------------------ {{{2
 
-let g:UltiSnipsExpandTrigger = "<leader>l"
-let g:UltiSnipsListSnippets = "<leader><tab>"
-let g:UltiSnipsJumpForwardTrigger = "<leader>j"
-let g:UltiSnipsJumpBackwardTrigger = "<leader>k"
+let g:UltiSnipsExpandTrigger = '<leader>l'
+let g:UltiSnipsListSnippets = '<leader><tab>'
+let g:UltiSnipsJumpForwardTrigger = '<leader>j'
+let g:UltiSnipsJumpBackwardTrigger = '<leader>k'
 
 let g:UltiSnipsEditSplit = 'horizontal'
 let g:UltiSnipsSnippetsDirectories = [ '~/.vim/UltiSnips', 'UltiSnips' ]
@@ -790,15 +820,15 @@ let g:UltiSnipsSnippetsDirectories = [ '~/.vim/UltiSnips', 'UltiSnips' ]
 " -- CALENDAR ------------------------------------------------------------- {{{2
 
 let g:calendar_monday = 1
-let g:calendar_wruler = "日 月 火 水 木 金 土"
+let g:calendar_wruler = '日 月 火 水 木 金 土'
 
 " -- ORGMODE -------------------------------------------------------------- {{{2
 
 let g:org_agenda_files = [ '~/.org/agenda.org' ]
 
 " -- MARKDOWN PREVIEW ----------------------------------------------------- {{{2
-let vim_markdown_preview_github = 1
-let vim_markdown_preview_use_xdg_open = 1
+let g:vim_markdown_preview_github = 1
+let g:vim_markdown_preview_use_xdg_open = 1
 
 " -- RI ---- {{{2
 let g:ri_no_mappings = 1
