@@ -1,8 +1,5 @@
-
+" vint: -ProhibitImplicitScopeVariable
 " == PLUG ================================================================= {{{1
-
-set nocompatible
-" filetype off
 
 call plug#begin()
 
@@ -158,6 +155,7 @@ if &modifiable && !has('nvim')
   set fileencoding=utf-8
   set encoding=utf-8
   set termencoding=utf-8
+  scriptencoding utf-8
 endif
 set noswapfile
 
@@ -225,30 +223,33 @@ set lazyredraw
 
 " == AUTOCOMMANDS ========================================================= {{{1
 
+augroup vimrc_autocmd
+  autocmd!
 " auto save and load folds, options, and cursor
-au BufWinLeave *.* mkview
-au BufWinEnter *.* silent! loadview
+  au BufWinLeave *.* mkview
+  au BufWinEnter *.* silent! loadview
 
-" Move quickfix window to the bottom
-au FileType qf wincmd J
+  " Move quickfix window to the bottom
+  au FileType qf wincmd J
 
-" Move fugitive preview to the bottom
-au FileType gitcommit wincmd J
+  " Move fugitive preview to the bottom
+  au FileType gitcommit wincmd J
 
-" Number in taglist window
-"au BufWinEnter __Tag_List__ setlocal number
+  " Number in taglist window
+  "au BufWinEnter __Tag_List__ setlocal number
 
-" Override matlab .m association
-au BufRead,BufNewFile *.m setl filetype=objc
+  " Override matlab .m association
+  au BufRead,BufNewFile *.m setl filetype=objc
 
-au BufRead,BufNewFile .eslintrc,*.tern-config set filetype=json
+  au BufRead,BufNewFile .eslintrc,*.tern-config set filetype=json
 
-au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
+  au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
 
-au InsertEnter * highlight CursorLineNr term=bold ctermfg=Red
-au InsertLeave * highlight CursorLineNr term=bold ctermfg=Yellow
+  au InsertEnter * highlight CursorLineNr term=bold ctermfg=Red
+  au InsertLeave * highlight CursorLineNr term=bold ctermfg=Yellow
 
-au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim call f#VimRcExtra()
+  au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim call f#VimRcExtra()
+augroup END
 
 " == HIGHLIGHTING ========================================================= {{{1
 
@@ -266,11 +267,9 @@ call keys#clear()
 
 " -- Leader mapping
 map ; <nop>
-let mapleader   = ';'
 let g:mapleader = ';'
 
 map , <nop>
-let maplocalleader = ','
 let g:maplocalleader = ','
 inoremap <leader><ESC> ;<ESC>
 
@@ -368,8 +367,8 @@ nnoremap G Gzxzt
 
 unlet! c
 for c in split("\"'`(){}<>[]", '\zs')
-  exe "nnoremap c".c." vi".c."c"
-  exe "nnoremap C".c." va".c."c"
+  exe 'nnoremap c'.c.' vi'.c.'c'
+  exe 'nnoremap C'.c.' va'.c.'c'
 endfor
 
 " -- Normal nN ------------------------------------------------------------ {{{2
@@ -599,13 +598,14 @@ let g:ycm_key_detailed_diagnostics = '<leader>yd'
 
 let g:ycm_max_num_candidates = 200
 
-"let g:ycm_global_ycm_extra_conf = ''
+let g:ycm_global_ycm_extra_conf = expand('$HOME').'/.vim/ycm.py'
+let g:ycm_extra_conf_vim_data = ['&filetype']
 let g:ycm_config_extra_conf = 0
 "let g:ycm_extra_conf_globlist = []
 "rules:: * ? [seq] [!seq]
 
 " turns off identifier completer, keeps semantic triggers
-let g:ycm_min_num_of_chars_for_completion = 99
+let g:ycm_min_num_of_chars_for_completion = 2
 
 let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
@@ -778,9 +778,9 @@ let g:rubycomplete_load_gemfile = 1
 " highlight whitespace errors
 " let ruby_space_errors = 1
 " folding
-let ruby_fold = 1
+let g:ruby_fold = 1
 " let ruby_foldable_ground = ' '
-let ruby_no_expensive = 1
+let g:ruby_no_expensive = 1
 
 " let ruby_spellcheck_strings = 1
 
