@@ -8,8 +8,7 @@ call plug#begin()
 Plug 'Valloric/YouCompleteMe'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
 
-Plug 'scrooloose/syntastic', { 'on': 'SyntasticEnable' }       " syntax checkers
-Plug 'w0rp/ale'
+Plug 'w0rp/ale'                   " async syntax checker
 Plug 'scrooloose/nerdcommenter'   " batch commenting +++
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
@@ -24,13 +23,14 @@ Plug 'easymotion/vim-easymotion'
 Plug 'vim-airline/vim-airline'    " statusline
 Plug 'vim-airline/vim-airline-themes'
 
-" Trailing whitespace
+" Trailing whitespace, formatting, et al
 Plug 'vim-scripts/ingo-library'
 Plug 'vim-scripts/ShowTrailingWhitespace'
 Plug 'vim-scripts/CountJump'
 Plug 'vim-scripts/JumpToTrailingWhitespace'
 Plug 'vim-scripts/DeleteTrailingWhitespace'
 Plug 'vim-scripts/camelcasemotion' " camelcase text objects
+Plug 'junegunn/vim-easy-align'
 
 " -- Programming languages ------------------------------------------------ {{{2
 
@@ -94,10 +94,6 @@ Plug 'hail2u/vim-css3-syntax'      " Sass's SCSS syntax
 Plug 'othree/html5-syntax.vim'     " handles HTML5 syntax highlighting
 Plug 'othree/html5.vim'            " HTML5 autocomplete
 Plug 'groenewege/vim-less'         " indentation, completion
-" may need:
-" autocmd BufNewFile,BufRead *.less set filetype=less
-" autocmd FileType less set omnifunc=csscomplete#CompleteCSS
-" Check how this work with YCM
 
 " markdown
 Plug 'plasticboy/vim-markdown'
@@ -167,13 +163,14 @@ set ttimeout
 set history=1000    " command and search history
 set undolevels=1000
 
-set hlsearch     " highlight search terms
+set nohlsearch   " highlight search terms
 set incsearch    " show matches as you type
 set ignorecase   " ignore case when searching
 set smartcase    " case-insensitive when all lowercase
 set nolazyredraw " don't redraw while executing macros
 set magic        " set magic on for regex
 set hidden       " hides buffers instead of closing on new open
+set autoread     " reloads file if changed and buffer not dirty
 
 " -- Statusline ----------------------------------------------------------- {{{2
 set statusline=   " clear the statusline for when vimrc is reloaded
@@ -274,13 +271,12 @@ let g:maplocalleader = ','
 inoremap <leader><ESC> ;<ESC>
 
 inoremap <C-@> <C-Space>
-inoremap <C-O><C-O> <C-O>O
 
 nnoremap <C-B> :call keys#list()<CR>
 
 " -- completion menu navigation
-" inoremap <expr><C-d> pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
-" inoremap <expr><C-u> pumvisible() ? "\<PageUp>\<C-p>\<C-n>"   : "\<C-u>"
+inoremap <expr><C-d> pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
+inoremap <expr><C-u> pumvisible() ? "\<PageUp>\<C-p>\<C-n>"   : "\<C-u>"
 
 
 " -- Set fold markers ----------------------------------------------------- {{{2
@@ -294,12 +290,6 @@ nnoremap z4 :call f#SetFoldMarker(4)<CR>
 
 call keys#add('z<0-4>', 'Set foldlevel with marker')
 
-" nnoremap <leader>1 :call f#SetFoldMarker(1)<CR>
-" nnoremap <leader>2 :call f#SetFoldMarker(2)<CR>
-" nnoremap <leader>3 :call f#SetFoldMarker(3)<CR>
-" nnoremap <leader>4 :call f#SetFoldMarker(4)<CR>
-
-
 " -- Faster file Saving --------------------------------------------------- {{{2
 
 inoremap <leader>w <ESC>:w<CR>
@@ -309,7 +299,8 @@ nnoremap <leader>w :w<CR>
 inoremap ,. ->
 inoremap ., <-
 inoremap ,, =>
-inoremap <> </><ESC>2ha
+inoremap _+ >=
+inoremap +_ <=
 
 " -- Swap quotes ---------------------------------------------------------- {{{2
 
@@ -324,25 +315,27 @@ nnoremap <leader>" :silent s/[^\\]/zs"/'/ge<CR>
 " inoremap <C-o> <ESC>O
 " inoremap <C-l> <ESC>o
 
-" -- Copy next/previous line ---------------------------------------------- {{{2
-"  .. how much do I really use these?
-"
-call keys#add('<C-Y>', 'i', 'Copy the line above, until char <c>')
-call keys#add('<C-E>', 'i', 'Copy the line below, until char <c>')
-inoremap <silent><C-Y> <ESC>:call f#CopyLineUntil(-1)<CR>
-inoremap <silent><C-E> <ESC>:call f#CopyLineUntil(1)<CR>
+" -- oO mapping ------------ ---------------------------------------------- {{{2
 
+" open line above
+inoremap <C-O><C-O> <C-O>O
 
-call keys#add('<C-Y', 'Align current line with first char <c> in  the line above')
-call keys#add('<C-E', 'Align current line with first char <c> in  the line below')
-nnoremap <silent><C-Y> <ESC>:call f#AlignWithChar(-1)<CR>
-nnoremap <silent><C-E> <ESC>:call f#AlignWithChar(1)<CR>
+vnoremap o "oyo<ESC>"opa
+vnoremap O "oyO<ESC>"opa
+call keys#add('o/O', 'v', 'copy to register o and insert above/beow')
+
+inoremap <leader>o <ESC>^vf.
+call keys#add('<leader>o', 'i', 'select from start of line to .')
+
+inoremap <C-R><C-O> <CR><C-R>o
+call keys#add('<C-R><C-O>', 'i', '<CR> and insert from register o')
 
 
 " -- Command mode mappings ------------------------------------------------ {{{2
 
 " forgot to sudo? force it with w!!
 cmap w!! w !sudo tee % > /dev/null
+cmap e!! silent Git checkout -- % <bar> redraw!
 cnoremap <C-k> <up>
 cnoremap <C-j> <down>
 
@@ -385,29 +378,21 @@ nnoremap <silent> F :nnoremap H ;<CR>:nnoremap L ,<CR>F
 nnoremap <silent> t :nnoremap H h,<CR>:nnoremap L l;<CR>t
 nnoremap <silent> T :nnoremap H h;<CR>:nnoremap L l;<CR>T
 
-" -- Tabularize ----------------------------------------------------------- {{{2
-nnoremap <expr><bar> ":Tabularize "
-vnoremap <expr><bar> ":Tabularize "
-nnoremap <leader><bar> :vsplit ~/.vim/after/plugin/tabular_extra.vim<CR>
-call keys#add('|', 'nv', ':Tabularize')
-call keys#add('<leader>|', ':Tabularize: edit tabular_extra')
-
 
 " -- Split Window --------------------------------------------------------- {{{2
 nnoremap <expr>S winwidth('.') > 160 ? ":vsplit " : ":split "
 " replaces an 'cc' alias
-
-" -- Error List Navigation ------------------------------------------------ {{{2
 "
-" Use the jump list movement keys to navigate
-" the syntactic error list, if it exists and has errors
-"
-" DEPRECATED since ALE replaced Syntastic
+" -- Camel Case Relief ---------------------------------------------------- {{{2
+nnoremap <leader>u :s/.*\zs\(\u\)/\L\1/<CR><C-O>
+inoremap <leader>u <ESC>:s/.*\zs\(\u\)/\L\1/<CR><C-O>a
+call keys#add('<leader>u', 'ni', 'Downcase last uppercase letter')
 
-" nnoremap <expr><silent><C-I> f#ErrorsVisible()
-      " \ ? ":call f#LNext()<CR>" : "<C-I>"
-" nnoremap <expr><silent><C-O> f#ErrorsVisible()
-      " \ ? ":call f#LPrev()<CR>" : "<C-O>"
+" -- Function arguments join/break ---------------------------------------- {{{2
+"
+nnoremap <silent> <leader>f :s/,/,\r/g<CR>$=%
+nnoremap <leader>F f(v%J
+call keys#add('<leader>f/F', 'Break/Join function arguments')
 
 " -- Linewise Movement ---------------------------------------------------- {{{2
 
@@ -485,7 +470,6 @@ command! ClearBuffers call f#ClearBuffers()<CR>
 
 let g:cheatsheet_filetype_redirect = {
       \ 'sh': 'bash',
-      \ 'org': 'vim-orgmode'
       \ }
 let g:cheatsheet_subtype_redirect = {
       \ 'conf' : {
@@ -510,6 +494,22 @@ let g:cheatsheet_subtype_redirect = {
         \ }
       \ }
 
+" -- PROJECTIONIST -------------------------------------------------------- {{{2
+
+let g:projectionist_heuristics = {
+    \ 'CMakeLists.txt|Makefile': {
+      \ '*.c': {
+      \   'alternate': '{}.h'
+      \ },
+      \ '*.cpp': {
+      \  'alternate': ['{}.h', '{}.hpp']
+      \ },
+      \ '*.h' : {
+      \   'alternate': ['{}.c', '{}.cpp', '{}.cxx' ]
+      \ }
+    \ }
+  \ }
+
 " -- EASYMOTION ----------------------------------------------------------- {{{2
 
 map <space> <Plug>(easymotion-prefix)
@@ -523,48 +523,6 @@ call keys#add('<space> s',   '(EasyMotion) Find chard forward and backward')
 let g:EasyMotion_smartcase = 1
 " use uppercase target labels and type as a lower case
 let g:EasyMotion_use_upper = 1
-
-" -- SYNTASTIC / NEOMAKE -------------------------------------------------- {{{2
-" passive filetypes uses clang or eclim instead
-let g:syntastic_mode_map = {
-      \ 'mode': 'active',
-      \ 'passive_filetypes': ['c', 'm', 'objc', 'cpp', 'java' ]
-      \ }
-
-" NOTE: this hooks into CursorMoved and filters the error list.
-" With huge error lists this will be choke vim to a halt.
-" Set this to 0 and restart if Syntastic is to be running
-let g:syntastic_echo_current_error = 1
-
-" auto close, but no auto open
-let g:syntastic_auto_loc_list = 2
-" jump to fist error on open or save
-
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-" when running multiple checkers, put all errors in one window
-let g:syntastic_aggregate_errors = 1
-
-"let g:syntastic_auto_jump=1
-" statusline format: [Err: 20 #5, Warn: 10 #1] .. 20 errors, first on line 5
-let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
-let g:syntastic_enable_balloons = 0
-
-let g:syntastic_lua_checkers = [ 'luacheck' ]
-let g:syntastic_lua_luacheck_args = '--codes'
-
-" use this over the standard 'sh' checker
-let g:syntastic_sh_checkers = [ 'bashate' ]
-
-let g:syntastic_haskell_checkers = [ 'hdevtools', 'hlint' ]
-
-let g:syntastic_ruby_checkers = [ 'mri', 'rubocop' ]
-let g:syntastic_ruby_rubocop_args = '-D'
-
-let g:syntastic_python_checkers = [ 'python', 'pylint' ]
-
-let g:syntastic_javascript_checkers = [ 'eslint' ]
 
 " -- ALE ---------------------------------------- {{{2
 
@@ -587,7 +545,7 @@ highlight ALEWarningSign ctermfg=166
 " let g:ycm_filetype_blacklist = {
       " \ 'lua' : 1
       " \}
-"let g:ycm_filetype_specific_competion_to_disable = {}
+"let g:ycm_filetype_specific_completion_to_disable = {}
 let g:ycm_collect_identifiers_from_tags_files = 1
 let g:ycm_seed_identifiers_with_syntax = 1
 
@@ -636,8 +594,8 @@ let g:ycm_semantic_triggers = {
   \   'erlang'          : [':'],
   \ }
 
-nmap <leader>yg :YcmCompleter GoTo<CR>
-nmap <leader>yt :YcmCompleter GetType<CR>
+nnoremap <leader>yg :YcmCompleter GoTo<CR>
+nnoremap <leader>yt :YcmCompleter GetType<CR>
 
 call keys#add('<leader>yg', '(ycm) Goto')
 call keys#add('<leader>yt', '(ycm) GetType')
@@ -727,10 +685,6 @@ call keys#add('<leader>1-9', '(Airline) Switch to buffer (1-9)')
 
 " -- TAGBAR --------------------------------------------------------------- {{{2
 
-" let g:tagbar_type_javascript = {
-      " \ 'ctagstype': 'js'
-      " \ }
-
 let g:tagbar_iconchars = [ 'v', '>' ]
 
 " -- JSX ------------------------------------------------------------------ {{{2
@@ -793,6 +747,7 @@ if executable('ag')
   let g:ackprg = 'ag --vimgrep'
 endif
 nmap <leader>a :Ack
+call keys#add('<leader>a', ':Ack')
 
 " -- CTRL-P --------------------------------------------------------------- {{{2
 let g:ctrlp_extensions = ['tag', 'buffertag']
@@ -824,31 +779,26 @@ let g:UltiSnipsJumpBackwardTrigger = '<leader>k'
 let g:UltiSnipsEditSplit = 'horizontal'
 let g:UltiSnipsSnippetsDirectories = [ '~/.vim/UltiSnips', 'UltiSnips' ]
 
-
 " -- CALENDAR ------------------------------------------------------------- {{{2
 
 let g:calendar_monday = 1
 let g:calendar_wruler = '日 月 火 水 木 金 土'
 
-" -- ORGMODE -------------------------------------------------------------- {{{2
-
-let g:org_agenda_files = [ '~/.org/agenda.org' ]
-
 " -- MARKDOWN PREVIEW ----------------------------------------------------- {{{2
 let g:vim_markdown_preview_github = 1
 let g:vim_markdown_preview_use_xdg_open = 1
 
-" -- RI ---- {{{2
+" -- RI ------------------------------------------------------------------- {{{2
 let g:ri_no_mappings = 1
 
 call keys#add_ft('ruby', '<leader>ri', 'ri search prompt')
 call keys#add_ft('ruby', '<leader>rw', 'ri lookup name under cursor')
 
-" -- NERDCommenter " {{{2
+" -- NERDCommenter -------------------------------------------------------- {{{2
 let g:NERDSpaceDelims = 1
 let g:NERDRemoveExtraSpaces = 1
 
-" -- VimWiki/TaskWIki " {{{2
+" -- VimWiki/TaskWIki ----------------------------------------------------- {{{2
 
 " :he vimwiki-local-options
 let g:vimwiki_list = [
@@ -866,5 +816,16 @@ for [key, desc] in [
   call keys#add_ft('vimwiki', '<leader>t'.key, '(vimwiki) '.desc)
 endfor
 
-" -- UTL ----- {{{2
+" -- UTL ------------------------------------------------------------------ {{{2
 let g:utl_cfg_hdl_scm_http_system = "silent !firefox-bin '%u' &"
+
+" -- EASY ALIGN ----------------------------------------------------------- {{{2
+
+xmap ga <Plug>(EasyAlign)
+nmap ga <Plug>(EasyAlign)
+
+xmap <bar> gaip
+nmap <bar> gaip
+
+call keys#add('ga', 'nv', '(EasyAlign) Align')
+call keys#add('|', 'nv', '(EasyAlign) inner paragraph')
