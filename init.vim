@@ -1,4 +1,3 @@
-" vint: -ProhibitImplicitScopeVariable
 " == PLUG ================================================================= {{{1
 
 call plug#begin()
@@ -14,6 +13,8 @@ Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
 Plug 'SirVer/ultisnips', { 'on': 'UltisnipsEnable' }
 Plug 'honza/vim-snippets', { 'on': 'UltisnipsEnable' }
+
+Plug 'sheerun/vim-polyglot'       " language pack
 
 Plug 'sheerun/vim-polyglot'       " language pack
 
@@ -247,6 +248,7 @@ nnoremap <C-B> :call keys#list()<CR>
 inoremap <expr><C-D> pumvisible() ? "\<PageDown>" : "\<C-D>"
 inoremap <expr><C-U> pumvisible() ? "\<PageUp>"   : "\<C-U>"
 
+
 " -- Set fold markers ----------------------------------------------------- {{{2
 
 Key 'Set foldlevel with marker', 'z<0-4>'
@@ -401,6 +403,7 @@ call f#MapFkeys({
       \ })
 
 " -- wrapping next/prev in location list ---------------------------------- {{{2
+
 nnoremap <up> :call f#LPrev()<CR>
 nnoremap <down> :call f#LNext()<CR>
 
@@ -417,6 +420,7 @@ nnoremap <down> :call f#LNext()<CR>
 
 
 " == COMMANDS ============================================================= {{{1
+
 command! -nargs=* Variations call f#Variations(<f-args>)<CR>
 command! -nargs=? -complete=file Open call f#Open(<f-args>)
 " see :he :DiffOrig
