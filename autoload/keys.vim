@@ -1,27 +1,17 @@
 
 let s:all_ft = '*'
 
-fun! keys#clear()
+fun! keys#init()
   let s:keys = {}
   let s:width = {}
 endfun
 
-fun! keys#add(...)
-  call s:Add(s:all_ft, a:000)
-endfun
-
-fun! keys#add_ft(ft, ...)
-  for ft in split(a:ft, ',')
-    call s:Add(ft, a:000)
-  endfor
-endfun
-
 fun! keys#list(...)
-  let keys = filter(get(s:keys, &ft, []) + s:keys[s:all_ft],
+  let keys = filter(get(s:keys, &filetype, []) + s:keys[s:all_ft],
                   \ a:0 ? a:1 : {idx, val -> 1})
 
   if !len(keys)
-    echo "no keys to list .."
+    echo 'no keys to list ..'
     return
   endif
 
@@ -36,16 +26,12 @@ fun! keys#list(...)
   endfor
 endfun
 
-fun! s:Add(ft, args)
-  let entry = { 'keys': a:args[0] }
-  if len(a:args) == 2
-    let entry['mode'] = 'n'
-    let entry['text'] = a:args[1]
-  else
-    let entry['mode'] = a:args[1]
-    let entry['text'] = a:args[2]
-  endif
-
+fun! s:AddKey(ft, ...)
+  let entry = {
+        \ 'text': a:1,
+        \ 'keys': a:2,
+        \ 'mode': a:0 > 2 ? a:3 : 'n'
+        \ }
   call add(s:KeyList(a:ft), entry)
 
   for k in ['keys', 'mode', 'text']
@@ -62,3 +48,5 @@ fun s:KeyList(...)
   return s:keys[ft]
 endfun
 
+command! -nargs=+ Key call s:AddKey(s:all_ft, <args>)
+command! -nargs=+ FtKey call s:AddKey(<args>)
