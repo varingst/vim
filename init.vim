@@ -12,8 +12,10 @@ Plug 'w0rp/ale'                   " async syntax checker
 Plug 'scrooloose/nerdcommenter'   " batch commenting +++
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
-Plug 'SirVer/ultisnips', { 'on' : 'UltisnipsEnable' }
-Plug 'honza/vim-snippets', { 'on' : 'UltisnipsEnable' }
+Plug 'SirVer/ultisnips', { 'on': 'UltisnipsEnable' }
+Plug 'honza/vim-snippets', { 'on': 'UltisnipsEnable' }
+
+Plug 'sheerun/vim-polyglot'       " language pack
 
 " Code search, nav, vim-bling
 Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
@@ -35,23 +37,22 @@ Plug 'junegunn/vim-easy-align'
 " -- Programming languages ------------------------------------------------ {{{2
 
 " Ruby
-Plug 'vim-ruby/vim-ruby'
-Plug 'danchoi/ri.vim' " ri doc searcher
+Plug 'danchoi/ri.vim', { 'for': 'ruby' } " ri doc searcher
+" Solargraph language server plugin
+Plug 'hackhowtofaq/vim-solargraph', { 'for': 'ruby' }
+Plug 'dbakker/vim-projectroot' " vim-solargraph dep
 
-" Haskell
-Plug 'bitc/vim-hdevtools'
-Plug 'Twinside/vim-hoogle'
-Plug 'eagletmt/neco-ghc'
+" Plug 'autozimu/LanguageClient-neovim', { 'do': ':UpdateRemotePlugins' }
+" Plug 'roxma/vim-hug-neovim-rpc'
+" Plug 'roxma/nvim-yarp'
 
 " JavaScript and friends
-Plug 'pangloss/vim-javascript'
 Plug 'maxmellon/vim-jsx-pretty'
 Plug 'leafgarland/typescript-vim'
-Plug 'kchmck/vim-coffee-script'
 Plug 'nikvdp/ejs-syntax'
 Plug 'othree/jspc.vim'                        " function parameter completion
-Plug 'othree/javascript-libraries-syntax.vim' " For underscore, angular, react, etc
-Plug 'alexbyk/vim-ultisnips-react'        " react snippets
+Plug 'othree/javascript-libraries-syntax.vim' " underscore, angular, react, etc
+Plug 'alexbyk/vim-ultisnips-react', { 'on': 'UltisnipsEnable' } " react snippets
 Plug 'moll/vim-node'
 
 " Is this required with YCM ?
@@ -62,9 +63,6 @@ Plug 'tomtom/spec_vim'
 Plug 'junegunn/vader.vim'
 Plug 'h1mesuke/vim-unittest'
 
-" Lua
-" Plug 'xolox/vim-lua-ftplugin' | Plug 'xolox/vim-misc'
-
 " -- Tim Pope obviously --------------------------------------------------- {{{2
 
 Plug 'tpope/vim-fugitive'         " Git wrapper
@@ -74,7 +72,7 @@ Plug 'tpope/vim-endwise'          " autoadd closing symbols (end/endif/endfun)
 Plug 'tpope/vim-dispatch'         " Run builds and test suites
 Plug 'tpope/vim-repeat'           " make '.' handle plugins nicer
 Plug 'tpope/vim-abolish'          " Smarter substitution ++
-Plug 'tpope/vim-fireplace'        " Clojure
+
 " Ruby snaxx
 Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-rake'
@@ -85,22 +83,14 @@ Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
 
 " -- Markup, Template, Formatting, et al ---------------------------------- {{{2
 
-Plug 'aklt/plantuml-syntax'        " plantuml
 Plug 'vim-scripts/utl.vim'         " universal text linking
-Plug 'gerw/vim-latex-suite'        " latex
-Plug 'slim-template/vim-slim'      " slim html template lang
 Plug 'powerman/vim-plugin-AnsiEsc' " ANSI color coding
-Plug 'hail2u/vim-css3-syntax'      " Sass's SCSS syntax
 Plug 'othree/html5-syntax.vim'     " handles HTML5 syntax highlighting
-Plug 'othree/html5.vim'            " HTML5 autocomplete
-Plug 'groenewege/vim-less'         " indentation, completion
 
 " markdown
-Plug 'plasticboy/vim-markdown'
 Plug 'dhruvasagar/vim-table-mode'
 Plug 'godlygeek/tabular'
 Plug 'chmp/mdnav'
-Plug 'JamshedVesuna/vim-markdown-preview' " preview github README.md
 
 " Todo/Project
 Plug 'vim-scripts/SyntaxRange'
@@ -145,6 +135,7 @@ set wildmode=longest,list " bash style completion
 set nomore                " remove more message after shell command
 set winminheight=0        " windows may be minimized down to just a status bar
 set splitright
+set splitbelow
 set completeopt=menuone   " use popupmenu also with just one match
 
 if &modifiable && !has('nvim')
@@ -154,6 +145,7 @@ if &modifiable && !has('nvim')
   scriptencoding utf-8
 endif
 set noswapfile
+set autoread     " reloads file if changed and buffer not dirty
 
 set title        " set terminal title
 set visualbell   " dont beep
@@ -170,47 +162,22 @@ set smartcase    " case-insensitive when all lowercase
 set nolazyredraw " don't redraw while executing macros
 set magic        " set magic on for regex
 set hidden       " hides buffers instead of closing on new open
-set autoread     " reloads file if changed and buffer not dirty
-
-" -- Statusline ----------------------------------------------------------- {{{2
-set statusline=   " clear the statusline for when vimrc is reloaded
-set statusline+=%-3.3n\                      " buffer number
-set statusline+=%f\                          " file name
-set statusline+=%{exists('g:loaded_fugitive')?fugitive#statusline():''}
-set statusline+=%h%m%r%w                     " flags
-set statusline+=[%{strlen(&ft)?&ft:'none'},  " filetype
-set statusline+=%{strlen(&fenc)?&fenc:&enc}, " encoding
-set statusline+=%{&fileformat}]              " file format
-set statusline+=%=                           " right align
-set statusline+=%#warningmsg#
-set statusline+=%{exists('g:loaded_syntastic_plugin')?SyntasticStatuslineFlag():''}
-set statusline+=%*
-set statusline+=%{synIDattr(synID(line('.'),col('.'),1),'name')}\  " highlight
-set statusline+=%b,0x%-8B\                   " current char
-set statusline+=%-14.(%l,%c%V%)\ %<%P        " offset
-set laststatus=2
-set showtabline=2 " Always show tabline
-" }}}
 
 set autoindent                                " auto indenting
 set tabstop=2                                 " set tab character to 2 characters
 set shiftwidth=2                              " ident width for autoindent
 set expandtab                                 " turn tabs into whitespace
-filetype indent on                            " indent depends on filetype
 set foldmethod=marker                         " type of folding
 set foldtext=f#FoldText()
 set backspace=2                               " make backspace work like most other apps
-set list                                      " vim builtin whitespace display
-set listchars=tab:├─,trail:.,extends:#,nbsp:.
+set listchars=tab:»\ ,trail:…,extends:#,nbsp:.  " vim builtin whitespace display
 set conceallevel=2                            " conceal, replace if defined char
 set concealcursor=nc                          " conceal in normal and commandmode
 set textwidth=80
 set iskeyword=@,48-57,_,192-255,-
-
-set splitbelow
+set colorcolumn=81,+1,+2,130
 set viewoptions="cursor,folds"
 
-" set colorcolumn=81,+1,+2,130
 " limit max number of columns to search for syntax items
 set synmaxcol=128
 " send more chars to screen for redrawing
@@ -256,11 +223,11 @@ highlight Folded ctermfg=241 ctermbg=234 cterm=bold
 highlight SpecialKey ctermbg=none ctermfg=235
 highlight ColorColumn ctermbg=232
 
-highlight ShowTrailingWhitespace ctermbg=red
+highlight ShowTrailingWhitespace ctermfg=red
 
 " == KEY MAPPING ========================================================== {{{1
 "
-call keys#clear()
+call keys#init()
 
 " -- Leader mapping
 map ; <nop>
@@ -271,24 +238,23 @@ let g:maplocalleader = ','
 inoremap <leader><ESC> ;<ESC>
 
 inoremap <C-@> <C-Space>
+" prevent fumbling with tmux key
+nnoremap <C-A> <nop>
 
 nnoremap <C-B> :call keys#list()<CR>
 
 " -- completion menu navigation
-inoremap <expr><C-d> pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
-inoremap <expr><C-u> pumvisible() ? "\<PageUp>\<C-p>\<C-n>"   : "\<C-u>"
-
+inoremap <expr><C-D> pumvisible() ? "\<PageDown>" : "\<C-D>"
+inoremap <expr><C-U> pumvisible() ? "\<PageUp>"   : "\<C-U>"
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
-" TODO: fix setfoldmarker(0)
+Key 'Set foldlevel with marker', 'z<0-4>'
 nnoremap z0 :call f#SetFoldMarker(0)<CR>
 nnoremap z1 :call f#SetFoldMarker(1)<CR>
 nnoremap z2 :call f#SetFoldMarker(2)<CR>
 nnoremap z3 :call f#SetFoldMarker(3)<CR>
 nnoremap z4 :call f#SetFoldMarker(4)<CR>
-
-call keys#add('z<0-4>', 'Set foldlevel with marker')
 
 " -- Faster file Saving --------------------------------------------------- {{{2
 
@@ -306,34 +272,33 @@ inoremap +_ <=
 
 inoremap <leader>' <ESC>:silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
 nnoremap <leader>' :silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
-inoremap <leader>" <ESC>:silent s/[^\\]/zs"/'/ge<CR>
-nnoremap <leader>" :silent s/[^\\]/zs"/'/ge<CR>
+inoremap <leader>" <ESC>:silent s/[^\\]\zs"/'/ge<CR>
+nnoremap <leader>" :silent s/[^\\]\zs"/'/ge<CR>
 
-" -- Insert mode insert line ---------------------------------------------- {{{2
+" -- Yank visual selection to register ------------------------------------ {{{2
 
+vnoremap <silent><C-R> :<C-U>exe 'normal! gv"'.nr2char(getchar()).'y'<CR>
 
-" inoremap <C-o> <ESC>O
-" inoremap <C-l> <ESC>o
+" -- oO mapping ----------------------------------------------------------- {{{2
 
-" -- oO mapping ------------ ---------------------------------------------- {{{2
+Key 'copy to register o and insert above/below', 'o/O',        'v'
+Key 'select from start of line to .',            '<leader>o',  'ni'
+Key 'open next line and insert from register o', '<C-R><C-O>', 'oi'
 
 " open line above
 inoremap <C-O><C-O> <C-O>O
 
 vnoremap o "oyo<ESC>"opa
 vnoremap O "oyO<ESC>"opa
-call keys#add('o/O', 'v', 'copy to register o and insert above/beow')
 
+nnoremap <leader>o ^vf.
 inoremap <leader>o <ESC>^vf.
-call keys#add('<leader>o', 'i', 'select from start of line to .')
 
+nnoremap <C-R><C-O> o<C-R>oa
 inoremap <C-R><C-O> <CR><C-R>o
-call keys#add('<C-R><C-O>', 'i', '<CR> and insert from register o')
-
 
 " -- Command mode mappings ------------------------------------------------ {{{2
 
-" forgot to sudo? force it with w!!
 cmap w!! w !sudo tee % > /dev/null
 cmap e!! silent Git checkout -- % <bar> redraw!
 cnoremap <C-k> <up>
@@ -352,17 +317,9 @@ nnoremap <leader>j J
 " lookup keyword under cursor with 'keywordprg'
 nnoremap <leader>k K
 
-call keys#add('<leader>j', 'join <count> lines')
+Key 'join <count> lines', '<leader>j'
 
 nnoremap G Gzxzt
-
-" -- Normal cC ------------------------------------------------------------ {{{2
-
-unlet! c
-for c in split("\"'`(){}<>[]", '\zs')
-  exe 'nnoremap c'.c.' vi'.c.'c'
-  exe 'nnoremap C'.c.' va'.c.'c'
-endfor
 
 " -- Normal nN ------------------------------------------------------------ {{{2
 
@@ -371,28 +328,33 @@ nnoremap N Nzx
 
 " -- normal ftFT -> LH ---------------------------------------------------- {{{2
 
-" L and H repeats next char, but H always <- and L always ->
+" L and H repeats ftFT, but H always <- and L always ->
 
 nnoremap <silent> f :nnoremap H ,<CR>:nnoremap L ;<CR>f
 nnoremap <silent> F :nnoremap H ;<CR>:nnoremap L ,<CR>F
 nnoremap <silent> t :nnoremap H h,<CR>:nnoremap L l;<CR>t
-nnoremap <silent> T :nnoremap H h;<CR>:nnoremap L l;<CR>T
+nnoremap <silent> T :nnoremap H h;<CR>:nnoremap L l,<CR>T
 
+vnoremap f :<C-U>vnoremap H ,<CR>:vnoremap L ;<CR>gvf
+vnoremap F :<C-U>vnoremap H ;<CR>:vnoremap L ,<CR>gvF
+vnoremap t :<C-U>vnoremap H h,<CR>:vnoremap L l;<CR>gvt
+vnoremap T :<C-U>vnoremap H h;<CR>:vnoremap L l,<CR>gvT
 
-" -- Split Window --------------------------------------------------------- {{{2
-nnoremap <expr>S winwidth('.') > 160 ? ":vsplit " : ":split "
-" replaces an 'cc' alias
-"
 " -- Camel Case Relief ---------------------------------------------------- {{{2
+
+Key 'Downcase last uppercase letter', '<leader>u', 'ni'
 nnoremap <leader>u :s/.*\zs\(\u\)/\L\1/<CR><C-O>
 inoremap <leader>u <ESC>:s/.*\zs\(\u\)/\L\1/<CR><C-O>a
-call keys#add('<leader>u', 'ni', 'Downcase last uppercase letter')
 
 " -- Function arguments join/break ---------------------------------------- {{{2
-"
+
+Key 'Break/Join function arguments', '<leader>f/F'
 nnoremap <silent> <leader>f :s/,/,\r/g<CR>$=%
 nnoremap <leader>F f(v%J
-call keys#add('<leader>f/F', 'Break/Join function arguments')
+
+Key 'Break inline tag/properties',   '<leader>d/D'
+nnoremap <silent><leader>d vit:s/\(\%V.*\%V\S\?\)\s*/\r\1\r/<CR>vat=
+nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
 
 " -- Linewise Movement ---------------------------------------------------- {{{2
 
@@ -407,7 +369,7 @@ call keys#add('<leader>f/F', 'Break/Join function arguments')
 " What would make more sense:
 " N-      - First CHAR N lines higher
 " N^      - First CHAR N-1 lines lower
-" <CR>    - First CHAR N lines lower
+" N<CR>   - First CHAR N lines lower
 
 " N+      - End of line N lines lower
 " N$      - End of line N-1 lines lower
@@ -423,17 +385,11 @@ vnoremap ^ _
 vnoremap + $j$
 vnoremap _ -$
 
-" Change <CR> to work with absolute line numbers
-nnoremap <CR> G
-vnoremap <CR> G
-
 " -- Fkeys ---------------------------------------------------------------- {{{2
-
-" \ '<F2>':         ':call f#ShowErrors()',
 
 call f#MapFkeys({
       \ '<F1>':         ':call f#ListFkeys()',
-      \ '<F2>':         ':ALENextWrap',
+      \ '<F2>':         ':call f#ToggleLocList()',
       \ '<F3>':         ':set relativenumber!',
       \ '<F4>':         ':set hlsearch!',
       \ '<F5>':         ':CheatSheet',
@@ -443,6 +399,10 @@ call f#MapFkeys({
       \ '<F9>':         ':call f#ConcealToggle()',
       \ '<F10>':        ':Gstatus',
       \ })
+
+" -- wrapping next/prev in location list ---------------------------------- {{{2
+nnoremap <up> :call f#LPrev()<CR>
+nnoremap <down> :call f#LNext()<CR>
 
 " -- Unusable keys -------------------------------------------------------- {{{2
 
@@ -517,8 +477,8 @@ map <space> <Plug>(easymotion-prefix)
 " disable syntax shading (slow)
 let g:EasyMotion_do_shade = 0
 
-call keys#add('<space> j/k', '(EasyMotion) Select first char up/down')
-call keys#add('<space> s',   '(EasyMotion) Find chard forward and backward')
+Key '(EasyMotion) Select first char up/down',       '<space> j/k'
+Key '(EasyMotion) Find chard forward and backward', '<space> s'
 
 let g:EasyMotion_smartcase = 1
 " use uppercase target labels and type as a lower case
@@ -597,9 +557,9 @@ let g:ycm_semantic_triggers = {
 nnoremap <leader>yg :YcmCompleter GoTo<CR>
 nnoremap <leader>yt :YcmCompleter GetType<CR>
 
-call keys#add('<leader>yg', '(ycm) Goto')
-call keys#add('<leader>yt', '(ycm) GetType')
-call keys#add('<leader>yd', '(ycm) DetailedDiagnostics')
+Key '(ycm) Goto',                '<leader>yg'
+Key '(ycm) GetType',             '<leader>yt'
+Key '(ycm) DetailedDiagnostics', '<leader>yd'
 
 " -- AIRLINE -------------------------------------------------------------- {{{2
 
@@ -625,7 +585,7 @@ if !exists('g:airline_symbols')
 	let g:airline_symbols = {}
 endif
 
-let g:airline_symbols.branch = '別'
+let g:airline_symbols.branch = '枝'
 let g:airline_symbols.paste = '貼'
 let g:airline_symbols.linenr = ''
 let g:airline_symbols.maxlinenr = '行'
@@ -654,22 +614,28 @@ let g:airline#extensions#tabline#buffer_idx_format = {
       \}
 let g:airline#extensions#tabline#show_close_button = 0
 
+let g:airline#extensions#quickfix#quickfix_text = '直'
+let g:airline#extensions#quickfix#location_text = '場'
+
 let g:airline#extensions#ycm#error_symbol = '誤'
 let g:airline#extensions#ycm#warning_symbol = '戒'
 
 let g:airline#extensions#ale#enabled = 1
 let g:airline#extensions#ale#error_symbol = ''
 let g:airline#extensions#ale#warning_symbol = ''
-let g:airline#extensions#ale#open_lnum_symbol = '=>'
-let g:airline#extensions#ale#close_lnum_symbol = ''
+let g:airline#extensions#ale#open_lnum_symbol = ' '
+let g:airline#extensions#ale#close_lnum_symbol = '行'
+
+let g:airline#extensions#tagbar#enabled = 0
 
 
 
 " remove (fileencoding, fileformat)
 let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
 
-nmap <leader>h <Plug>AirlineSelectPrevTab
-nmap <leader>l <Plug>AirlineSelectNextTab
+nmap <left>    <Plug>AirlineSelectPrevTab
+nmap <right>   <Plug>AirlineSelectNextTab
+
 nmap <leader>1 <Plug>AirlineSelectTab1
 nmap <leader>2 <Plug>AirlineSelectTab2
 nmap <leader>3 <Plug>AirlineSelectTab3
@@ -679,9 +645,6 @@ nmap <leader>6 <Plug>AirlineSelectTab6
 nmap <leader>7 <Plug>AirlineSelectTab7
 nmap <leader>8 <Plug>AirlineSelectTab8
 nmap <leader>9 <Plug>AirlineSelectTab9
-
-call keys#add('<leader>h/l', '(Airline) Switch buffer next/prev')
-call keys#add('<leader>1-9', '(Airline) Switch to buffer (1-9)')
 
 " -- TAGBAR --------------------------------------------------------------- {{{2
 
@@ -732,7 +695,7 @@ let g:rubycomplete_load_gemfile = 1
 " highlight whitespace errors
 " let ruby_space_errors = 1
 " folding
-let g:ruby_fold = 1
+let g:ruby_fold = 0
 " let ruby_foldable_ground = ' '
 let g:ruby_no_expensive = 1
 
@@ -746,8 +709,9 @@ let g:table_mode_corner = '|'
 if executable('ag')
   let g:ackprg = 'ag --vimgrep'
 endif
-nmap <leader>a :Ack
-call keys#add('<leader>a', ':Ack')
+
+Key ':Ack (word under cursor)', '<leader>a/A'
+nnoremap <leader>a :Ack
 
 " -- CTRL-P --------------------------------------------------------------- {{{2
 let g:ctrlp_extensions = ['tag', 'buffertag']
@@ -762,12 +726,12 @@ let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
 " open new files in vertical split
 let g:ctrlp_open_new_file = 'v'
 
-call keys#add('<C-F><C-B>', '(ctrlp) Cycle modes')
-call keys#add('<C-J><C-K>', '(ctrlp) Down/Up in list')
-call keys#add('<C-X>', '(ctrlp) Open in horizontal split')
-call keys#add('<C-V>', '(ctrlp) Open in vertical split')
-call keys#add('<C-T>', '(ctrlp) Open in new tab')
-call keys#add('<C-Y>', '(ctrlp) Open new file')
+Key '(ctrlp) Cycle modes',              '<C-F><C-B>'
+Key '(ctrlp) Down/Up in list',          '<C-J><C-K>'
+Key '(ctrlp) Open in horizontal split', '<C-X>'
+Key '(ctrlp) Open in vertical split',   '<C-V>'
+Key '(ctrlp) Open in new tab',          '<C-T>'
+Key '(ctrlp) Open new file',            '<C-Y>'
 
 " -- ULTISNIPS ------------------------------------------------------------ {{{2
 
@@ -791,8 +755,8 @@ let g:vim_markdown_preview_use_xdg_open = 1
 " -- RI ------------------------------------------------------------------- {{{2
 let g:ri_no_mappings = 1
 
-call keys#add_ft('ruby', '<leader>ri', 'ri search prompt')
-call keys#add_ft('ruby', '<leader>rw', 'ri lookup name under cursor')
+FtKey 'ruby', 'ri search prompt', '<leader>ri'
+FtKey 'ruby', 'ri lookup name under cursor', '<leader>rw'
 
 " -- NERDCommenter -------------------------------------------------------- {{{2
 let g:NERDSpaceDelims = 1
@@ -813,7 +777,7 @@ for [key, desc] in [
       \ [ 'd', 'task done' ],
       \ [ 'C', 'calendar' ]
       \ ]
-  call keys#add_ft('vimwiki', '<leader>t'.key, '(vimwiki) '.desc)
+  FtKey 'vimwiki', '(vimwiki) '.desc, '<leader>t'.key
 endfor
 
 " -- UTL ------------------------------------------------------------------ {{{2
@@ -827,5 +791,6 @@ nmap ga <Plug>(EasyAlign)
 xmap <bar> gaip
 nmap <bar> gaip
 
-call keys#add('ga', 'nv', '(EasyAlign) Align')
-call keys#add('|', 'nv', '(EasyAlign) inner paragraph')
+Key '(EasyAlign) Align',           'ga', 'nv'
+Key '(EasyAlign) inner paragraph', '|', 'nv'
+
