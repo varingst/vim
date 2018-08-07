@@ -16,11 +16,9 @@ Plug 'honza/vim-snippets', { 'on': 'UltisnipsEnable' }
 
 Plug 'sheerun/vim-polyglot'       " language pack
 
-Plug 'sheerun/vim-polyglot'       " language pack
-
 " Code search, nav, vim-bling
 Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
-Plug 'majutsushi/tagbar' " , { 'on' : 'TagbarEnable' }
+Plug 'majutsushi/tagbar', { 'on' : 'TagbarToggle' }
 Plug 'ctrlpvim/ctrlp.vim'         " file and buffer nav
 Plug 'easymotion/vim-easymotion'
 Plug 'vim-airline/vim-airline'    " statusline
