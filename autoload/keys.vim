@@ -39,7 +39,7 @@ fun! s:AddKey(ft, ...)
   endfor
 endfun
 
-fun s:KeyList(...)
+fun! s:KeyList(...)
   let ft = a:0 ? a:1 : s:all_ft
 
   if !has_key(s:keys, ft)
