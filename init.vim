@@ -129,7 +129,7 @@ colorscheme solarized
 " this is sloooooooooooooooooooooow ...
 " set relativenumber        " number lines relative to current line
 set number                " current line numbered
-set scrolloff=5
+set scrolloff=5           " min lines to keep above/below cursor when scrolling
 set wildmode=longest,list " bash style completion
 set nomore                " remove more message after shell command
 set winminheight=0        " windows may be minimized down to just a status bar
@@ -158,20 +158,22 @@ set nohlsearch   " highlight search terms
 set incsearch    " show matches as you type
 set ignorecase   " ignore case when searching
 set smartcase    " case-insensitive when all lowercase
-set nolazyredraw " don't redraw while executing macros
+set lazyredraw   " don't redraw while executing macros
 set magic        " set magic on for regex
 set hidden       " hides buffers instead of closing on new open
 
-set autoindent                                " auto indenting
-set tabstop=2                                 " set tab character to 2 characters
-set shiftwidth=2                              " ident width for autoindent
-set expandtab                                 " turn tabs into whitespace
-set foldmethod=marker                         " type of folding
+set autoindent               " auto indenting
+set tabstop=2                " set tab character to 2 characters
+set shiftwidth=2             " ident width for autoindent
+set expandtab                " turn tabs into whitespace
+set foldmethod=marker        " type of folding
 set foldtext=f#FoldText()
-set backspace=2                               " make backspace work like most other apps
-set listchars=tab:»\ ,trail:…,extends:#,nbsp:.  " vim builtin whitespace display
-set conceallevel=2                            " conceal, replace if defined char
-set concealcursor=nc                          " conceal in normal and commandmode
+set backspace=2              " make backspace work like most other apps
+set list                     " replace whitespace with listchars
+set listchars=tab:»\ ,trail:…,extends:≈,precedes:≈,nbsp:¬
+set conceallevel=2           " conceal, replace if defined char
+set concealcursor=nc         " conceal in normal and commandmode
+
 set textwidth=80
 set iskeyword=@,48-57,_,192-255,-
 set colorcolumn=81,+1,+2,130
@@ -194,6 +196,9 @@ augroup vimrc_autocmd
 
   " Move quickfix window to the bottom
   au FileType qf wincmd J
+
+  " Dont show tabs in vim help
+  au FileType help setlocal nolist
 
   " Move fugitive preview to the bottom
   au FileType gitcommit wincmd J
@@ -222,10 +227,11 @@ highlight Folded ctermfg=241 ctermbg=234 cterm=bold
 highlight SpecialKey ctermbg=none ctermfg=235
 highlight ColorColumn ctermbg=232
 
-highlight ShowTrailingWhitespace ctermfg=red
+highlight ShowTrailingWhitespace ctermbg=Red ctermfg=Black
 
 " == KEY MAPPING ========================================================== {{{1
-"
+
+" ~/.vim/autoload/keys.vim
 call keys#init()
 
 " -- Leader mapping
@@ -236,6 +242,7 @@ map , <nop>
 let g:maplocalleader = ','
 inoremap <leader><ESC> ;<ESC>
 
+" terminal sends ^@ on <C-Space>
 inoremap <C-@> <C-Space>
 " prevent fumbling with tmux key
 nnoremap <C-A> <nop>
@@ -486,7 +493,7 @@ let g:EasyMotion_smartcase = 1
 " use uppercase target labels and type as a lower case
 let g:EasyMotion_use_upper = 1
 
-" -- ALE ---------------------------------------- {{{2
+" -- ALE ------------------------------------------------------------------ {{{2
 
 let g:ale_sign_error = '誤'
 let g:ale_sign_warning = '戒'
@@ -565,10 +572,30 @@ Key '(ycm) DetailedDiagnostics', '<leader>yd'
 
 " -- AIRLINE -------------------------------------------------------------- {{{2
 
+nmap <left>    <Plug>AirlineSelectPrevTab
+nmap <right>   <Plug>AirlineSelectNextTab
+
+nmap <leader>1 <Plug>AirlineSelectTab1
+nmap <leader>2 <Plug>AirlineSelectTab2
+nmap <leader>3 <Plug>AirlineSelectTab3
+nmap <leader>4 <Plug>AirlineSelectTab4
+nmap <leader>5 <Plug>AirlineSelectTab5
+nmap <leader>6 <Plug>AirlineSelectTab6
+nmap <leader>7 <Plug>AirlineSelectTab7
+nmap <leader>8 <Plug>AirlineSelectTab8
+nmap <leader>9 <Plug>AirlineSelectTab9
+
+" remove (fileencoding, fileformat)
+let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
+
+" -- THEME ---------------------------------------------------------------- {{{3
+
+" autoload/airline/themes/motoko.vim
 let g:airline_theme = 'motoko'
 
+
+" percentage, line number, column number
 let g:airline_section_z = ''
-let g:airline#extensions#whitespace#enabled = 0
 let g:airline_mode_map = {
   \ '__' : '一',
   \ 'n'  : '常',
@@ -587,21 +614,23 @@ if !exists('g:airline_symbols')
 	let g:airline_symbols = {}
 endif
 
-let g:airline_symbols.branch = '枝'
-let g:airline_symbols.paste = '貼'
-let g:airline_symbols.linenr = ''
+let g:airline_symbols.branch    = '枝'
+let g:airline_symbols.paste     = '貼'
+let g:airline_symbols.linenr    = ''
 let g:airline_symbols.maxlinenr = '行'
 let g:airline_symbols.notexists = '無'
-let g:airline_symbols.readonly = '読'
+let g:airline_symbols.readonly  = '読'
 
+" -- TABLINE -------------------------------------------------------------- {{{3
 
-let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tabline#show_tab_type = 0
-let g:airline#extensions#tabline#tab_nr_type = 1
-let g:airline#extensions#tabline#show_tab_nr = 0
-let g:airline#extensions#tabline#buffer_nr_show = 0
-let g:airline#extensions#tabline#buffer_nr_format = '%s '
-let g:airline#extensions#tabline#buffer_idx_mode = 1
+let g:airline#extensions#tabline#enabled           = 1
+let g:airline#extensions#tabline#tab_nr_type       = 1
+let g:airline#extensions#tabline#show_tab_type     = 0
+let g:airline#extensions#tabline#show_tab_nr       = 0
+let g:airline#extensions#tabline#show_close_button = 0
+let g:airline#extensions#tabline#buffer_nr_show    = 0
+let g:airline#extensions#tabline#buffer_nr_format  = '%s '
+let g:airline#extensions#tabline#buffer_idx_mode   = 1
 let g:airline#extensions#tabline#buffer_idx_format = {
       \ '0': '零',
       \ '1': '一',
@@ -614,39 +643,33 @@ let g:airline#extensions#tabline#buffer_idx_format = {
       \ '8': '八',
       \ '9': '九'
       \}
-let g:airline#extensions#tabline#show_close_button = 0
+
+" -- QUICKFIX ------------------------------------------------------------- {{{3
 
 let g:airline#extensions#quickfix#quickfix_text = '直'
 let g:airline#extensions#quickfix#location_text = '場'
 
-let g:airline#extensions#ycm#error_symbol = '誤'
+" -- YCM ------------------------------------------------------------------ {{{3
+
+let g:airline#extensions#ycm#error_symbol   = '誤'
 let g:airline#extensions#ycm#warning_symbol = '戒'
 
-let g:airline#extensions#ale#enabled = 1
-let g:airline#extensions#ale#error_symbol = ''
-let g:airline#extensions#ale#warning_symbol = ''
-let g:airline#extensions#ale#open_lnum_symbol = ' '
+" -- ALE ------------------------------------------------------------------ {{{3
+
+let g:airline#extensions#ale#enabled           = 1
+let g:airline#extensions#ale#error_symbol      = ''
+let g:airline#extensions#ale#warning_symbol    = ''
+let g:airline#extensions#ale#open_lnum_symbol  = ' '
 let g:airline#extensions#ale#close_lnum_symbol = '行'
 
+" -- TAGBAR --------------------------------------------------------------- {{{3
+
+" slow
 let g:airline#extensions#tagbar#enabled = 0
 
+" -- WHITESPACE ----------------------------------------------------------- {{{3
 
-
-" remove (fileencoding, fileformat)
-let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
-
-nmap <left>    <Plug>AirlineSelectPrevTab
-nmap <right>   <Plug>AirlineSelectNextTab
-
-nmap <leader>1 <Plug>AirlineSelectTab1
-nmap <leader>2 <Plug>AirlineSelectTab2
-nmap <leader>3 <Plug>AirlineSelectTab3
-nmap <leader>4 <Plug>AirlineSelectTab4
-nmap <leader>5 <Plug>AirlineSelectTab5
-nmap <leader>6 <Plug>AirlineSelectTab6
-nmap <leader>7 <Plug>AirlineSelectTab7
-nmap <leader>8 <Plug>AirlineSelectTab8
-nmap <leader>9 <Plug>AirlineSelectTab9
+let g:airline#extensions#whitespace#enabled = 0
 
 " -- TAGBAR --------------------------------------------------------------- {{{2
 
@@ -670,7 +693,7 @@ let g:Tex_MultipleCompileFormats='pdf, aux'
 let g:Imap_UsePlaceHolders = 0
 let g:Imap_FreezeImap = 1 " Turn off ANNOYING AUTO INPUT CRAP
 
-" -- VIM-RUBY -------------------------------------------------------------- {{{2
+" -- VIM-RUBY ------------------------------------------------------------- {{{2
 " let g:ruby_indent_access_modifyer_style = 'normal' | 'indent' | 'outdent'
 "
 " let g:ruby_indent_block_style = 'expression' | 'do'
@@ -757,7 +780,8 @@ let g:vim_markdown_preview_use_xdg_open = 1
 " -- RI ------------------------------------------------------------------- {{{2
 let g:ri_no_mappings = 1
 
-FtKey 'ruby', 'ri search prompt', '<leader>ri'
+" mapped in ~/.vim/ftplugin/ruby.vim
+FtKey 'ruby', 'ri search prompt',            '<leader>ri'
 FtKey 'ruby', 'ri lookup name under cursor', '<leader>rw'
 
 " -- NERDCommenter -------------------------------------------------------- {{{2
