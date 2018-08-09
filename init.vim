@@ -1,6 +1,6 @@
 " == PLUG ================================================================= {{{1
 
-call plug#begin()
+call f#plug_begin()
 
 " -- Programmer QoL ------------------------------------------------------- {{{2
 
@@ -35,32 +35,30 @@ Plug 'junegunn/vim-easy-align'
 
 " -- Programming languages ------------------------------------------------ {{{2
 
-" Ruby
-Plug 'danchoi/ri.vim', { 'for': 'ruby' } " ri doc searcher
-" Solargraph language server plugin
-Plug 'hackhowtofaq/vim-solargraph', { 'for': 'ruby' }
-Plug 'dbakker/vim-projectroot' " vim-solargraph dep
-
-" Plug 'autozimu/LanguageClient-neovim', { 'do': ':UpdateRemotePlugins' }
-" Plug 'roxma/vim-hug-neovim-rpc'
-" Plug 'roxma/nvim-yarp'
-
-" JavaScript and friends
-Plug 'maxmellon/vim-jsx-pretty'
-Plug 'leafgarland/typescript-vim'
-Plug 'nikvdp/ejs-syntax'
-Plug 'othree/jspc.vim'                        " function parameter completion
-Plug 'othree/javascript-libraries-syntax.vim' " underscore, angular, react, etc
-Plug 'alexbyk/vim-ultisnips-react', { 'on': 'UltisnipsEnable' } " react snippets
-Plug 'moll/vim-node'
+PlugFT {
+    \ 'ruby': [
+      \ 'danchoi/ri.vim',
+      \ 'hackhowtofaq/vim-solargraph',
+    \ ],
+    \ 'javascript': [
+      \ 'maxmellon/vim-jsx-pretty',
+      \ 'othree/jspc.vim',
+      \ 'othree/javascript-libraries-syntax.vim',
+      \ 'alexbyk/vim-ultisnips-react', { 'on': 'UltiSnipsEnable' },
+      \ 'moll/vim-node'
+    \ ],
+    \ 'ejs': [
+      \ 'nikvdp/ejs-syntax'
+    \ ],
+    \ 'vim': [
+      \ 'tomtom/spec_vim',
+      \ 'junegunn/vader.vim',
+      \ 'h1mesuke/vim-unittest'
+    \ ]
+  \ }
 
 " Is this required with YCM ?
 " Plug 'ternjs/tern_for_vim'
-
-" VimScript
-Plug 'tomtom/spec_vim'
-Plug 'junegunn/vader.vim'
-Plug 'h1mesuke/vim-unittest'
 
 " -- Tim Pope obviously --------------------------------------------------- {{{2
 

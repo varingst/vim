@@ -259,6 +259,55 @@ fun! f#ConcealToggle()
   endif
 endfun
 
+" == vim-plugged extension ================================================ {{{1
+
+fun! f#plug_begin()
+  call plug#begin()
+  command! -nargs=1 PlugFT call s:AddPlugs(<args>)
+endfun
+
+" PlugFT {
+"   'ruby': [
+"     'user/plug',
+"     'user/plug',
+"     'user/plug', { 'extra': 'opts' },
+"     'user/plug',
+"   ]
+"   'xml,html': [
+"     ...
+"   ]
+" }
+
+fun! s:AddPlugs(dict)
+  let plugins = {}
+  let last_insert = ''
+  for [ft, plugs] in items(a:dict)
+    for repo_or_options in plugs
+      if type(repo_or_options) == type('')
+        let plugins[repo_or_options] = { 'for': split(ft, ',') }
+        let last_insert = repo_or_options
+      elseif type(repo_or_options) == type({})
+        try
+          for [opt, value] in items(repo_or_options)
+            let plugins[last_insert][opt] = value
+          endfor
+        catch /^Vim\%((\a\+)\)\=:E716/
+          if last_insert ==# ''
+            echoerr 'Option passed before repo:'
+          else
+            echoerr 'Unknown error handling this entry:'
+          endif
+          echoerr repo_or_options
+        endtry
+      endif
+    endfor
+  endfor
+
+  for [repo, opts] in items(plugins)
+    call plug#(repo, opts)
+  endfor
+endfun
+
 " == MISC ================================================================= {{{1
 
 
@@ -344,4 +393,6 @@ fun! f#ListToc() " {{{3
     echo line
   endfor
 endfun
+
+
 
