@@ -23,6 +23,7 @@ Plug 'ctrlpvim/ctrlp.vim'         " file and buffer nav
 Plug 'easymotion/vim-easymotion'
 Plug 'vim-airline/vim-airline'    " statusline
 Plug 'vim-airline/vim-airline-themes'
+Plug 'KabbAmine/zeavim.vim'
 
 " Trailing whitespace, formatting, et al
 Plug 'vim-scripts/ingo-library'
@@ -38,7 +39,6 @@ Plug 'junegunn/vim-easy-align'
 PlugFT {
     \ 'ruby': [
       \ 'danchoi/ri.vim',
-      \ 'hackhowtofaq/vim-solargraph',
     \ ],
     \ 'javascript': [
       \ 'maxmellon/vim-jsx-pretty',
@@ -57,8 +57,18 @@ PlugFT {
     \ ]
   \ }
 
+" ruby, but not working 'hackhowtofaq/vim-solargraph',
+
 " Is this required with YCM ?
 " Plug 'ternjs/tern_for_vim'
+
+if has('nvim')
+  Plug 'autozimu/LanguageClient-neovim', {
+        \ 'branch': 'next',
+        \ 'do': 'bash install.sh'
+        \ }
+endif
+
 
 " -- Tim Pope obviously --------------------------------------------------- {{{2
 
@@ -69,6 +79,7 @@ Plug 'tpope/vim-endwise'          " autoadd closing symbols (end/endif/endfun)
 Plug 'tpope/vim-dispatch'         " Run builds and test suites
 Plug 'tpope/vim-repeat'           " make '.' handle plugins nicer
 Plug 'tpope/vim-abolish'          " Smarter substitution ++
+Plug 'tpope/vim-markdown', { 'for': 'markdown' }
 
 " Ruby snaxx
 Plug 'tpope/vim-bundler'
@@ -80,14 +91,13 @@ Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
 
 " -- Markup, Template, Formatting, et al ---------------------------------- {{{2
 
-Plug 'vim-scripts/utl.vim'         " universal text linking
 Plug 'powerman/vim-plugin-AnsiEsc' " ANSI color coding
 Plug 'othree/html5-syntax.vim'     " handles HTML5 syntax highlighting
 
 " markdown
-Plug 'dhruvasagar/vim-table-mode'
-Plug 'godlygeek/tabular'
-Plug 'chmp/mdnav'
+" Plug 'dhruvasagar/vim-table-mode'
+" Plug 'godlygeek/tabular'
+" Plug 'chmp/mdnav'
 
 " Todo/Project
 Plug 'vim-scripts/SyntaxRange'
@@ -425,7 +435,6 @@ nnoremap <down> :call f#LNext()<CR>
 " == COMMANDS ============================================================= {{{1
 
 command! -nargs=* Variations call f#Variations(<f-args>)<CR>
-command! -nargs=? -complete=file Open call f#Open(<f-args>)
 " see :he :DiffOrig
 command! DiffOrig vert new | set bt=nofile | r++edit # | 0d_ | diffthis | wincmd p | diffthis
 command! Exe !chmod +x %
@@ -510,6 +519,7 @@ highlight ALEWarningSign ctermfg=166
 
 "let g:ycm_filetype_whitelist = { '*': 1 }
 " let g:ycm_filetype_blacklist = {
+      " \ 'ruby': 1
       " \ 'lua' : 1
       " \}
 "let g:ycm_filetype_specific_completion_to_disable = {}
@@ -531,6 +541,7 @@ let g:ycm_config_extra_conf = 0
 
 " turns off identifier completer, keeps semantic triggers
 let g:ycm_min_num_of_chars_for_completion = 2
+
 
 let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
@@ -771,9 +782,25 @@ let g:UltiSnipsSnippetsDirectories = [ '~/.vim/UltiSnips', 'UltiSnips' ]
 let g:calendar_monday = 1
 let g:calendar_wruler = '日 月 火 水 木 金 土'
 
+" -- POLYGLOT ------------------------------------------------------------- {{{2
+let g:polyglot_disabled = [
+      \ 'markdown',
+      \ 'lua',
+      \ ]
+" lua: bad syntax
+
+" -- MARKDOWN ------------------------------------------------------------- {{{2
+
+let g:markdown_fenced_languages = [
+      \ 'ruby',
+      \ 'eruby',
+      \ 'sh'
+      \ ]
 " -- MARKDOWN PREVIEW ----------------------------------------------------- {{{2
+"
 let g:vim_markdown_preview_github = 1
 let g:vim_markdown_preview_use_xdg_open = 1
+
 
 " -- RI ------------------------------------------------------------------- {{{2
 let g:ri_no_mappings = 1
@@ -804,9 +831,6 @@ for [key, desc] in [
   FtKey 'vimwiki', '(vimwiki) '.desc, '<leader>t'.key
 endfor
 
-" -- UTL ------------------------------------------------------------------ {{{2
-let g:utl_cfg_hdl_scm_http_system = "silent !firefox-bin '%u' &"
-
 " -- EASY ALIGN ----------------------------------------------------------- {{{2
 
 xmap ga <Plug>(EasyAlign)
@@ -815,6 +839,35 @@ nmap ga <Plug>(EasyAlign)
 xmap <bar> gaip
 nmap <bar> gaip
 
-Key '(EasyAlign) Align',           'ga', 'nv'
-Key '(EasyAlign) inner paragraph', '|', 'nv'
+Key '(EasyAlign) Align operator',  'ga', 'nv'
+Key '(EasyAlign) inner paragraph', '|',  'nv'
 
+" -- ZEAVIM --------------------------------------------------------------- {{{2
+
+Key '(Zeavim) Search word under cursor', '<leader>z', 'nv'
+Key '(Zeavim) Search motion operator',   'gz'
+Key '(Zeavim) Docset',                   '<leader><leader>z'
+
+" don't know why these don't work in config
+
+nmap <leader>z <Plug>Zeavim
+vmap <leader>z <Plug>ZVVisSelection
+nmap <leader><leader>z <Plug>ZVKeyDocset
+nmap gz <Plug>ZVOperator
+
+" -- SURROUND ------------------------------------------------------------- {{{2
+
+xmap s <Plug>VSurround
+
+" -- LanguageClient PROTO ------------------------------------------------- {{{2
+
+if has('nvim')
+  call add(g:polyglot_disabled, 'ruby')
+  let g:LanguageClient_serverCommands = {
+        \ 'ruby': ['tcp://localhost:7658']
+        \ }
+
+  let g:LanguageClient_autoStop = 0
+
+  autocmd FileType ruby setlocal omnifunc=LanguageClient#complete
+endif
