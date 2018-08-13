@@ -341,6 +341,9 @@ nnoremap G Gzxzt
 nnoremap n nzx
 nnoremap N Nzx
 
+" -- Search highlight toggle --------------------------------------------- {{{2
+nnoremap <leader>/ :set hlsearch!<CR>
+
 " -- normal ftFT -> LH ---------------------------------------------------- {{{2
 
 " L and H repeats ftFT, but H always <- and L always ->
@@ -402,22 +405,28 @@ vnoremap _ -$
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
-call f#MapFkeys({
-      \ '<F1>':         ':call f#ListFkeys()',
-      \ '<F2>':         ':call f#ToggleLocList()',
-      \ '<F3>':         ':set relativenumber!',
-      \ '<F4>':         ':set hlsearch!',
-      \ '<F5>':         ':CheatSheet',
-      \ '<F6>':         ':set cursorcolumn!',
-      \ '<F7>':         ':NERDTreeToggle',
-      \ '<F8>':         ':TagbarToggle',
-      \ '<F9>':         ':call f#ConcealToggle()',
-      \ '<F10>':        ':Gstatus',
-      \ })
+FKeys {
+  \ '<F1>':           ':call keys#ListFkeys("")',
+  \ '<F2>':           ':call f#ToggleLocList()',
+  \ '<F3>':           ':NERDTreeToggle',
+  \ '<F4>':           ':TagbarToggle',
+  \ '<F5>':           ':CheatSheet',
+  \ '<F6>':           ':Gstatus',
+  \ '<F10>':          ':Dispatch',
+  \ '<F11>':          ':Make',
+  \ '<leader><F1>':   ':call keys#ListFkeys("<lt>leader>")',
+  \ '<leader><F2>':   ':set relativenumber!',
+  \ '<leader><F3>':   ':set cursorcolumn!',
+  \ '<leader><F4>':   ':set hlsearch!',
+  \ '<leader><F5>':   ':call f#ConcealToggle()',
+  \ '<leader><F6>':   ':Gdiff',
+  \ '<leader><F10>':  ':Dispatch!',
+  \ '<leader><F11>':  ':Make!'
+  \ }
 
 " -- wrapping next/prev in location list ---------------------------------- {{{2
 
-nnoremap <up> :call f#LPrev()<CR>
+nnoremap <up>   :call f#LPrev()<CR>
 nnoremap <down> :call f#LNext()<CR>
 
 " -- Unusable keys -------------------------------------------------------- {{{2

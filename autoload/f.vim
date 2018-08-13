@@ -41,26 +41,6 @@ fun! f#VimRCHeadline()
   call setline('.', join(words))
 endfun
 
-" == Function key mapping and listing ===================================== {{{2
-
-let s:fkeys = {}
-fun! f#MapFkeys(keys)
-  for [key, cmd] in items(a:keys)
-    let s:fkeys[key] = cmd
-    exe 'nnoremap ' . key . ' ' . cmd . '<CR>'
-    exe 'inoremap ' . key . ' <ESC>' . cmd . '<CR>'
-  endfor
-endfun
-
-fun! f#ListFkeys()
-  for i in range(2, 12)
-    let key = '<F'.i.'>'
-    if has_key(s:fkeys, key)
-      echo key . ' ' . s:fkeys[key]
-    endif
-  endfor
-endfun
-
 " == Location/Error list ================================================== {{{1
 
 " http://vim.wikia.com/wiki/Toggle_to_open_or_close_the_quickfix_window

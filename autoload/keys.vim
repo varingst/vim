@@ -4,6 +4,7 @@ let s:all_ft = '*'
 fun! keys#init()
   let s:keys = {}
   let s:width = {}
+  let s:fkeys = {}
 endfun
 
 fun! keys#list(...)
@@ -26,6 +27,7 @@ fun! keys#list(...)
   endfor
 endfun
 
+
 fun! s:AddKey(ft, ...)
   let entry = {
         \ 'text': a:1,
@@ -47,6 +49,27 @@ fun! s:KeyList(...)
   endif
   return s:keys[ft]
 endfun
+" == Function key mapping and listing ===================================== {{{2
+
+fun! s:MapFkeys(keys)
+  for [key, cmd] in items(a:keys)
+    let s:fkeys[key] = cmd
+    exe 'nnoremap ' . key . ' ' . cmd . '<CR>'
+    exe 'inoremap ' . key . ' <ESC>' . cmd . '<CR>'
+  endfor
+endfun
+
+fun! keys#ListFkeys(...)
+  for pre in a:0 ? a:000 : ['', '<leader>']
+    for i in range(1, 12)
+      let key = pre.'<F'.i.'>'
+      if has_key(s:fkeys, key)
+        echo key . ' ' . s:fkeys[key]
+      endif
+    endfor
+  endfor
+endfun
 
 command! -nargs=+ Key call s:AddKey(s:all_ft, <args>)
 command! -nargs=+ FtKey call s:AddKey(<args>)
+command! -nargs=1 FKeys call s:MapFkeys(<args>)
