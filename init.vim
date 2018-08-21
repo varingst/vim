@@ -20,7 +20,6 @@ Plug 'sheerun/vim-polyglot'       " language pack
 Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
 Plug 'majutsushi/tagbar', { 'on' : 'TagbarToggle' }
 Plug 'ctrlpvim/ctrlp.vim'         " file and buffer nav
-Plug 'easymotion/vim-easymotion'
 Plug 'vim-airline/vim-airline'    " statusline
 Plug 'vim-airline/vim-airline-themes'
 Plug 'KabbAmine/zeavim.vim'
@@ -62,12 +61,11 @@ PlugFT {
 " Is this required with YCM ?
 " Plug 'ternjs/tern_for_vim'
 
-if has('nvim')
-  Plug 'autozimu/LanguageClient-neovim', {
-        \ 'branch': 'next',
-        \ 'do': 'bash install.sh'
-        \ }
-endif
+Plug 'autozimu/LanguageClient-neovim', {
+      \ 'branch': 'next',
+      \ 'do': 'bash install.sh',
+      \ 'on': 'LCEnable'
+      \ }
 
 
 " -- Tim Pope obviously --------------------------------------------------- {{{2
@@ -105,10 +103,10 @@ Plug 'mattn/calendar-vim'
 Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
 Plug 'tbabej/taskwiki'
 Plug 'farseer90718/vim-taskwarrior'
-Plug 'noahfrederick/vim-skeleton'
+Plug 'varingst/vim-skeleton'
 
 " grammar
-Plug 'rhysd/vim-grammarous'
+Plug 'rhysd/vim-grammarous', { 'on': 'GrammarousCheck' }
 
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'michaeljsmith/vim-indent-object'
@@ -134,8 +132,6 @@ let g:solarized_termcolors = 256
 let g:solarized_termtrans = 1
 colorscheme solarized
 
-" this is sloooooooooooooooooooooow ...
-" set relativenumber        " number lines relative to current line
 set number                " current line numbered
 set scrolloff=5           " min lines to keep above/below cursor when scrolling
 set wildmode=longest,list " bash style completion
@@ -184,7 +180,7 @@ set concealcursor=nc         " conceal in normal and commandmode
 
 set textwidth=80
 set iskeyword=@,48-57,_,192-255,-
-set colorcolumn=81,+1,+2,130
+set colorcolumn=+1
 set viewoptions="cursor,folds"
 
 " limit max number of columns to search for syntax items
@@ -221,8 +217,7 @@ augroup vimrc_autocmd
 
   au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
 
-  au InsertEnter * highlight CursorLineNr term=bold ctermfg=Red
-  au InsertLeave * highlight CursorLineNr term=bold ctermfg=Yellow
+  au InsertEnter * set norelativenumber
 
   au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim call f#VimRcExtra()
 augroup END
@@ -252,15 +247,23 @@ inoremap <leader><ESC> ;<ESC>
 
 " terminal sends ^@ on <C-Space>
 inoremap <C-@> <C-Space>
-" prevent fumbling with tmux key
+" prevent editing from fumbling with tmux key
 nnoremap <C-A> <nop>
 
 nnoremap <C-B> :call keys#list()<CR>
 
-" -- completion menu navigation
+" search highlight toggle
+nnoremap <leader>/ :set hlsearch!<CR>
+
+" <C-W><C-U> compliment
+inoremap <C-L> <C-O>d$
+
+nnoremap <space> :set relativenumber!<CR>
+vnoremap <space> :<C-U>set relativenumber!<CR>
+
+" -- Completion menu navigation ------------------------------------------- {{{2
 inoremap <expr><C-D> pumvisible() ? "\<PageDown>" : "\<C-D>"
 inoremap <expr><C-U> pumvisible() ? "\<PageUp>"   : "\<C-U>"
-
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
@@ -316,6 +319,7 @@ inoremap <C-R><C-O> <CR><C-R>o
 
 cmap w!! w !sudo tee % > /dev/null
 cmap e!! silent Git checkout -- % <bar> redraw!
+cnoremap date r! date "+\%Y-\%m-\%d"
 cnoremap <C-k> <up>
 cnoremap <C-j> <down>
 
@@ -340,9 +344,6 @@ nnoremap G Gzxzt
 
 nnoremap n nzx
 nnoremap N Nzx
-
-" -- Search highlight toggle --------------------------------------------- {{{2
-nnoremap <leader>/ :set hlsearch!<CR>
 
 " -- normal ftFT -> LH ---------------------------------------------------- {{{2
 
@@ -406,7 +407,7 @@ vnoremap _ -$
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
 FKeys {
-  \ '<F1>':           ':call keys#ListFkeys("")',
+  \ '<F1>':           ':call keys#flist("")',
   \ '<F2>':           ':call f#ToggleLocList()',
   \ '<F3>':           ':NERDTreeToggle',
   \ '<F4>':           ':TagbarToggle',
@@ -414,7 +415,7 @@ FKeys {
   \ '<F6>':           ':Gstatus',
   \ '<F10>':          ':Dispatch',
   \ '<F11>':          ':Make',
-  \ '<leader><F1>':   ':call keys#ListFkeys("<lt>leader>")',
+  \ '<leader><F1>':   ':call keys#flist("<lt>leader>")',
   \ '<leader><F2>':   ':set relativenumber!',
   \ '<leader><F3>':   ':set cursorcolumn!',
   \ '<leader><F4>':   ':set hlsearch!',
@@ -481,8 +482,16 @@ let g:cheatsheet_subtype_redirect = {
 
 " -- PROJECTIONIST -------------------------------------------------------- {{{2
 
-let g:projectionist_heuristics = {
+let g:projectionist_heuristics = f#projectionist({
+    \ 'README.md': {
+      \ 'README.md': {
+      \   'type': 'readme'
+      \ }
+    \ },
     \ 'CMakeLists.txt|Makefile': {
+      \ 'CMakeLists.txt': {
+      \   'type': 'cmake'
+      \ },
       \ '*.c': {
       \   'alternate': '{}.h'
       \ },
@@ -492,22 +501,16 @@ let g:projectionist_heuristics = {
       \ '*.h' : {
       \   'alternate': ['{}.c', '{}.cpp', '{}.cxx' ]
       \ }
+    \ },
+    \ 'package.json': {
+      \ 'package.json' : {
+      \   'type': 'package'
+      \ },
+      \ 'jsconfig.json' : {
+        \ 'type': 'jsconfig'
+      \ }
     \ }
-  \ }
-
-" -- EASYMOTION ----------------------------------------------------------- {{{2
-
-map <space> <Plug>(easymotion-prefix)
-
-" disable syntax shading (slow)
-let g:EasyMotion_do_shade = 0
-
-Key '(EasyMotion) Select first char up/down',       '<space> j/k'
-Key '(EasyMotion) Find chard forward and backward', '<space> s'
-
-let g:EasyMotion_smartcase = 1
-" use uppercase target labels and type as a lower case
-let g:EasyMotion_use_upper = 1
+  \ })
 
 " -- ALE ------------------------------------------------------------------ {{{2
 
@@ -538,7 +541,6 @@ let g:ycm_seed_identifiers_with_syntax = 1
 let g:ycm_key_invoke_completion = '<C-Space>'
 let g:ycm_key_list_select_completion = ['<C-j>', '<Tab>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-k>', '<Up>']
-let g:ycm_key_detailed_diagnostics = '<leader>yd'
 
 let g:ycm_max_num_candidates = 200
 
@@ -550,6 +552,7 @@ let g:ycm_config_extra_conf = 0
 
 " turns off identifier completer, keeps semantic triggers
 let g:ycm_min_num_of_chars_for_completion = 2
+let g:ycm_use_utlisnips_completer = 0
 
 
 let g:ycm_add_preview_to_completeopt = 1
@@ -581,12 +584,28 @@ let g:ycm_semantic_triggers = {
   \   'erlang'          : [':'],
   \ }
 
-nnoremap <leader>yg :YcmCompleter GoTo<CR>
-nnoremap <leader>yt :YcmCompleter GetType<CR>
+nnoremap <leader>gg :YcmCompleter GoTo<CR>
+nnoremap <leader>gt :YcmCompleter GetType<CR>
+nnoremap <leader>gT :YcmCompleter GoToType<CR>
+nnoremap <leader>gp :YcmCompleter GetParent<CR>
+nnoremap <leader>gr :YcmCompleter GoToReferences<CR>
+nnoremap <leader>gi :YcmCompleter GoToInclude<CR>
+nnoremap <leader>gd :YcmCompleter GoToDefinition<CR>
+nnoremap <leader>gD :YcmCompleter GoToDeclaration<CR>
 
-Key '(ycm) Goto',                '<leader>yg'
-Key '(ycm) GetType',             '<leader>yt'
-Key '(ycm) DetailedDiagnostics', '<leader>yd'
+nnoremap <leader>g<space> :call keys#list({ 'filetype': '_ycm' })<CR>
+
+FtKey '_ycm', '(ycm) GoTo',                '<leader>gg'
+FtKey '_ycm', '(ycm) GoTo Type',           '<leader>gT'
+FtKey '_ycm', '(ycm) GoTo References',     '<leader>gr'
+FtKey '_ycm', '(ycm) GoTo Include',        '<leader>gi'
+FtKey '_ycm', '(ycm) GoTo Definition',     '<leader>gd'
+FtKey '_ycm', '(ycm) Goto Declaration',    '<leader>gD'
+
+FtKey '_ycm', '(ycm) Get Type',            '<leader>gt'
+FtKey '_ycm', '(ycm) Get Parent',          '<leader>gp'
+
+
 
 " -- AIRLINE -------------------------------------------------------------- {{{2
 
@@ -778,12 +797,12 @@ Key '(ctrlp) Open new file',            '<C-Y>'
 
 " -- ULTISNIPS ------------------------------------------------------------ {{{2
 
-let g:UltiSnipsExpandTrigger = '<leader>l'
-let g:UltiSnipsListSnippets = '<leader><tab>'
-let g:UltiSnipsJumpForwardTrigger = '<leader>j'
+let g:UltiSnipsExpandTrigger       = '<leader>l'
+let g:UltiSnipsListSnippets        = '<leader><tab>'
+let g:UltiSnipsJumpForwardTrigger  = '<leader>j'
 let g:UltiSnipsJumpBackwardTrigger = '<leader>k'
 
-let g:UltiSnipsEditSplit = 'horizontal'
+let g:UltiSnipsEditSplit           = 'horizontal'
 let g:UltiSnipsSnippetsDirectories = [ '~/.vim/UltiSnips', 'UltiSnips' ]
 
 " -- CALENDAR ------------------------------------------------------------- {{{2
@@ -805,18 +824,6 @@ let g:markdown_fenced_languages = [
       \ 'eruby',
       \ 'sh'
       \ ]
-" -- MARKDOWN PREVIEW ----------------------------------------------------- {{{2
-"
-let g:vim_markdown_preview_github = 1
-let g:vim_markdown_preview_use_xdg_open = 1
-
-
-" -- RI ------------------------------------------------------------------- {{{2
-let g:ri_no_mappings = 1
-
-" mapped in ~/.vim/ftplugin/ruby.vim
-FtKey 'ruby', 'ri search prompt',            '<leader>ri'
-FtKey 'ruby', 'ri lookup name under cursor', '<leader>rw'
 
 " -- NERDCommenter -------------------------------------------------------- {{{2
 let g:NERDSpaceDelims = 1
@@ -878,5 +885,8 @@ if has('nvim')
 
   let g:LanguageClient_autoStop = 0
 
-  autocmd FileType ruby setlocal omnifunc=LanguageClient#complete
+  augroup ruby_langserver
+    autocmd!
+    autocmd FileType ruby setlocal omnifunc=LanguageClient#complete
+  augroup END
 endif

@@ -4,7 +4,7 @@
 " called for ~/.vimrc only {{{1
 fun! f#VimRcExtra()
   command! Functions :vsplit ~/.vim/autoload/f.vim
-  command! Section :call f#VimRCHeadline()<CR>
+  command! Section :call f#VimRCHeadline()
 endfunction
 
 " == Variations =========================================================== {{{1
@@ -339,7 +339,7 @@ fun! f#CreateMarkdownToc(...) " {{{3
 
     " now lets get to the parsing
     let title = substitute(line, '^#* *', '', '')
-    let href = tolower(substitute(title, ' ', '-', ''))
+    let href = tolower(substitute(title, ' ', '-', 'g'))
     let pad = repeat('  ', count(line, '#') - 1)
     call add(toc['lines'], pad . '- [' .title. '](#' .href. ')')
   endwhile
@@ -362,7 +362,7 @@ fun! f#InsertMarkdownToc(toc) " {{{3
   " add empty line as spacing before first section
   call add(a:toc['lines'], '')
   " add heading
-  call insert(a:toc['lines'], '# '.a:toc['header'])
+  call insert(a:toc['lines'], '## '.a:toc['header'])
 
   call append(a:toc['open'] - 1, a:toc['lines'])
 endfun
@@ -374,5 +374,34 @@ fun! f#ListToc() " {{{3
   endfor
 endfun
 
+" -- Select Window -- {{{1
+fun! f#SelectWindow() " {{{2
+  let s:wins = {}
+  windo let s:wins[winnr()] = bufname(winbufnr(winnr()))
+  " call inputlist(map(sort(keys(s:wins)), 'printf("%-8s%s", v:val, s:wins[v:val])'))
+  for winnr in sort(keys(s:wins))
+    echo printf('%-8s%s', winnr, s:wins[winnr])
+  endfor
+  let inp = 0
+  echo printf('1-%d > ', len(s:wins))
+  while inp < char2nr('1') || inp > char2nr(string(len(s:wins)))
+    let inp = getchar()
+  endwhile
+  call win_gotoid(win_getid(str2nr(nr2char(inp))))
+endfun
 
+" -- Projectionist expander  -- {{{1
+fun! f#projectionist(conf)
+  for [root, config] in items(a:conf)
+    for [filematch, _] in items(config)
+      if filematch =~# '|'
+        let c = remove(config, filematch)
+        for fm in split(filematch, '|')
+          let config[fm] = c
+        endfor
+      endif
+    endfor
+  endfor
+  return a:conf
+endfun
 

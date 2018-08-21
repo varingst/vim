@@ -8,8 +8,17 @@ fun! keys#init()
 endfun
 
 fun! keys#list(...)
-  let keys = filter(get(s:keys, &filetype, []) + s:keys[s:all_ft],
-                  \ a:0 ? a:1 : {idx, val -> 1})
+  let args = a:0 ? a:1 : { 'all': 1 }
+
+  let filetype = get(args, 'filetype', &filetype)
+
+  let keys = get(s:keys, filetype, [])
+
+  if get(args, 'all', 0)
+    let keys += s:keys[s:all_ft]
+  endif
+
+  let keys = filter(keys, get(args, 'filter', {idx, val -> 1}))
 
   if !len(keys)
     echo 'no keys to list ..'
@@ -59,7 +68,7 @@ fun! s:MapFkeys(keys)
   endfor
 endfun
 
-fun! keys#ListFkeys(...)
+fun! keys#flist(...)
   for pre in a:0 ? a:000 : ['', '<leader>']
     for i in range(1, 12)
       let key = pre.'<F'.i.'>'
