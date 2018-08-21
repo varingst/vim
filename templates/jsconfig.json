@@ -1,0 +1,16 @@
+// https://code.visualstudio.com/docs/languages/jsconfig
+{
+  "compilerOptions": {
+    "checkJs": true,
+    // es{3,5,6} es201{5..8}, esnext
+    "target": "es6"
+    "experimentalDecorators": true,
+  },
+  // paths to exclude
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "node_modules/react-router-dom/**/*"
+  ],
+}
