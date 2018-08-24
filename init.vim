@@ -281,11 +281,7 @@ nnoremap <leader>/ :set hlsearch!<CR>
 inoremap <C-L> <C-O>d$
 
 nnoremap <leader><space> :set relativenumber!<CR>
-vnoremap <leader><space> :<C-U>set relativenumber!<CR>
-
-" -- Completion menu navigation ------------------------------------------- {{{2
-inoremap <expr><C-D> pumvisible() ? "\<PageDown>" : "\<C-D>"
-inoremap <expr><C-U> pumvisible() ? "\<PageUp>"   : "\<C-U>"
+xnoremap <leader><space> :<C-U>set relativenumber!<CR>
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
@@ -308,6 +304,8 @@ inoremap ,, =>
 inoremap _+ >=
 inoremap +_ <=
 
+iabbr ƒ function
+
 " -- Swap quotes ---------------------------------------------------------- {{{2
 
 inoremap <leader>' <ESC>:silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
@@ -328,8 +326,8 @@ Key 'open next line and insert from register o', '<C-R><C-O>', 'oi'
 " open line above
 inoremap <C-O><C-O> <C-O>O
 
-vnoremap o "oyo<ESC>"opa
-vnoremap O "oyO<ESC>"opa
+xnoremap o "oyo<ESC>"opa
+xnoremap O "oyO<ESC>"opa
 
 nnoremap <leader>o ^vf.
 inoremap <leader>o <ESC>^vf.
@@ -345,7 +343,7 @@ cnoremap date r! date "+\%Y-\%m-\%d"
 cnoremap <C-k> <up>
 cnoremap <C-j> <down>
 
-" -- Normal jkJKG --------------------------------------------------------- {{{2
+" -- Normal jkJK ---------------------------------------------------------- {{{2
 
 " j/k on visual lines, not actual lines
 nnoremap j gj
@@ -359,13 +357,6 @@ nnoremap <leader>j J
 nnoremap <leader>k K
 
 Key 'join <count> lines', '<leader>j'
-
-nnoremap G Gzxzt
-
-" -- Normal nN ------------------------------------------------------------ {{{2
-
-nnoremap n nzx
-nnoremap N Nzx
 
 " -- normal ftFT -> LH ---------------------------------------------------- {{{2
 
@@ -416,15 +407,22 @@ nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
 " N$      - End of line N-1 lines lower
 " N_      - End of line N lines higher
 
-" The Fix:
+" Even better:
 
-nnoremap ^ _
-nnoremap + $j$
-nnoremap _ -$
+nnoremap <expr>^         v:count ? "<CR>" : "^"
+nnoremap <expr><leader>^ v:count ? "-"    : "^"
+xnoremap <expr>^         v:count ? "<CR>" : "^"
+xnoremap <expr><leader>^ v:count ? "-"    : "^"
 
-vnoremap ^ _
-vnoremap + $j$
-vnoremap _ -$
+nnoremap <expr>$         v:count ? "j$" : "$"
+nnoremap <expr><leader>$ v:count ? "k$" : "$"
+xnoremap <expr>$         v:count ? "j$" : "$"
+xnoremap <expr><leader>$ v:count ? "k$" : "$"
+
+" Could probably find better use for these, but ..
+
+nnoremap + <C-A>
+nnoremap - <C-X>
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
@@ -556,9 +554,9 @@ highlight ALEWarningSign ctermfg=166
 " -- YOU COMPLETE ME ------------------------------------------------------ {{{2
 
 "let g:ycm_filetype_whitelist = { '*': 1 }
-let g:ycm_filetype_blacklist = {
-      \ 'ruby': 1
-      \}
+" let g:ycm_filetype_blacklist = {
+      " \ 'ruby': 1
+      " \}
 "let g:ycm_filetype_specific_completion_to_disable = {}
 let g:ycm_collect_identifiers_from_tags_files = 1
 let g:ycm_seed_identifiers_with_syntax = 1
@@ -572,13 +570,9 @@ let g:ycm_max_num_candidates = 200
 let g:ycm_global_ycm_extra_conf = expand('$HOME').'/.vim/ycm.py'
 let g:ycm_extra_conf_vim_data = ['&filetype']
 let g:ycm_config_extra_conf = 0
-"let g:ycm_extra_conf_globlist = []
-"rules:: * ? [seq] [!seq]
 
-" turns off identifier completer, keeps semantic triggers
 let g:ycm_min_num_of_chars_for_completion = 2
 let g:ycm_use_ultisnips_completer = 0
-
 
 let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
@@ -630,8 +624,6 @@ FtKey '_ycm', '(ycm) Goto Declaration',    '<leader>gD'
 FtKey '_ycm', '(ycm) Get Type',            '<leader>gt'
 FtKey '_ycm', '(ycm) Get Parent',          '<leader>gp'
 
-
-
 " -- AIRLINE -------------------------------------------------------------- {{{2
 
 nmap <left>    <Plug>AirlineSelectPrevTab
@@ -654,7 +646,6 @@ let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
 
 " autoload/airline/themes/motoko.vim
 let g:airline_theme = 'motoko'
-
 
 " percentage, line number, column number
 let g:airline_section_z = ''
@@ -906,15 +897,19 @@ let g:gitgutter_override_sign_column_highlight = 0
 
 xmap s <Plug>VSurround
 
+" -- ABOLISH -------------------------------------------------------------- {{{2
+
+Key '(abolish) Change to snake/camel/mixed/upper case', 'cr(s/c/m/u)'
+
 " -- LanguageClient PROTO ------------------------------------------------- {{{2
 
-" if has('nvim')
+" this thing is .. messy
 call add(g:polyglot_disabled, 'ruby')
 let g:LanguageClient_serverCommands = {
       \ 'ruby': ['solargraph', 'stdio']
       \ }
 
-let g:LanguageClient_autoStop = 0
+let g:LanguageClient_autoStop = 1
 
 let g:LanguageClient_rootMarkers = {
   \ 'ruby': ['Gemfile']
@@ -923,3 +918,4 @@ let g:LanguageClient_rootMarkers = {
 augroup ruby_langserver
   autocmd!
   autocmd FileType ruby setlocal omnifunc=LanguageClient#complete
+augroup END
