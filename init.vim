@@ -11,25 +11,26 @@ Plug 'w0rp/ale'                   " async syntax checker
 Plug 'scrooloose/nerdcommenter'   " batch commenting +++
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
-Plug 'SirVer/ultisnips', { 'on': 'UltisnipsEnable' }
-Plug 'honza/vim-snippets', { 'on': 'UltisnipsEnable' }
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
 
 Plug 'sheerun/vim-polyglot'       " language pack
 
 " Code search, nav, vim-bling
 Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
 Plug 'majutsushi/tagbar', { 'on' : 'TagbarToggle' }
-Plug 'ctrlpvim/ctrlp.vim'         " file and buffer nav
+Plug 'junegunn/fzf.vim'           " fuzzy file, buffer, everything nav
 Plug 'vim-airline/vim-airline'    " statusline
 Plug 'vim-airline/vim-airline-themes'
 Plug 'KabbAmine/zeavim.vim'
+Plug 'airblade/vim-gitgutter'
 
 " Trailing whitespace, formatting, et al
-Plug 'vim-scripts/ingo-library'
-Plug 'vim-scripts/ShowTrailingWhitespace'
-Plug 'vim-scripts/CountJump'
-Plug 'vim-scripts/JumpToTrailingWhitespace'
-Plug 'vim-scripts/DeleteTrailingWhitespace'
+" Plug 'vim-scripts/ingo-library'
+" Plug 'vim-scripts/ShowTrailingWhitespace'
+" Plug 'vim-scripts/CountJump'
+" Plug 'vim-scripts/JumpToTrailingWhitespace'
+" Plug 'vim-scripts/DeleteTrailingWhitespace'
 Plug 'vim-scripts/camelcasemotion' " camelcase text objects
 Plug 'junegunn/vim-easy-align'
 
@@ -61,11 +62,11 @@ PlugFT {
 " Is this required with YCM ?
 " Plug 'ternjs/tern_for_vim'
 
+" testing for neovim
 Plug 'autozimu/LanguageClient-neovim', {
       \ 'branch': 'next',
-      \ 'do': 'bash install.sh',
-      \ 'on': 'LCEnable'
       \ }
+" needs to run: 'bash install.sh',
 
 
 " -- Tim Pope obviously --------------------------------------------------- {{{2
@@ -78,6 +79,7 @@ Plug 'tpope/vim-dispatch'         " Run builds and test suites
 Plug 'tpope/vim-repeat'           " make '.' handle plugins nicer
 Plug 'tpope/vim-abolish'          " Smarter substitution ++
 Plug 'tpope/vim-markdown', { 'for': 'markdown' }
+Plug 'tpope/vim-scriptease', { 'for': 'vim' }
 
 " Ruby snaxx
 Plug 'tpope/vim-bundler'
@@ -102,7 +104,7 @@ Plug 'vim-scripts/SyntaxRange'
 Plug 'mattn/calendar-vim'
 Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
 Plug 'tbabej/taskwiki'
-Plug 'farseer90718/vim-taskwarrior'
+" Plug 'farseer90718/vim-taskwarrior'
 Plug 'varingst/vim-skeleton'
 
 " grammar
@@ -121,6 +123,23 @@ call plug#end()
 
 runtime macros/matchit.vim
 
+" == SYMBOLS ============================================================== {{{1
+
+let g:sym = {
+      \ 'line':                      '行',
+      \ 'whitespace_trailing':       '¡',
+      \ 'whitespace_tab':            '»',
+      \ 'error':                     '誤',
+      \ 'warning':                   '戒',
+      \ 'gutter_error':              '»',
+      \ 'gutter_warning':            '›',
+      \ 'gutter_added':              '·',
+      \ 'gutter_modified':           '–',
+      \ 'gutter_removed':            '…',
+      \ 'gutter_removed_first_line': '¨',
+      \ 'gutter_modified_removed':   '¬',
+      \}
+
 " == OPTIONS ============================================================== {{{1
 
 " vim-plug do these automatically
@@ -130,6 +149,7 @@ runtime macros/matchit.vim
 set background=dark
 let g:solarized_termcolors = 256
 let g:solarized_termtrans = 1
+let g:solarized_menu = 0
 colorscheme solarized
 
 set number                " current line numbered
@@ -174,13 +194,13 @@ set foldmethod=marker        " type of folding
 set foldtext=f#FoldText()
 set backspace=2              " make backspace work like most other apps
 set list                     " replace whitespace with listchars
-set listchars=tab:»\ ,trail:…,extends:≈,precedes:≈,nbsp:¬
+set listchars=tab:»\ ,trail:¡,extends:≈,precedes:≈,nbsp:¬
 set conceallevel=2           " conceal, replace if defined char
 set concealcursor=nc         " conceal in normal and commandmode
 
 set textwidth=80
 set iskeyword=@,48-57,_,192-255,-
-set colorcolumn=+1
+" set colorcolumn=+1
 set viewoptions="cursor,folds"
 
 " limit max number of columns to search for syntax items
@@ -228,9 +248,11 @@ augroup END
 highlight Folded ctermfg=241 ctermbg=234 cterm=bold
 " tab and trailing spaces
 highlight SpecialKey ctermbg=none ctermfg=235
-highlight ColorColumn ctermbg=232
+" highlight ColorColumn ctermfg=3 ctermbg=4 term=none
 
-highlight ShowTrailingWhitespace ctermbg=Red ctermfg=Black
+" highlight ShowTrailingWhitespace ctermbg=Red ctermfg=Black
+highlight EndOfBuffer ctermfg=black
+" highlight SignColumn ctermbg=None
 
 " == KEY MAPPING ========================================================== {{{1
 
@@ -258,8 +280,8 @@ nnoremap <leader>/ :set hlsearch!<CR>
 " <C-W><C-U> compliment
 inoremap <C-L> <C-O>d$
 
-nnoremap <space> :set relativenumber!<CR>
-vnoremap <space> :<C-U>set relativenumber!<CR>
+nnoremap <leader><space> :set relativenumber!<CR>
+vnoremap <leader><space> :<C-U>set relativenumber!<CR>
 
 " -- Completion menu navigation ------------------------------------------- {{{2
 inoremap <expr><C-D> pumvisible() ? "\<PageDown>" : "\<C-D>"
@@ -408,11 +430,11 @@ vnoremap _ -$
 
 FKeys {
   \ '<F1>':           ':call keys#flist("")',
-  \ '<F2>':           ':call f#ToggleLocList()',
+  \ '<F2>':           ':call f#LocListToggle()',
   \ '<F3>':           ':NERDTreeToggle',
   \ '<F4>':           ':TagbarToggle',
   \ '<F5>':           ':CheatSheet',
-  \ '<F6>':           ':Gstatus',
+  \ '<F9>':           ':Gstatus',
   \ '<F10>':          ':Dispatch',
   \ '<F11>':          ':Make',
   \ '<leader><F1>':   ':call keys#flist("<lt>leader>")',
@@ -420,7 +442,8 @@ FKeys {
   \ '<leader><F3>':   ':set cursorcolumn!',
   \ '<leader><F4>':   ':set hlsearch!',
   \ '<leader><F5>':   ':call f#ConcealToggle()',
-  \ '<leader><F6>':   ':Gdiff',
+  \ '<leader><F6>':   ':call f#ColorColumnToggle()',
+  \ '<leader><F9>':   ':Gdiff',
   \ '<leader><F10>':  ':Dispatch!',
   \ '<leader><F11>':  ':Make!'
   \ }
@@ -451,6 +474,8 @@ command! Exe !chmod +x %
 command! ClearBuffers call f#ClearBuffers()<CR>
 
 " == PLUGINS ============================================================== {{{1
+
+
 
 " -- CHEATSHEET ----------------------------------------------------------- {{{2
 
@@ -514,13 +539,14 @@ let g:projectionist_heuristics = f#projectionist({
 
 " -- ALE ------------------------------------------------------------------ {{{2
 
-let g:ale_sign_error = '誤'
-let g:ale_sign_warning = '戒'
+let g:ale_sign_error = g:sym.gutter_error
+let g:ale_sign_warning = g:sym.gutter_warning
 let g:ale_sign_column_always = 1
 let g:ale_echo_msg_format = '[%linter%] %code%: %s'
 
 let g:ale_linters = {
       \ 'sh': ['shellcheck'],
+      \ 'vim': [],
       \ }
 
 " highlight ALEWarning ctermfg=166
@@ -530,10 +556,9 @@ highlight ALEWarningSign ctermfg=166
 " -- YOU COMPLETE ME ------------------------------------------------------ {{{2
 
 "let g:ycm_filetype_whitelist = { '*': 1 }
-" let g:ycm_filetype_blacklist = {
-      " \ 'ruby': 1
-      " \ 'lua' : 1
-      " \}
+let g:ycm_filetype_blacklist = {
+      \ 'ruby': 1
+      \}
 "let g:ycm_filetype_specific_completion_to_disable = {}
 let g:ycm_collect_identifiers_from_tags_files = 1
 let g:ycm_seed_identifiers_with_syntax = 1
@@ -552,7 +577,7 @@ let g:ycm_config_extra_conf = 0
 
 " turns off identifier completer, keeps semantic triggers
 let g:ycm_min_num_of_chars_for_completion = 2
-let g:ycm_use_utlisnips_completer = 0
+let g:ycm_use_ultisnips_completer = 0
 
 
 let g:ycm_add_preview_to_completeopt = 1
@@ -654,7 +679,7 @@ endif
 let g:airline_symbols.branch    = '枝'
 let g:airline_symbols.paste     = '貼'
 let g:airline_symbols.linenr    = ''
-let g:airline_symbols.maxlinenr = '行'
+let g:airline_symbols.maxlinenr = g:sym.line
 let g:airline_symbols.notexists = '無'
 let g:airline_symbols.readonly  = '読'
 
@@ -688,8 +713,8 @@ let g:airline#extensions#quickfix#location_text = '場'
 
 " -- YCM ------------------------------------------------------------------ {{{3
 
-let g:airline#extensions#ycm#error_symbol   = '誤'
-let g:airline#extensions#ycm#warning_symbol = '戒'
+let g:airline#extensions#ycm#error_symbol   = g:sym.error
+let g:airline#extensions#ycm#warning_symbol = g:sym.warning
 
 " -- ALE ------------------------------------------------------------------ {{{3
 
@@ -697,20 +722,29 @@ let g:airline#extensions#ale#enabled           = 1
 let g:airline#extensions#ale#error_symbol      = ''
 let g:airline#extensions#ale#warning_symbol    = ''
 let g:airline#extensions#ale#open_lnum_symbol  = ' '
-let g:airline#extensions#ale#close_lnum_symbol = '行'
+let g:airline#extensions#ale#close_lnum_symbol = g:sym.line
 
 " -- TAGBAR --------------------------------------------------------------- {{{3
 
 " slow
 let g:airline#extensions#tagbar#enabled = 0
 
+" -- GIT GUTTER ----------------------------------------------------------- {{{2
+
+let g:airline#extensions#hunks#enabled = 0
+
 " -- WHITESPACE ----------------------------------------------------------- {{{3
 
-let g:airline#extensions#whitespace#enabled = 0
+let g:airline#extensions#whitespace#enabled = 1
+let g:airline#extensions#whitespace#symbol = ''
+let g:airline#extensions#whitespace#checks = [ 'indent', 'trailing', 'mixed-indent-file' ]
+let g:airline#extensions#whitespace#trailing_format = g:sym.whitespace_trailing.'%s'.g:sym.line
+let g:airline#extensions#whitespace#mixed_indent_format = g:sym.whitespace_tab.'%s'.g:sym.line
+let g:airline#extensions#whitespace#mixed_indent_file_format = g:sym.whitespace_tab.g:sym.whitespace_trailing.'%s'.g:sym.line
 
 " -- TAGBAR --------------------------------------------------------------- {{{2
 
-let g:tagbar_iconchars = [ 'v', '>' ]
+let g:tagbar_iconchars = [ '+', '-' ]
 
 " -- JSX ------------------------------------------------------------------ {{{2
 
@@ -724,7 +758,6 @@ let g:EclimCompletionMethod = 'omnifunc'
 
 " -- LATEX ---------------------------------------------------------------- {{{2
 let g:tex_flavor='latex'
-set grepprg=grep\ -nH\ $*
 let g:Tex_DefaultTargetFormat='pdf'
 let g:Tex_MultipleCompileFormats='pdf, aux'
 let g:Imap_UsePlaceHolders = 0
@@ -775,30 +808,18 @@ endif
 Key ':Ack (word under cursor)', '<leader>a/A'
 nnoremap <leader>a :Ack
 
-" -- CTRL-P --------------------------------------------------------------- {{{2
-let g:ctrlp_extensions = ['tag', 'buffertag']
-let g:ctrlp_cache_dir = $HOME . '/.cache/ctrlp'
-let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
-      \ --ignore .git
-      \ --ignore .svn
-      \ --ignore .hg
-      \ --ignore .DS_Store
-      \ -g ""'
+" -- FZF ------------------------------------------------------------------ {{{2
 
-" open new files in vertical split
-let g:ctrlp_open_new_file = 'v'
-
-Key '(ctrlp) Cycle modes',              '<C-F><C-B>'
-Key '(ctrlp) Down/Up in list',          '<C-J><C-K>'
-Key '(ctrlp) Open in horizontal split', '<C-X>'
-Key '(ctrlp) Open in vertical split',   '<C-V>'
-Key '(ctrlp) Open in new tab',          '<C-T>'
-Key '(ctrlp) Open new file',            '<C-Y>'
+nnoremap <space>f :Files<CR>
+nnoremap <space>g :GFiles<CR>
+nnoremap <space>s :Snippets<CR>
+nnoremap <space>t :BTags<CR>
+nnoremap <space>p :Tags<CR>
+nnoremap <space>h :History<CR>
 
 " -- ULTISNIPS ------------------------------------------------------------ {{{2
 
 let g:UltiSnipsExpandTrigger       = '<leader>l'
-let g:UltiSnipsListSnippets        = '<leader><tab>'
 let g:UltiSnipsJumpForwardTrigger  = '<leader>j'
 let g:UltiSnipsJumpBackwardTrigger = '<leader>k'
 
@@ -871,22 +892,34 @@ vmap <leader>z <Plug>ZVVisSelection
 nmap <leader><leader>z <Plug>ZVKeyDocset
 nmap gz <Plug>ZVOperator
 
+" -- GIT GUTTER ----------------------------------------------------------- {{{2
+
+let g:gitgutter_sign_added              = g:sym.gutter_added
+let g:gitgutter_sign_modified           = g:sym.gutter_modified
+let g:gitgutter_sign_removed            = g:sym.gutter_removed
+let g:gitgutter_sign_removed_first_line = g:sym.gutter_removed_first_line
+let g:gitgutter_sign_modified_removed   = g:sym.gutter_modified_removed
+
+let g:gitgutter_override_sign_column_highlight = 0
+
 " -- SURROUND ------------------------------------------------------------- {{{2
 
 xmap s <Plug>VSurround
 
 " -- LanguageClient PROTO ------------------------------------------------- {{{2
 
-if has('nvim')
-  call add(g:polyglot_disabled, 'ruby')
-  let g:LanguageClient_serverCommands = {
-        \ 'ruby': ['tcp://localhost:7658']
-        \ }
+" if has('nvim')
+call add(g:polyglot_disabled, 'ruby')
+let g:LanguageClient_serverCommands = {
+      \ 'ruby': ['solargraph', 'stdio']
+      \ }
 
-  let g:LanguageClient_autoStop = 0
+let g:LanguageClient_autoStop = 0
 
-  augroup ruby_langserver
-    autocmd!
-    autocmd FileType ruby setlocal omnifunc=LanguageClient#complete
-  augroup END
-endif
+let g:LanguageClient_rootMarkers = {
+  \ 'ruby': ['Gemfile']
+  \}
+
+augroup ruby_langserver
+  autocmd!
+  autocmd FileType ruby setlocal omnifunc=LanguageClient#complete

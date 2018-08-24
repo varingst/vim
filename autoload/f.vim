@@ -51,7 +51,7 @@ fun! s:GetBufferList()
   return buflist
 endfunction
 
-fun! f#ToggleLocList()
+fun! f#LocListToggle()
   if !len(getloclist(0))
     return
   endif
@@ -80,6 +80,8 @@ fun! f#LNext()
     lnext
   catch /^Vim\%((\a\+)\)\=:E42/
     return
+  catch /^Vim\%((\a\+)\)\=:E776/
+    return
   catch /^Vim\%((\a\+)\)\=:E553/
     lfirst
   endtry
@@ -89,6 +91,8 @@ fun! f#LPrev()
   try
     lprev
   catch /^Vim\%((\a\+)\)\=:E42/
+    return
+  catch /^Vim\%((\a\+)\)\=:E776/
     return
   catch /^Vim\%((\a\+)\)\=:E553/
     llast
@@ -236,6 +240,16 @@ fun! f#ConcealToggle()
     setlocal conceallevel=0
   else
     exe 'setlocal conceallevel='.b:conceal_level
+  endif
+endfun
+
+" == ColorColumnToggle ==================================================== {{{1
+
+fun! f#ColorColumnToggle()
+  if strlen(&colorcolumn)
+    setlocal colorcolumn=
+  else
+    setlocal colorcolumn=+1
   endif
 endfun
 
