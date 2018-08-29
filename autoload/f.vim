@@ -1,7 +1,7 @@
 " File for keeping functions out of vimrc
 
 " == VimRcExtra =========================================================== {{{1
-" called for ~/.vimrc only {{{1
+" called for ~/.vimrc only
 fun! f#VimRcExtra()
   command! Functions :vsplit ~/.vim/autoload/f.vim
   command! Section :call f#VimRCHeadline()
@@ -44,14 +44,14 @@ endfun
 " == Location/Error list ================================================== {{{1
 
 " http://vim.wikia.com/wiki/Toggle_to_open_or_close_the_quickfix_window
-fun! s:GetBufferList()
+fun! s:GetBufferList() " {{{2
   redir =>buflist
   silent! ls!
   redir END
   return buflist
 endfunction
 
-fun! f#LocListToggle()
+fun! f#LocListToggle() " {{{2
   if !len(getloclist(0))
     return
   endif
@@ -75,7 +75,7 @@ fun! f#LocListToggle()
   endif
 endfun
 
-fun! f#LNext()
+fun! f#LNext() " {{{2
   try
     lnext
   catch /^Vim\%((\a\+)\)\=:E42/
@@ -87,7 +87,7 @@ fun! f#LNext()
   endtry
 endfun
 
-fun! f#LPrev()
+fun! f#LPrev() " {{{2
   try
     lprev
   catch /^Vim\%((\a\+)\)\=:E42/
@@ -253,9 +253,27 @@ fun! f#ColorColumnToggle()
   endif
 endfun
 
+" == Close all open non-dirty buffers ===================================== {{{1
+
+let s:bufarg = { 'listed': 1 }
+fun! f#ClearBuffers() " {{{2
+  for buf in getbufinfo(s:bufarg)
+    if !buf.changed && empty(buf.windows)
+      exe 'bdelete '.buf.bufnr
+    endif
+  endfor
+endfun
+
+" == Cycle Cursorlines ==================================================== {{{1
+fun! f#crosshair()
+  let w:cross = (get(w:, 'cross', 0) + 1) % 4
+  exe ':set '.(and(w:cross, 1) ? '' : 'no').'cursorcolumn'
+  exe ':set '.(and(w:cross, 2) ? '' : 'no').'cursorline'
+endfun
+
 " == vim-plugged extension ================================================ {{{1
 
-fun! f#plug_begin()
+fun! f#plug_begin() " {{{2
   call plug#begin()
   command! -nargs=1 PlugFT call s:AddPlugs(<args>)
 endfun
@@ -272,7 +290,7 @@ endfun
 "   ]
 " }
 
-fun! s:AddPlugs(dict)
+fun! s:AddPlugs(dict) " {{{2
   let plugins = {}
   let last_insert = ''
   for [ft, plugs] in items(a:dict)
@@ -388,8 +406,9 @@ fun! f#ListToc() " {{{3
   endfor
 endfun
 
-" -- Select Window -- {{{1
-fun! f#SelectWindow() " {{{2
+
+" -- Select Window -------------------------------------------------------- {{{2
+fun! f#SelectWindow()
   let s:wins = {}
   windo let s:wins[winnr()] = bufname(winbufnr(winnr()))
   " call inputlist(map(sort(keys(s:wins)), 'printf("%-8s%s", v:val, s:wins[v:val])'))
@@ -404,7 +423,7 @@ fun! f#SelectWindow() " {{{2
   call win_gotoid(win_getid(str2nr(nr2char(inp))))
 endfun
 
-" -- Projectionist expander  -- {{{1
+" -- Projectionist expander ---------------------------------------------- {{{2
 fun! f#projectionist(conf)
   for [root, config] in items(a:conf)
     for [filematch, _] in items(config)
@@ -419,3 +438,56 @@ fun! f#projectionist(conf)
   return a:conf
 endfun
 
+" -- Grep revision history for file --------------------------------------_{{{2
+let s:max_matches = 50
+fun! f#lgrep_revision_history(file, ...)
+  if exists('s:gitrev_tmpdir')
+    if isdirectory(s:gitrev_tmpdir)
+      call delete(s:gitrev_tmpdir, 'rf')
+    endif
+    unlet! s:gitrev_tmpdir
+  endif
+  if !isdirectory('.git')
+    echoerr "$PWD is not a git root"
+    return
+  endif
+  try
+    let matches = systemlist("git rev-list --all -- ".a:file." | xargs git grep --line-number ".join(a:000, ' '))
+  catch
+    return
+  endtry
+
+  let filtered = []
+  for m in matches
+    let sections = split(m, ':')
+    if sections[1] == a:file
+      call add(filtered, sections)
+    endif
+  endfor
+
+  if len(matches) > s:max_matches
+    echoerr printf("got %d matches, specified max is %d", len(matches), s:max_matches)
+    finish
+  endif
+
+  let s:gitrev_tmpdir = tempname()
+  call mkdir(s:gitrev_tmpdir)
+
+  let llist = {
+        \ 'efm': '%f:%l:%m',
+        \ 'title': 'Revision History Grep Results',
+        \ 'lines': []
+        \ }
+
+  for m in filtered
+    let [rev, file, lnum, line] = m
+    let outfile = s:gitrev_tmpdir.'/'.rev.'/'.file
+    call mkdir(fnamemodify(outfile, ':h'), 'p')
+    call system(printf('git show %s:%s > %s', rev, file, outfile))
+
+    call add(llist.lines, join([outfile, lnum, line], ':'))
+  endfor
+
+  call setloclist(0, [], 'r', llist)
+  lopen
+endfun
