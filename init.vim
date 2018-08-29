@@ -44,7 +44,7 @@ PlugFT {
       \ 'maxmellon/vim-jsx-pretty',
       \ 'othree/jspc.vim',
       \ 'othree/javascript-libraries-syntax.vim',
-      \ 'alexbyk/vim-ultisnips-react', { 'on': 'UltiSnipsEnable' },
+      \ 'alexbyk/vim-ultisnips-react',
       \ 'moll/vim-node'
     \ ],
     \ 'ejs': [
@@ -53,7 +53,8 @@ PlugFT {
     \ 'vim': [
       \ 'tomtom/spec_vim',
       \ 'junegunn/vader.vim',
-      \ 'h1mesuke/vim-unittest'
+      \ 'h1mesuke/vim-unittest',
+      \ 'kana/vim-vspec'
     \ ]
   \ }
 
@@ -115,7 +116,9 @@ Plug 'michaeljsmith/vim-indent-object'
 
 " -- Homerolled ----------------------------------------------------------- {{{2
 
-Plug '~/.vim/proto/vim-cheatsheet'
+for proto in glob('~/.vim/proto/*', v:false, v:true)
+  call plug#(proto)
+endfor
 
 " }}}
 
@@ -127,10 +130,14 @@ runtime macros/matchit.vim
 
 let g:sym = {
       \ 'line':                      '行',
-      \ 'whitespace_trailing':       '¡',
-      \ 'whitespace_tab':            '»',
       \ 'error':                     '誤',
       \ 'warning':                   '戒',
+      \ 'whitespace_trailing':       '¡',
+      \ 'whitespace_tab':            '»',
+      \ 'whitespace_tab_pad':        '\ ',
+      \ 'whitespace_nobreak':        '¬',
+      \ 'nowrap_precedes':           '‹',
+      \ 'nowrap_extends':            '›',
       \ 'gutter_error':              '»',
       \ 'gutter_warning':            '›',
       \ 'gutter_added':              '·',
@@ -138,7 +145,7 @@ let g:sym = {
       \ 'gutter_removed':            '…',
       \ 'gutter_removed_first_line': '¨',
       \ 'gutter_modified_removed':   '¬',
-      \}
+      \ }
 
 " == OPTIONS ============================================================== {{{1
 
@@ -194,7 +201,13 @@ set foldmethod=marker        " type of folding
 set foldtext=f#FoldText()
 set backspace=2              " make backspace work like most other apps
 set list                     " replace whitespace with listchars
-set listchars=tab:»\ ,trail:¡,extends:≈,precedes:≈,nbsp:¬
+exe ':set listchars='.join([
+      \ 'tab:'        .g:sym.whitespace_tab.g:sym.whitespace_tab_pad,
+      \ 'trail:'      .g:sym.whitespace_trailing,
+      \ 'nbsp:'       .g:sym.whitespace_nobreak,
+      \ 'precedes:'   .g:sym.nowrap_precedes,
+      \ 'extends:'    .g:sym.nowrap_extends
+      \  ], ',')
 set conceallevel=2           " conceal, replace if defined char
 set concealcursor=nc         " conceal in normal and commandmode
 
@@ -245,13 +258,13 @@ augroup END
 " == HIGHLIGHTING ========================================================= {{{1
 
 " folding highlighting
-highlight Folded ctermfg=241 ctermbg=234 cterm=bold
+" highlight Folded ctermfg=241 ctermbg=234 cterm=bold
 " tab and trailing spaces
-highlight SpecialKey ctermbg=none ctermfg=235
+" highlight SpecialKey ctermbg=none ctermfg=235
 " highlight ColorColumn ctermfg=3 ctermbg=4 term=none
 
 " highlight ShowTrailingWhitespace ctermbg=Red ctermfg=Black
-highlight EndOfBuffer ctermfg=black
+" highlight EndOfBuffer ctermfg=black
 " highlight SignColumn ctermbg=None
 
 " == KEY MAPPING ========================================================== {{{1
@@ -282,6 +295,7 @@ inoremap <C-L> <C-O>d$
 
 nnoremap <leader><space> :set relativenumber!<CR>
 xnoremap <leader><space> :<C-U>set relativenumber!<CR>
+nnoremap <leader>v :set relativenumber<CR>V
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
@@ -372,7 +386,7 @@ vnoremap F :<C-U>vnoremap H ;<CR>:vnoremap L ,<CR>gvF
 vnoremap t :<C-U>vnoremap H h,<CR>:vnoremap L l;<CR>gvt
 vnoremap T :<C-U>vnoremap H h;<CR>:vnoremap L l,<CR>gvT
 
-" -- Camel Case Relief ---------------------------------------------------- {{{2
+" -- Sticky Shift Camel Case Relief --------------------------------------- {{{2
 
 Key 'Downcase last uppercase letter', '<leader>u', 'ni'
 nnoremap <leader>u :s/.*\zs\(\u\)/\L\1/<CR><C-O>
@@ -399,6 +413,7 @@ nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
 " N$      - End of line N-1 lines lower
 
 " What would make more sense:
+
 " N-      - First CHAR N lines higher
 " N^      - First CHAR N-1 lines lower
 " N<CR>   - First CHAR N lines lower
@@ -423,6 +438,7 @@ xnoremap <expr><leader>$ v:count ? "k$" : "$"
 
 nnoremap + <C-A>
 nnoremap - <C-X>
+nnoremap _ :call f#crosshair()<CR>
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
@@ -577,6 +593,9 @@ let g:ycm_use_ultisnips_completer = 0
 let g:ycm_add_preview_to_completeopt = 1
 let g:ycm_autoclose_preview_window_after_completion = 1
 let g:ycm_autoclose_preview_window_after_insertion = 1
+
+let g:ycm_error_symbol = g:sym.gutter_error
+let g:ycm_warning_symbol = g:sym.gutter_warning
 
 let g:ycm_semantic_triggers = {
   \   'c'               : ['->', '.'],

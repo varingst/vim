@@ -320,7 +320,7 @@ elseif g:solarized_termcolors == 256
     let s:blue        = '33'
     let s:cyan        = '37'
     let s:green       = '64'
-    let s:void        = '0'
+    let s:black       = '0'
 else
     let s:vmode       = 'cterm'
     let s:bright      = '* term=bold cterm=bold'
@@ -357,8 +357,6 @@ else
     let s:cyan        = 'DarkCyan'      " 6
     let s:green       = 'DarkGreen'     " 2
     let s:black       = 'Black'         " 0   set as transparent in urxvt
-    let s:void        = 'Black'         " 0
-
 endif
 "}}}
 " Formatting options and null values for passthrough effect "{{{
@@ -459,7 +457,7 @@ exe "let s:bg_magenta   = ' ".s:vmode."bg=".s:magenta."'"
 exe "let s:bg_violet    = ' ".s:vmode."bg=".s:violet ."'"
 exe "let s:bg_blue      = ' ".s:vmode."bg=".s:blue   ."'"
 exe "let s:bg_cyan      = ' ".s:vmode."bg=".s:cyan   ."'"
-exe "let s:bg_void      = ' ".s:vmode."bg=".s:void   ."'"
+exe "let s:bg_black     = ' ".s:vmode."bg=".s:black  ."'"
 
 exe "let s:fg_none      = ' ".s:vmode."fg=".s:none   ."'"
 exe "let s:fg_back      = ' ".s:vmode."fg=".s:back   ."'"
@@ -479,7 +477,7 @@ exe "let s:fg_magenta   = ' ".s:vmode."fg=".s:magenta."'"
 exe "let s:fg_violet    = ' ".s:vmode."fg=".s:violet ."'"
 exe "let s:fg_blue      = ' ".s:vmode."fg=".s:blue   ."'"
 exe "let s:fg_cyan      = ' ".s:vmode."fg=".s:cyan   ."'"
-exe "let s:fg_void      = ' ".s:vmode."fg=".s:void   ."'"
+exe "let s:fg_black     = ' ".s:vmode."fg=".s:black  ."'"
 
 exe "let s:fmt_none     = ' ".s:vmode."=NONE".          " term=NONE".    "'"
 exe "let s:fmt_bold     = ' ".s:vmode."=NONE".s:b.      " term=NONE".s:b."'"
@@ -615,8 +613,8 @@ elseif  (g:solarized_visibility ==# "low")
     exe "hi! SpecialKey" .s:fmt_bold   .s:fg_base02 .s:bg_none
     exe "hi! NonText"    .s:fmt_bold   .s:fg_base02 .s:bg_none
 else
-    exe "hi! SpecialKey" .s:fmt_bold   .s:fg_base00 .s:bg_base02
-    exe "hi! NonText"    .s:fmt_bold   .s:fg_base00 .s:bg_none
+    exe "hi! SpecialKey" .s:fmt_bold   .s:fg_base00 .s:bg_none
+    exe "hi! NonText"    .s:fmt_revr   .s:fg_red    .s:bg_none
 endif
 exe "hi! StatusLine"     .s:fmt_none   .s:fg_base1  .s:bg_base02 .s:fmt_revbb
 exe "hi! StatusLineNC"   .s:fmt_none   .s:fg_base00 .s:bg_base02 .s:fmt_revbb
@@ -624,11 +622,12 @@ exe "hi! Visual"         .s:fmt_none   .s:fg_base01 .s:bg_base03 .s:fmt_revbb
 exe "hi! Directory"      .s:fmt_none   .s:fg_blue   .s:bg_none
 exe "hi! ErrorMsg"       .s:fmt_revr   .s:fg_red    .s:bg_none
 exe "hi! IncSearch"      .s:fmt_stnd   .s:fg_orange .s:bg_none
-exe "hi! Search"         .s:fmt_revr   .s:fg_yellow .s:bg_none
+exe "hi! Search"         .s:fmt_revr   .s:fg_none   .s:bg_none
 exe "hi! MoreMsg"        .s:fmt_none   .s:fg_blue   .s:bg_none
 exe "hi! ModeMsg"        .s:fmt_none   .s:fg_blue   .s:bg_none
 exe "hi! LineNr"         .s:fmt_none   .s:fg_base01 .s:bg_none
 exe "hi! Question"       .s:fmt_bold   .s:fg_cyan   .s:bg_none
+exe "hi! QuickFixLine"   .s:fmt_revr   .s:fg_none   .s:bg_none
 if ( has("gui_running") || &t_Co > 8 )
     exe "hi! VertSplit"  .s:fmt_none   .s:fg_base00 .s:bg_base00
 else
@@ -638,7 +637,7 @@ exe "hi! Title"          .s:fmt_bold   .s:fg_orange .s:bg_none
 exe "hi! VisualNOS"      .s:fmt_stnd   .s:fg_none   .s:bg_base02 .s:fmt_revbb
 exe "hi! WarningMsg"     .s:fmt_bold   .s:fg_red    .s:bg_none
 exe "hi! WildMenu"       .s:fmt_none   .s:fg_base2  .s:bg_base02 .s:fmt_revbb
-exe "hi! Folded"         .s:fmt_undb   .s:fg_base0  .s:bg_base02  .s:sp_base03
+exe "hi! Folded"         .s:fmt_bold   .s:fg_base0  .s:bg_base02  .s:sp_base03
 exe "hi! FoldColumn"     .s:fmt_none   .s:fg_base0  .s:bg_base02
 if      (g:solarized_diffmode ==# "high")
 exe "hi! DiffAdd"        .s:fmt_revr   .s:fg_green  .s:bg_none
@@ -663,6 +662,7 @@ exe "hi! DiffDelete"     .s:fmt_none   .s:fg_red    .s:bg_base02
 exe "hi! DiffText"       .s:fmt_none   .s:fg_blue   .s:bg_base02 .s:sp_blue
     endif
 endif
+exe "hi! EndOfBuffer"    .s:fmt_none   .s:fg_black  .s:bg_none
 exe "hi! SignColumn"     .s:fmt_none   .s:fg_none   .s:bg_none
 exe "hi! Conceal"        .s:fmt_none   .s:fg_blue   .s:bg_none
 exe "hi! SpellBad"       .s:fmt_curl   .s:fg_none   .s:bg_none    .s:sp_red
