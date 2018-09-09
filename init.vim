@@ -231,20 +231,11 @@ augroup vimrc_autocmd
   au BufWinLeave *.* mkview
   au BufWinEnter *.* silent! loadview
 
-  " Move quickfix window to the bottom
-  au FileType qf wincmd J
+  " Move quickfix window and fugitive preview to the bottom
+  au FileType qf,gitcommit wincmd J
 
   " Dont show tabs in vim help
-  au FileType help setlocal nolist
-
-  " Move fugitive preview to the bottom
-  au FileType gitcommit wincmd J
-
-  " Number in taglist window
-  "au BufWinEnter __Tag_List__ setlocal number
-
-  " Override matlab .m association
-  au BufRead,BufNewFile *.m setl filetype=objc
+  au FileType help setlocal nolist | if winwidth('.') > 140 | wincmd L | endif
 
   au BufRead,BufNewFile .eslintrc,*.tern-config set filetype=json
 
@@ -287,15 +278,15 @@ nnoremap <C-A> <nop>
 
 nnoremap <C-B> :call keys#list()<CR>
 
-" search highlight toggle
-nnoremap <leader>/ :set hlsearch!<CR>
-
 " <C-W><C-U> compliment
 inoremap <C-L> <C-O>d$
 
-nnoremap <leader><space> :set relativenumber!<CR>
-xnoremap <leader><space> :<C-U>set relativenumber!<CR>
+nnoremap <expr><CR> v:count ? "G" : "<CR>"
+xnoremap <expr><CR> v:count ? "G" : "<CR>"
+
+nnoremap <space><CR> :set relativenumber!<CR>
 nnoremap <leader>v :set relativenumber<CR>V
+nnoremap <leader>/ :set hlsearch!<CR>
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
@@ -438,7 +429,7 @@ xnoremap <expr><leader>$ v:count ? "k$" : "$"
 
 nnoremap + <C-A>
 nnoremap - <C-X>
-nnoremap _ :call f#crosshair()<CR>
+nnoremap _ :<C-U>call f#crosshair(v:count1)<CR>
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
@@ -559,6 +550,7 @@ let g:ale_sign_column_always = 1
 let g:ale_echo_msg_format = '[%linter%] %code%: %s'
 
 let g:ale_linters = {
+      \ 'python': ['flake8'],
       \ 'sh': ['shellcheck'],
       \ 'vim': [],
       \ }
@@ -929,6 +921,7 @@ let g:LanguageClient_serverCommands = {
       \ }
 
 let g:LanguageClient_autoStop = 1
+let g:LanguageClient_autoStart = 0
 
 let g:LanguageClient_rootMarkers = {
   \ 'ruby': ['Gemfile']

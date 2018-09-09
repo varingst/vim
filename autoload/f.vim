@@ -265,8 +265,8 @@ fun! f#ClearBuffers() " {{{2
 endfun
 
 " == Cycle Cursorlines ==================================================== {{{1
-fun! f#crosshair()
-  let w:cross = (get(w:, 'cross', 0) + 1) % 4
+fun! f#crosshair(n)
+  let w:cross = (get(w:, 'cross', 0) + a:n) % 4
   exe ':set '.(and(w:cross, 1) ? '' : 'no').'cursorcolumn'
   exe ':set '.(and(w:cross, 2) ? '' : 'no').'cursorline'
 endfun

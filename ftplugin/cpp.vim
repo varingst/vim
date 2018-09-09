@@ -1,2 +1,2 @@
 
-call ShowTrailingWhitespace#SetLocalExtraPattern('\(\t\)\@!')
+" call ShowTrailingWhitespace#SetLocalExtraPattern('\(\t\)\@!')
