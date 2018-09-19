@@ -11,6 +11,3 @@ if exists('loaded_matchit')
       \ ':\%(^\|[^.]\)\@<=\<end\>'
   endif
 endif
-
-nnoremap <leader>ri :call ri#OpenSearchPrompt(1)<CR>
-nnoremap <leader>rw :call ri#LookupNameUnderCursor()<CR>

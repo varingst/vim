@@ -60,9 +60,6 @@ PlugFT {
 
 " ruby, but not working 'hackhowtofaq/vim-solargraph',
 
-" Is this required with YCM ?
-" Plug 'ternjs/tern_for_vim'
-
 " testing for neovim
 Plug 'autozimu/LanguageClient-neovim', {
       \ 'branch': 'next',
@@ -132,7 +129,7 @@ let g:sym = {
       \ 'line':                      '行',
       \ 'error':                     '誤',
       \ 'warning':                   '戒',
-      \ 'whitespace_trailing':       '¡',
+      \ 'whitespace_trailing':       '§',
       \ 'whitespace_tab':            '»',
       \ 'whitespace_tab_pad':        '\ ',
       \ 'whitespace_nobreak':        '¬',
@@ -198,7 +195,6 @@ set tabstop=2                " set tab character to 2 characters
 set shiftwidth=2             " ident width for autoindent
 set expandtab                " turn tabs into whitespace
 set foldmethod=marker        " type of folding
-set foldtext=f#FoldText()
 set backspace=2              " make backspace work like most other apps
 set list                     " replace whitespace with listchars
 exe ':set listchars='.join([
@@ -213,7 +209,6 @@ set concealcursor=nc         " conceal in normal and commandmode
 
 set textwidth=80
 set iskeyword=@,48-57,_,192-255,-
-" set colorcolumn=+1
 set viewoptions="cursor,folds"
 
 " limit max number of columns to search for syntax items
@@ -223,6 +218,8 @@ set ttyfast
 " don't redraw while macro is executed
 set lazyredraw
 
+let g:netrw_browsex_viewer = 'xdg-open'
+
 " == AUTOCOMMANDS ========================================================= {{{1
 
 augroup vimrc_autocmd
@@ -231,10 +228,12 @@ augroup vimrc_autocmd
   au BufWinLeave *.* mkview
   au BufWinEnter *.* silent! loadview
 
-  " Move quickfix window and fugitive preview to the bottom
-  au FileType qf,gitcommit wincmd J
+  " Move fugitive preview to the bottom
+  au FileType gitcommit wincmd J
 
-  " Dont show tabs in vim help
+  au FileType qf wincmd J
+
+  " Dont show tabs in vim help, vsplit if space available
   au FileType help setlocal nolist | if winwidth('.') > 140 | wincmd L | endif
 
   au BufRead,BufNewFile .eslintrc,*.tern-config set filetype=json
@@ -243,20 +242,8 @@ augroup vimrc_autocmd
 
   au InsertEnter * set norelativenumber
 
-  au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim call f#VimRcExtra()
+  au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim,~/.vim/init.vim call f#VimRcExtra()
 augroup END
-
-" == HIGHLIGHTING ========================================================= {{{1
-
-" folding highlighting
-" highlight Folded ctermfg=241 ctermbg=234 cterm=bold
-" tab and trailing spaces
-" highlight SpecialKey ctermbg=none ctermfg=235
-" highlight ColorColumn ctermfg=3 ctermbg=4 term=none
-
-" highlight ShowTrailingWhitespace ctermbg=Red ctermfg=Black
-" highlight EndOfBuffer ctermfg=black
-" highlight SignColumn ctermbg=None
 
 " == KEY MAPPING ========================================================== {{{1
 
@@ -281,12 +268,9 @@ nnoremap <C-B> :call keys#list()<CR>
 " <C-W><C-U> compliment
 inoremap <C-L> <C-O>d$
 
-nnoremap <expr><CR> v:count ? "G" : "<CR>"
-xnoremap <expr><CR> v:count ? "G" : "<CR>"
-
-nnoremap <space><CR> :set relativenumber!<CR>
-nnoremap <leader>v :set relativenumber<CR>V
-nnoremap <leader>/ :set hlsearch!<CR>
+" jump to closest line matching <count>$
+nnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
+xnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
@@ -310,13 +294,12 @@ inoremap _+ >=
 inoremap +_ <=
 
 iabbr ƒ function
-
 " -- Swap quotes ---------------------------------------------------------- {{{2
 
-inoremap <leader>' <ESC>:silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
-nnoremap <leader>' :silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
-inoremap <leader>" <ESC>:silent s/[^\\]\zs"/'/ge<CR>
-nnoremap <leader>" :silent s/[^\\]\zs"/'/ge<CR>
+inoremap <leader>' <ESC>:silent s/[^\\]\zs"/'/ge<CR>
+nnoremap <leader>' :silent s/[^\\]\zs"/'/ge<CR>
+inoremap <leader>" <ESC>:silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
+nnoremap <leader>" :silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
 
 " -- Yank visual selection to register ------------------------------------ {{{2
 
@@ -341,12 +324,18 @@ nnoremap <C-R><C-O> o<C-R>oa
 inoremap <C-R><C-O> <CR><C-R>o
 
 " -- Command mode mappings ------------------------------------------------ {{{2
+" requires urxvt configuration, see ~/.Xresources
+map  <ESC>[; <C-;>
+map! <ESC>[; <C-;>
+nnoremap <C-;> :
 
 cmap w!! w !sudo tee % > /dev/null
 cmap e!! silent Git checkout -- % <bar> redraw!
 cnoremap date r! date "+\%Y-\%m-\%d"
 cnoremap <C-k> <up>
 cnoremap <C-j> <down>
+cnoremap <C-V> vsplit
+cnoremap <C-X> split
 
 " -- Normal jkJK ---------------------------------------------------------- {{{2
 
@@ -355,7 +344,8 @@ nnoremap j gj
 nnoremap k gk
 " navigate folds with J/K
 nnoremap <expr><silent>J foldlevel('.') && foldclosed('.') != -1 ? "zo" : "zj"
-nnoremap <expr><silent>K foldlevel('.') && (foldclosed('.') == -1 <BAR><BAR> foldlevel('.') > 1) ? "zc" : "gk"
+nnoremap <expr><silent>K foldlevel('.') &&
+      \ (foldclosed('.') == -1 <BAR><BAR> foldlevel('.') > 1) ? "zc" : "gk"
 " join <count> lines
 nnoremap <leader>j J
 " lookup keyword under cursor with 'keywordprg'
@@ -415,10 +405,10 @@ nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
 
 " Even better:
 
-nnoremap <expr>^         v:count ? "<CR>" : "^"
-nnoremap <expr><leader>^ v:count ? "-"    : "^"
-xnoremap <expr>^         v:count ? "<CR>" : "^"
-xnoremap <expr><leader>^ v:count ? "-"    : "^"
+nnoremap <expr>^         v:count ? "+" : "^"
+nnoremap <expr><leader>^ v:count ? "-" : "^"
+xnoremap <expr>^         v:count ? "+" : "^"
+xnoremap <expr><leader>^ v:count ? "-" : "^"
 
 nnoremap <expr>$         v:count ? "j$" : "$"
 nnoremap <expr><leader>$ v:count ? "k$" : "$"
@@ -674,16 +664,14 @@ let g:airline_mode_map = {
   \ '' : '選',
   \}
 
-if !exists('g:airline_symbols')
-	let g:airline_symbols = {}
-endif
-
-let g:airline_symbols.branch    = '枝'
-let g:airline_symbols.paste     = '貼'
-let g:airline_symbols.linenr    = ''
-let g:airline_symbols.maxlinenr = g:sym.line
-let g:airline_symbols.notexists = '無'
-let g:airline_symbols.readonly  = '読'
+let g:airline_symbols = extend(get(g:, 'airline_symbols', {}), {
+      \ 'branch':    '枝',
+      \ 'paste':     '貼',
+      \ 'linenr':    '',
+      \ 'maxlinenr': g:sym.line,
+      \ 'notexists': '無',
+      \ 'readonly':  '読'
+      \})
 
 " -- TABLINE -------------------------------------------------------------- {{{3
 
@@ -739,10 +727,14 @@ let g:airline#extensions#hunks#enabled = 0
 
 let g:airline#extensions#whitespace#enabled = 1
 let g:airline#extensions#whitespace#symbol = ''
-let g:airline#extensions#whitespace#checks = [ 'indent', 'trailing', 'mixed-indent-file' ]
-let g:airline#extensions#whitespace#trailing_format = g:sym.whitespace_trailing.'%s'.g:sym.line
-let g:airline#extensions#whitespace#mixed_indent_format = g:sym.whitespace_tab.'%s'.g:sym.line
-let g:airline#extensions#whitespace#mixed_indent_file_format = g:sym.whitespace_tab.g:sym.whitespace_trailing.'%s'.g:sym.line
+let g:airline#extensions#whitespace#checks =
+      \ [ 'indent', 'trailing', 'mixed-indent-file' ]
+let g:airline#extensions#whitespace#trailing_format =
+      \ g:sym.whitespace_trailing.'%s'.g:sym.line
+let g:airline#extensions#whitespace#mixed_indent_format =
+      \ g:sym.whitespace_tab.'%s'.g:sym.line
+let g:airline#extensions#whitespace#mixed_indent_file_format =
+      \ g:sym.whitespace_tab.g:sym.whitespace_trailing.'%s'.g:sym.line
 
 " -- TAGBAR --------------------------------------------------------------- {{{2
 
@@ -752,11 +744,6 @@ let g:tagbar_iconchars = [ '+', '-' ]
 
 " jsx highlight
 let g:vim_jsx_pretty_enable_jsx_highlight = 1
-
-" -- ECLIM ---------------------------------------------------------------- {{{2
-
-" makes eclim play nice with YCM
-let g:EclimCompletionMethod = 'omnifunc'
 
 " -- LATEX ---------------------------------------------------------------- {{{2
 let g:tex_flavor='latex'
@@ -805,10 +792,12 @@ let g:table_mode_corner = '|'
 " -- ACK ------------------------------------------------------------------ {{{2
 if executable('ag')
   let g:ackprg = 'ag --vimgrep'
-endif
 
-Key ':Ack (word under cursor)', '<leader>a/A'
-nnoremap <leader>a :Ack
+  Key ':Ack (word under cursor)', '<leader>a/A'
+  nnoremap <leader>a :Ack
+else
+  nnoremap <leader>a :echoerr "Ack executable not found"<CR>
+endif
 
 " -- FZF ------------------------------------------------------------------ {{{2
 
@@ -915,19 +904,23 @@ Key '(abolish) Change to snake/camel/mixed/upper case', 'cr(s/c/m/u)'
 " -- LanguageClient PROTO ------------------------------------------------- {{{2
 
 " this thing is .. messy
-call add(g:polyglot_disabled, 'ruby')
-let g:LanguageClient_serverCommands = {
-      \ 'ruby': ['solargraph', 'stdio']
-      \ }
+if v:false
+  call add(g:polyglot_disabled, 'ruby')
+  let g:LanguageClient_serverCommands = {
+        \ 'ruby': ['solargraph', 'stdio']
+        \ }
 
-let g:LanguageClient_autoStop = 1
-let g:LanguageClient_autoStart = 0
+  let g:LanguageClient_autoStop = 1
+  let g:LanguageClient_autoStart = 0
 
-let g:LanguageClient_rootMarkers = {
-  \ 'ruby': ['Gemfile']
-  \}
+  let g:LanguageClient_rootMarkers = {
+    \ 'ruby': ['Gemfile']
+    \}
 
-augroup ruby_langserver
-  autocmd!
-  autocmd FileType ruby setlocal omnifunc=LanguageClient#complete
-augroup END
+  augroup ruby_langserver
+    autocmd!
+    autocmd FileType ruby setlocal omnifunc=LanguageClient#complete
+  augroup END
+endif
+
+" vim: foldmethod=marker

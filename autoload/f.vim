@@ -203,35 +203,6 @@ fun! s:IsAlreadyComment(line)
   return synIDattr(synID(line('.'), strwidth(a:line), 1), 'name') =~? 'comment'
 endfun
 
-" == For opening files in other things than Vim =========================== {{{1
-
-" (xdg-)open wrapper
-if executable('open')
-  let s:open = 'open'
-elseif executable('xdg-open')
-  let s:open = 'xdg-open'
-endif
-
-fun! f#Open(...)
-  let path = a:0 ? a:1 : s:FileUnderCursor()
-  if !strlen(path) | echoerr 'Nothing to open, empty path' | return | endif
-  silent exec '!'.(s:open . " '" . expand(path) . "'").' &'
-endfun
-
-
-fun! s:FileUnderCursor()
-  let file = expand('<cWORD>')
-  if filereadable(file)
-    return file
-  endif
-  let file = expand(getline('.'))
-  if filereadable(file)
-    return file
-  endif
-  echoerr 'could not find file under cursor'
-endfun
-
-
 " == Conceal Toggle ======================================================= {{{1
 
 fun! f#ConcealToggle()
@@ -447,10 +418,12 @@ fun! f#lgrep_revision_history(file, ...)
     endif
     unlet! s:gitrev_tmpdir
   endif
+
   if !isdirectory('.git')
     echoerr "$PWD is not a git root"
     return
   endif
+
   try
     let matches = systemlist("git rev-list --all -- ".a:file." | xargs git grep --line-number ".join(a:000, ' '))
   catch
@@ -465,8 +438,8 @@ fun! f#lgrep_revision_history(file, ...)
     endif
   endfor
 
-  if len(matches) > s:max_matches
-    echoerr printf("got %d matches, specified max is %d", len(matches), s:max_matches)
+  if len(filtered) > s:max_matches
+    echoerr printf("got %d matches, specified max is %d", len(filtered), s:max_matches)
     finish
   endif
 
@@ -490,4 +463,28 @@ fun! f#lgrep_revision_history(file, ...)
 
   call setloclist(0, [], 'r', llist)
   lopen
+endfun
+
+" -- skip -- {{{2
+function! s:G(line, mode)
+  return a:mode == 'n' ? "\<ESC>".a:line."G" : "\<ESC>".a:mode.a:line."G"
+endfun
+
+function! f#G(n)
+  let i = 1
+  let l = line('.')
+  let last = line('$')
+  while v:true
+    let below = l + i
+    let above = l - i
+    if above < 1 && below > last
+      return ":\<C-U>echoerr 'no line number match: ".a:n."$'\<CR>"
+    elseif string(below) =~# a:n.'$'
+      return s:G(below, mode())
+    elseif string(above) =~# a:n.'$'
+      return s:G(above, mode())
+    else
+      let i += 1
+    endif
+  endwhile
 endfun
