@@ -5,6 +5,7 @@
 fun! f#VimRcExtra()
   command! Functions :vsplit ~/.vim/autoload/f.vim
   command! Section :call f#VimRCHeadline()
+  command! Source :source ~/.vimrc<BAR>:source ~/.vim/autoload/f.vim
 endfunction
 
 " == Variations =========================================================== {{{1
@@ -59,8 +60,9 @@ fun! f#LocListToggle() " {{{2
   let buflist = s:GetBufferList()
 
   " find if open by positive winnr
-  for bufnum in map(filter(split(buflist, '\n'), 'v:val =~# "Location List"'),
-                 \ 'str2nr(matchstr(v:val, "\\d\\+"))')
+  for bufnum in map(filter(split(buflist, '\n'),
+                 \         'v:val =~# "Location List"'),
+                 \  'str2nr(matchstr(v:val, "\\d\\+"))')
     if bufwinnr(bufnum) != -1
       lclose
       return
@@ -99,71 +101,6 @@ fun! f#LPrev() " {{{2
   endtry
 endfun
 
-
-" == Vim Folding ========================================================== {{{1
-
-" TODO: this is old, ugly, and buggy. Clean or Remove
-
-fun! NextSimilarIndent(dir) " {{{2
-  let p = getpos('.')
-  let ind = indent(p[1])
-  let i = (a:dir ? p[1] + 1 : p[1] - 1)
-  while ((indent(i) + 1) ? (indent(i) != ind) : 0)
-    let i = (a:dir ? i + 1 : i - 1)
-  endwhile
-  if indent(i) == ind | call setpos('.', [ p[0], i, p[2], p[3] ]) | endif
-endfun
-
-" Helper function for FoldText()
-fun! s:GetFirstNonComment(start) " {{{2
-  let line = ''
-  let i = a:start
-  let col = 1
-  while match(synIDattr(synID(i, col, 1), 'name'), 'Comment$') != -1
-    let i = nextnonblank(i+1)
-  endwhile
-  if !i | return 'NO NONBLANK LINE: EMPTY FOLD?' | endif
-  let max = strlen(getline(i))
-  while col <= max && match(synIDattr(synID(i, col, 1), 'name'), 'Comment$') == -1
-    let col += 1
-  endwhile
-  return substitute(getline(i)[0:col-2], '^\s*\(\S*\)', '\1', '')
-endfun
-
-" {{{2
-" If line contains nothing but a fold marker, use
-" the next line of non-commented text as fold text
-fun! f#FoldText() " {{{
-  let ft = split(foldtext(), ':')
-  " this line in better, but does not work ?!
-  "let ft[1] = substitite(ft[1], ' \s*','','')
-  let ft[1] = ft[1][1:]
-  let ft[0] = ' '.substitute(ft[0], '^\D*','','').' '
-  let txt = ''
-  if match(ft[1], '\S') == -1
-    let txt .= s:GetFirstNonComment(v:foldstart)
-  else
-    let txt .= join(ft[1:],':')
-  endif
-  let line = repeat('  ', v:foldlevel - 1).txt.' '
-  let offset = &columns - ( 4 + len(line) + len(ft[0]))
-  if offset > 0
-    return line.repeat('-', offset).ft[0]
-  else
-    return line.ft[0]
-  endif
-endfun " }}}
-
-fun! s:GetCommentMarker()
-  if has_key(g:NERDDelimiterMap, &filetype)
-    return g:NERDDelimiterMap[&filetype]
-  elseif &filetype ==# 'vim'
-    return { 'left': '"', 'right': '' }
-  else
-    return 0
-  end
-endfun
-
 " == Set/Remove Fold Markers ============================================== {{{1
 
 fun! f#SetFoldMarker(level) " {{{2
@@ -199,7 +136,17 @@ fun! f#SetFoldMarker(level) " {{{2
   call setline('.', line)
 endfun
 
-fun! s:IsAlreadyComment(line)
+fun! s:GetCommentMarker() " {{{2
+  if has_key(g:NERDDelimiterMap, &filetype)
+    return g:NERDDelimiterMap[&filetype]
+  elseif &filetype ==# 'vim'
+    return { 'left': '"', 'right': '' }
+  else
+    return 0
+  end
+endfun
+
+fun! s:IsAlreadyComment(line) " {{{2
   return synIDattr(synID(line('.'), strwidth(a:line), 1), 'name') =~? 'comment'
 endfun
 
@@ -227,7 +174,7 @@ endfun
 " == Close all open non-dirty buffers ===================================== {{{1
 
 let s:bufarg = { 'listed': 1 }
-fun! f#ClearBuffers() " {{{2
+fun! f#CloseBuffers() " {{{2
   for buf in getbufinfo(s:bufarg)
     if !buf.changed && empty(buf.windows)
       exe 'bdelete '.buf.bufnr
@@ -291,92 +238,101 @@ fun! s:AddPlugs(dict) " {{{2
   endfor
 endfun
 
-" == MISC ================================================================= {{{1
+" == G to closest line number n$ ========================================== {{{1
 
-
-" -- Create Markdown Table of Contents ------------------------------------ {{{2
-" PROTOTYPE: move somewhere else
-
-let s:ignore = ['define', 'pragma']
-fun! f#CreateMarkdownToc(...) " {{{3
-  let toc = {
-        \ 'header': a:0 ? a:1 : 'Table of contents',
-        \ 'lines': [],
-        \ 'open': 0,
-        \ 'close': 0,
-        \ }
-  let in_embedded = 0
-  let linenr = 0
-  while linenr < line('$')
-    let linenr += 1
-    let line = getline(linenr)
-
-    if line =~# '^```'
-      let in_embedded = !in_embedded
+function! f#G(n) " {{{2
+  let i = 1
+  let l = line('.')
+  let last = line('$')
+  while v:true
+    let below = l + i
+    let above = l - i
+    if above < 1 && below > last
+      return ":\<C-U>echoerr 'no line number match: ".a:n."$'\<CR>"
+    elseif string(below) =~# a:n.'$'
+      return s:G(below, mode())
+    elseif string(above) =~# a:n.'$'
+      return s:G(above, mode())
+    else
+      let i += 1
     endif
-
-    " skip if not a header
-    if line !~# '^#' || in_embedded
-      continue
-    " mark start of table of contents
-    elseif line =~ '^# *'.toc['header']
-      let toc['open'] = linenr
-      continue
-    end
-    " mark end of toc, by the line before the next heading
-    if !toc['close'] && toc['open'] && line =~# '^#'
-      let toc['close'] = linenr - 1
-    endif
-
-    " skip our ignored words
-    let skip = 0
-    for word in s:ignore
-      if line =~ '^# *'.word
-        let skip = 1
-        break
-      endif
-    endfor
-    if skip
-      continue
-    endif
-
-    " now lets get to the parsing
-    let title = substitute(line, '^#* *', '', '')
-    let href = tolower(substitute(title, ' ', '-', 'g'))
-    let pad = repeat('  ', count(line, '#') - 1)
-    call add(toc['lines'], pad . '- [' .title. '](#' .href. ')')
   endwhile
-
-  return toc
 endfun
 
-fun! f#InsertMarkdownToc(toc) " {{{3
-  " remove existing TOC
-  if a:toc['open'] && a:toc['close']
-    silent! exe ':'.a:toc['open'].','.a:toc['close'].'d'
-  " clear line to mark where TOC is to be inserted
-  elseif a:toc['open']
-    silent! exe ':'.a:toc['open'].'d'
-  " use line 3 as default if nothing set
-  else
-    let a:toc['open'] = 3
+function! s:G(line, mode) " {{{2
+  return a:mode == 'n' ? "\<ESC>".a:line."G" : "\<ESC>".a:mode.a:line."G"
+endfun
+
+" == Copy {motion} to register o, paste it on next line =================== {{{1
+
+fun! f#copyO(type, ...) " {{{2
+  let sel_save = &selection
+  let selection = "inclusive"
+
+  let reg_save = @@
+  if a:0 "invoked from Visual mode, use '< and '> marks
+    return
+  elseif a:type == 'line'
+    echoerr "linewise not supported"
+  elseif a:type == 'block'
+    echoerr "blockwise not supported"
+  else " a:type == char
+    silent exe "normal! `[v`]\"oyo\<C-R>o"
+    startinsert!
   endif
 
-  " add empty line as spacing before first section
-  call add(a:toc['lines'], '')
-  " add heading
-  call insert(a:toc['lines'], '## '.a:toc['header'])
-
-  call append(a:toc['open'] - 1, a:toc['lines'])
+  let &selection = sel_save
+  let @@ = reg_save
 endfun
 
-fun! f#ListToc() " {{{3
-  let s:toc = f#CreateMarkdownToc()
-  for line in s:toc['lines']
-    echo line
+" == Toggle Profiling ===================================================== {{{1
+
+fun! f#Profile(file) abort " {{{2
+  if has_key(s:, 'profiling')
+    profile pause
+    echo "quit and read ".s:profiling
+  else
+    let s:profiling = a:file
+    exe ":profile start ".a:file
+    profile func *
+    profile file *
+  endif
+endfun
+
+" == Write loaded scripts to file and open in split ======================= {{{1
+
+fun! f#ScriptNames(file) abort " {{{2
+  call writefile(split(execute('scriptnames'), "\n"),
+               \ expand(a:file))
+  exe printf("%s %s",
+           \ winwidth('.') > 140 ? 'vsplit' : 'split',
+           \ a:file)
+endfun
+
+" == Return Syntax Stack for what's under the cursor ====================== {{{1
+
+fun! f#SynStack() abort " {{{2
+  map(synstack(line('.'), col('.')),
+    \ 'synIDattr(v:val, "name")')
+endfun
+
+" == Projectionist expander =============================================== {{{1
+
+fun! f#projectionist(conf)
+  for [root, config] in items(a:conf)
+    for [filematch, _] in items(config)
+      if filematch =~# '|'
+        let c = remove(config, filematch)
+        for fm in split(filematch, '|')
+          let config[fm] = c
+        endfor
+      endif
+    endfor
   endfor
+  return a:conf
 endfun
 
+" == PROTOTYPES =========================================================== {{{1
 
 " -- Select Window -------------------------------------------------------- {{{2
 fun! f#SelectWindow()
@@ -394,20 +350,6 @@ fun! f#SelectWindow()
   call win_gotoid(win_getid(str2nr(nr2char(inp))))
 endfun
 
-" -- Projectionist expander ---------------------------------------------- {{{2
-fun! f#projectionist(conf)
-  for [root, config] in items(a:conf)
-    for [filematch, _] in items(config)
-      if filematch =~# '|'
-        let c = remove(config, filematch)
-        for fm in split(filematch, '|')
-          let config[fm] = c
-        endfor
-      endif
-    endfor
-  endfor
-  return a:conf
-endfun
 
 " -- Grep revision history for file --------------------------------------_{{{2
 let s:max_matches = 50
@@ -425,7 +367,9 @@ fun! f#lgrep_revision_history(file, ...)
   endif
 
   try
-    let matches = systemlist("git rev-list --all -- ".a:file." | xargs git grep --line-number ".join(a:000, ' '))
+    let matches = systemlist(
+          \ "git rev-list --all -- ".a:file.
+          \ " | xargs git grep --line-number ".join(a:000, ' '))
   catch
     return
   endtry
@@ -439,7 +383,8 @@ fun! f#lgrep_revision_history(file, ...)
   endfor
 
   if len(filtered) > s:max_matches
-    echoerr printf("got %d matches, specified max is %d", len(filtered), s:max_matches)
+    echoerr printf("got %d matches, specified max is %d",
+                  \ len(filtered), s:max_matches)
     finish
   endif
 
@@ -465,26 +410,3 @@ fun! f#lgrep_revision_history(file, ...)
   lopen
 endfun
 
-" -- skip -- {{{2
-function! s:G(line, mode)
-  return a:mode == 'n' ? "\<ESC>".a:line."G" : "\<ESC>".a:mode.a:line."G"
-endfun
-
-function! f#G(n)
-  let i = 1
-  let l = line('.')
-  let last = line('$')
-  while v:true
-    let below = l + i
-    let above = l - i
-    if above < 1 && below > last
-      return ":\<C-U>echoerr 'no line number match: ".a:n."$'\<CR>"
-    elseif string(below) =~# a:n.'$'
-      return s:G(below, mode())
-    elseif string(above) =~# a:n.'$'
-      return s:G(above, mode())
-    else
-      let i += 1
-    endif
-  endwhile
-endfun

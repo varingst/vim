@@ -1,5 +1,4 @@
 " == PLUG ================================================================= {{{1
-
 call f#plug_begin()
 
 " -- Programmer QoL ------------------------------------------------------- {{{2
@@ -7,34 +6,27 @@ call f#plug_begin()
 Plug 'Valloric/YouCompleteMe'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
 
-Plug 'w0rp/ale'                   " async syntax checker
-Plug 'scrooloose/nerdcommenter'   " batch commenting +++
+Plug 'w0rp/ale'                    " async syntax checker
+Plug 'scrooloose/nerdcommenter'    " batch commenting +++
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
 Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 
-Plug 'sheerun/vim-polyglot'       " language pack
-
 " Code search, nav, vim-bling
-Plug 'mileszs/ack.vim'            " code grepper (ag/ack) wapper
+Plug 'mileszs/ack.vim'             " code grepper (ag/ack) wapper
 Plug 'majutsushi/tagbar', { 'on' : 'TagbarToggle' }
-Plug 'junegunn/fzf.vim'           " fuzzy file, buffer, everything nav
-Plug 'vim-airline/vim-airline'    " statusline
+Plug 'junegunn/fzf.vim'            " fuzzy file, buffer, everything nav
+Plug 'vim-airline/vim-airline'     " statusline
 Plug 'vim-airline/vim-airline-themes'
-Plug 'KabbAmine/zeavim.vim'
+Plug 'KabbAmine/zeavim.vim'        " doc lookup
 Plug 'airblade/vim-gitgutter'
-
-" Trailing whitespace, formatting, et al
-" Plug 'vim-scripts/ingo-library'
-" Plug 'vim-scripts/ShowTrailingWhitespace'
-" Plug 'vim-scripts/CountJump'
-" Plug 'vim-scripts/JumpToTrailingWhitespace'
-" Plug 'vim-scripts/DeleteTrailingWhitespace'
 Plug 'vim-scripts/camelcasemotion' " camelcase text objects
 Plug 'junegunn/vim-easy-align'
 
-" -- Programming languages ------------------------------------------------ {{{2
+" -- Programming Language Extras ------------------------------------------ {{{2
+"
+Plug 'sheerun/vim-polyglot'        " language pack
 
 PlugFT {
     \ 'ruby': [
@@ -47,12 +39,14 @@ PlugFT {
       \ 'alexbyk/vim-ultisnips-react',
       \ 'moll/vim-node'
     \ ],
+    \ 'haxe': [
+      \ 'jdonaldson/vaxe'
+    \ ],
     \ 'ejs': [
       \ 'nikvdp/ejs-syntax'
     \ ],
     \ 'vim': [
       \ 'tomtom/spec_vim',
-      \ 'junegunn/vader.vim',
       \ 'h1mesuke/vim-unittest',
       \ 'kana/vim-vspec'
     \ ]
@@ -66,6 +60,9 @@ Plug 'autozimu/LanguageClient-neovim', {
       \ }
 " needs to run: 'bash install.sh',
 
+Plug 'junegunn/vader.vim'
+
+" Plug 'vim-ruby/vim-ruby'
 
 " -- Tim Pope obviously --------------------------------------------------- {{{2
 
@@ -76,8 +73,8 @@ Plug 'tpope/vim-endwise'          " autoadd closing symbols (end/endif/endfun)
 Plug 'tpope/vim-dispatch'         " Run builds and test suites
 Plug 'tpope/vim-repeat'           " make '.' handle plugins nicer
 Plug 'tpope/vim-abolish'          " Smarter substitution ++
-Plug 'tpope/vim-markdown', { 'for': 'markdown' }
-Plug 'tpope/vim-scriptease', { 'for': 'vim' }
+Plug 'tpope/vim-markdown'
+Plug 'tpope/vim-scriptease'
 
 " Ruby snaxx
 Plug 'tpope/vim-bundler'
@@ -91,11 +88,6 @@ Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
 
 Plug 'powerman/vim-plugin-AnsiEsc' " ANSI color coding
 Plug 'othree/html5-syntax.vim'     " handles HTML5 syntax highlighting
-
-" markdown
-" Plug 'dhruvasagar/vim-table-mode'
-" Plug 'godlygeek/tabular'
-" Plug 'chmp/mdnav'
 
 " Todo/Project
 Plug 'vim-scripts/SyntaxRange'
@@ -129,6 +121,24 @@ let g:sym = {
       \ 'line':                      '行',
       \ 'error':                     '誤',
       \ 'warning':                   '戒',
+      \ 'nothing':                   '無',
+      \ 'correct':                   '正',
+      \ 'incorrect':                 '歪',
+      \ 'normal':                    '常',
+      \ 'insert':                    '挿',
+      \ 'replace':                   '代',
+      \ 'command':                   '令',
+      \ 'visual':                    '視',
+      \ 'select':                    '選',
+      \ 'branch':                    '枝',
+      \ 'paste':                     '貼',
+      \ 'readonly':                  '読',
+      \ 'quickfix':                  '直',
+      \ 'location':                  '場',
+      \ 'terminal':                  '端',
+      \ 'query':                     '問',
+      \ 'open':                      '+',
+      \ 'close':                     '-',
       \ 'whitespace_trailing':       '§',
       \ 'whitespace_tab':            '»',
       \ 'whitespace_tab_pad':        '\ ',
@@ -142,6 +152,8 @@ let g:sym = {
       \ 'gutter_removed':            '…',
       \ 'gutter_removed_first_line': '¨',
       \ 'gutter_modified_removed':   '¬',
+      \ 'num': split('零壱弐三四五六七八九', '\zs'),
+      \ 'day': split('日月火水木金土', '\zs')
       \ }
 
 " == OPTIONS ============================================================== {{{1
@@ -186,7 +198,6 @@ set nohlsearch   " highlight search terms
 set incsearch    " show matches as you type
 set ignorecase   " ignore case when searching
 set smartcase    " case-insensitive when all lowercase
-set lazyredraw   " don't redraw while executing macros
 set magic        " set magic on for regex
 set hidden       " hides buffers instead of closing on new open
 
@@ -208,17 +219,15 @@ set conceallevel=2           " conceal, replace if defined char
 set concealcursor=nc         " conceal in normal and commandmode
 
 set textwidth=80
+set synmaxcol=128     " limit max number of columns to search for syntax items
 set iskeyword=@,48-57,_,192-255,-
 set viewoptions="cursor,folds"
 
-" limit max number of columns to search for syntax items
-set synmaxcol=128
-" send more chars to screen for redrawing
-set ttyfast
-" don't redraw while macro is executed
-set lazyredraw
+set ttyfast      " send more chars to screen for redrawing
+set lazyredraw   " don't redraw while executing macros
 
 let g:netrw_browsex_viewer = 'xdg-open'
+let g:vimsyn_embed = 0 " no embedded perl, lua, ruby, etc syntax in .vim files
 
 " == AUTOCOMMANDS ========================================================= {{{1
 
@@ -236,19 +245,17 @@ augroup vimrc_autocmd
   " Dont show tabs in vim help, vsplit if space available
   au FileType help setlocal nolist | if winwidth('.') > 140 | wincmd L | endif
 
-  au BufRead,BufNewFile .eslintrc,*.tern-config set filetype=json
-
-  au FileType c,cpp,java,haskell setl shiftwidth=4 tabstop=4
-
-  au InsertEnter * set norelativenumber
-
-  au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim,~/.vim/init.vim call f#VimRcExtra()
+  au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim,~/.vim/init.vim call
+                 \ f#VimRcExtra()
+  au BufWinEnter .eslintrc set filetype=json
 augroup END
 
 " == KEY MAPPING ========================================================== {{{1
 
 " ~/.vim/autoload/keys.vim
 call keys#init()
+
+nnoremap <C-B> :call keys#list()<CR>
 
 " -- Leader mapping
 map ; <nop>
@@ -260,10 +267,9 @@ inoremap <leader><ESC> ;<ESC>
 
 " terminal sends ^@ on <C-Space>
 inoremap <C-@> <C-Space>
+
 " prevent editing from fumbling with tmux key
 nnoremap <C-A> <nop>
-
-nnoremap <C-B> :call keys#list()<CR>
 
 " <C-W><C-U> compliment
 inoremap <C-L> <C-O>d$
@@ -293,35 +299,26 @@ inoremap ,, =>
 inoremap _+ >=
 inoremap +_ <=
 
-iabbr ƒ function
+inoremap ƒ function
+
 " -- Swap quotes ---------------------------------------------------------- {{{2
 
-inoremap <leader>' <ESC>:silent s/[^\\]\zs"/'/ge<CR>
-nnoremap <leader>' :silent s/[^\\]\zs"/'/ge<CR>
-inoremap <leader>" <ESC>:silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
-nnoremap <leader>" :silent s/[^\\]\zs"/%%%/ge \| s/[^\\]\zs'/"/ge \| s/%%%/'/ge<CR>
-
+map <leader>' cs"'
+map <leader>" cs'"
 " -- Yank visual selection to register ------------------------------------ {{{2
 
 vnoremap <silent><C-R> :<C-U>exe 'normal! gv"'.nr2char(getchar()).'y'<CR>
 
-" -- oO mapping ----------------------------------------------------------- {{{2
+" -- Fun with o ----------------------------------------------------------- {{{2
 
-Key 'copy to register o and insert above/below', 'o/O',        'v'
-Key 'select from start of line to .',            '<leader>o',  'ni'
-Key 'open next line and insert from register o', '<C-R><C-O>', 'oi'
+Key 'yank {motion} from start of current line into @o',  '<leader>o'
+Key 'yank current line until . to @o, put on next line', '<leader>o', 'i'
 
 " open line above
 inoremap <C-O><C-O> <C-O>O
-
-xnoremap o "oyo<ESC>"opa
-xnoremap O "oyO<ESC>"opa
-
-nnoremap <leader>o ^vf.
-inoremap <leader>o <ESC>^vf.
-
-nnoremap <C-R><C-O> o<C-R>oa
-inoremap <C-R><C-O> <CR><C-R>o
+inoremap <C-R><C-O> <C-R>o
+inoremap <silent><leader>o <ESC>^"oyf.o<C-R>o
+nnoremap <silent><leader>o ^:set opfunc=f#copyO<CR>g@
 
 " -- Command mode mappings ------------------------------------------------ {{{2
 " requires urxvt configuration, see ~/.Xresources
@@ -330,12 +327,12 @@ map! <ESC>[; <C-;>
 nnoremap <C-;> :
 
 cmap w!! w !sudo tee % > /dev/null
-cmap e!! silent Git checkout -- % <bar> redraw!
-cnoremap date r! date "+\%Y-\%m-\%d"
-cnoremap <C-k> <up>
-cnoremap <C-j> <down>
-cnoremap <C-V> vsplit
-cnoremap <C-X> split
+cmap e!! silent Git checkout -- % <BAR> redraw!
+cmap d!! r! date "+\%Y-\%m-\%d"
+cnoremap <C-K> <up>
+cnoremap <C-J> <down>
+cnoremap <C-V> vsplit<space>
+cnoremap <C-X> split<space>
 
 " -- Normal jkJK ---------------------------------------------------------- {{{2
 
@@ -353,19 +350,15 @@ nnoremap <leader>k K
 
 Key 'join <count> lines', '<leader>j'
 
-" -- normal ftFT -> LH ---------------------------------------------------- {{{2
+noremap <expr> H getcharsearch().forward ? ',' : ';'
+noremap <expr> L getcharsearch().forward ? ';' : ','
 
-" L and H repeats ftFT, but H always <- and L always ->
+" -- System Clipboard ----------------------------------------------------- {{{2
 
-nnoremap <silent> f :nnoremap H ,<CR>:nnoremap L ;<CR>f
-nnoremap <silent> F :nnoremap H ;<CR>:nnoremap L ,<CR>F
-nnoremap <silent> t :nnoremap H h,<CR>:nnoremap L l;<CR>t
-nnoremap <silent> T :nnoremap H h;<CR>:nnoremap L l,<CR>T
-
-vnoremap f :<C-U>vnoremap H ,<CR>:vnoremap L ;<CR>gvf
-vnoremap F :<C-U>vnoremap H ;<CR>:vnoremap L ,<CR>gvF
-vnoremap t :<C-U>vnoremap H h,<CR>:vnoremap L l;<CR>gvt
-vnoremap T :<C-U>vnoremap H h;<CR>:vnoremap L l,<CR>gvT
+" TODO: "+ is Xwin clipboard, set this up for osx as well
+nnoremap <leader><C-V> "+p
+vnoremap <C-C> "+y
+vnoremap <C-X> "+d
 
 " -- Sticky Shift Camel Case Relief --------------------------------------- {{{2
 
@@ -376,12 +369,17 @@ inoremap <leader>u <ESC>:s/.*\zs\(\u\)/\L\1/<CR><C-O>a
 " -- Function arguments join/break ---------------------------------------- {{{2
 
 Key 'Break/Join function arguments', '<leader>f/F'
-nnoremap <silent> <leader>f :s/,/,\r/g<CR>$=%
-nnoremap <leader>F f(v%J
+nnoremap <silent><leader>f :s/,/,\r/g<CR>$=%
+nnoremap <silent><leader>F f(v%J
 
 Key 'Break inline tag/properties',   '<leader>d/D'
 nnoremap <silent><leader>d vit:s/\(\%V.*\%V\S\?\)\s*/\r\1\r/<CR>vat=
 nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
+
+" -- Classes and methods -------------------------------------------------- {{{2
+
+map ]<space> ]m
+map [<space> [m
 
 " -- Linewise Movement ---------------------------------------------------- {{{2
 
@@ -405,21 +403,21 @@ nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
 
 " Even better:
 
-nnoremap <expr>^         v:count ? "+" : "^"
-nnoremap <expr><leader>^ v:count ? "-" : "^"
-xnoremap <expr>^         v:count ? "+" : "^"
-xnoremap <expr><leader>^ v:count ? "-" : "^"
+" nnoremap <expr>^         v:count ? "+" : "^"
+" nnoremap <expr><leader>^ v:count ? "-" : "^"
+" xnoremap <expr>^         v:count ? "+" : "^"
+" xnoremap <expr><leader>^ v:count ? "-" : "^"
 
-nnoremap <expr>$         v:count ? "j$" : "$"
-nnoremap <expr><leader>$ v:count ? "k$" : "$"
-xnoremap <expr>$         v:count ? "j$" : "$"
-xnoremap <expr><leader>$ v:count ? "k$" : "$"
+" nnoremap <expr>$         v:count ? "j$" : "$"
+" nnoremap <expr><leader>$ v:count ? "k$" : "$"
+" xnoremap <expr>$         v:count ? "j$" : "$"
+" xnoremap <expr><leader>$ v:count ? "k$" : "$"
 
 " Could probably find better use for these, but ..
 
 nnoremap + <C-A>
 nnoremap - <C-X>
-nnoremap _ :<C-U>call f#crosshair(v:count1)<CR>
+nnoremap ^ :<C-U>call f#crosshair(v:count1)<CR>
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
@@ -448,25 +446,31 @@ FKeys {
 nnoremap <up>   :call f#LPrev()<CR>
 nnoremap <down> :call f#LNext()<CR>
 
-" -- Unusable keys -------------------------------------------------------- {{{2
-
- "<C-M> <CR>
- "<C-H> <BS>
- "<C-[> <ESC>
- "<C-I> <Tab>
- "<C-A> tmux mode key (insert previously inserted text and stop insert)
- "<C-Q> resume terminal
- "<C-C> break
- "<C-Z> kill/move to background
-
-
 " == COMMANDS ============================================================= {{{1
 
-command! -nargs=* Variations call f#Variations(<f-args>)<CR>
+command! -nargs=* Variations   call f#Variations(<f-args>)
+command! -nargs=0 CloseBuffers call f#CloseBuffers()
+command! -nargs=1 ScriptNames  call f#ScriptNames(<q-args>)
+command! -nargs=1 Profile      call f#Profile(<q-args>)
+command! -nargs=0 SynStack     echo join(f#SynStack(), "\n")
+
 " see :he :DiffOrig
-command! DiffOrig vert new | set bt=nofile | r++edit # | 0d_ | diffthis | wincmd p | diffthis
-command! Exe !chmod +x %
-command! ClearBuffers call f#ClearBuffers()<CR>
+command! DiffOrig
+      \ vert new |
+      \ set bt=nofile |
+      \ r++edit # |
+      \ 0d_ |
+      \ diffthis |
+      \ wincmd p |
+      \ diffthis
+
+command! Exe silent call system(printf('chmod +x "%s"', expand("%")))
+
+command! -nargs=? -complete=file Open
+      \ call netrw#BrowseX(
+                  \ expand(strwidth(<q-args>) ? <q-args> : '%'),
+                  \ netrw#CheckIfRemote())
+
 
 " == PLUGINS ============================================================== {{{1
 
@@ -515,35 +519,57 @@ let g:projectionist_heuristics = f#projectionist({
       \ '*.c': {
       \   'alternate': '{}.h'
       \ },
-      \ '*.cpp': {
-      \  'alternate': ['{}.h', '{}.hpp']
+      \ '*.cpp|*.cc|*.cxx': {
+      \  'alternate': ['{}.h', '{}.hpp', '{}.hxx']
       \ },
       \ '*.h' : {
-      \   'alternate': ['{}.c', '{}.cpp', '{}.cxx' ]
+      \   'alternate': ['{}.c', '{}.cc', '{}.cpp', '{}.cxx']
       \ }
     \ },
     \ 'package.json': {
-      \ 'package.json' : {
-      \   'type': 'package'
-      \ },
-      \ 'jsconfig.json' : {
-        \ 'type': 'jsconfig'
-      \ }
-    \ }
+      \ 'package.json'   : { 'type': 'package' },
+      \ 'jsconfig.json'  : { 'type': 'jsconfig' },
+      \ '.eslintrc'      : { 'type': 'eslint' },
+      \ 'spec/*_spec.js' : { 'alternate': 'src/{}.js' },
+      \ 'src/*.js'       : { 'alternate': 'spec/{}_spec.js' },
+    \ },
   \ })
 
 " -- ALE ------------------------------------------------------------------ {{{2
 
-let g:ale_sign_error = g:sym.gutter_error
-let g:ale_sign_warning = g:sym.gutter_warning
+let g:ale_sign_error =         g:sym.gutter_error
+let g:ale_sign_warning =       g:sym.gutter_warning
 let g:ale_sign_column_always = 1
-let g:ale_echo_msg_format = '[%linter%] %code%: %s'
+let g:ale_echo_msg_format =    '[%linter%] %code%: %s'
+
+let g:gcc_flags = {
+    \  'common': [
+      \ '-Wall',
+      \ '-Wextra',
+      \ ],
+    \ 'c': [
+      \ '-Wstrict-prototypes',
+      \ '-xc',
+      \ '-std=c11',
+      \ ],
+    \ 'cpp': [
+      \ '-xc++',
+      \ '-std=c++11',
+      \ ],
+  \ }
 
 let g:ale_linters = {
       \ 'python': ['flake8'],
-      \ 'sh': ['shellcheck'],
-      \ 'vim': [],
+      \ 'sh':     ['shellcheck'],
+      \ 'vim':    [],
+      \ 'c':      ['gcc'],
       \ }
+
+let g:ale_c_gcc_options   = join(g:gcc_flags['common'] + g:gcc_flags['c'])
+let g:ale_cpp_gcc_options = join(g:gcc_flags['common'] + g:gcc_flags['cpp'])
+
+" temp fix for https://github.com/w0rp/ale/issues/1656#issuecomment-423017658
+let g:ale_python_auto_pipenv = 0
 
 " highlight ALEWarning ctermfg=166
 highlight ALEWarningSign ctermfg=166
@@ -566,13 +592,16 @@ let g:ycm_key_list_previous_completion = ['<C-k>', '<Up>']
 let g:ycm_max_num_candidates = 200
 
 let g:ycm_global_ycm_extra_conf = expand('$HOME').'/.vim/ycm.py'
-let g:ycm_extra_conf_vim_data = ['&filetype']
+let g:ycm_extra_conf_vim_data = [
+      \ '&filetype',
+      \ 'g:gcc_flags',
+      \]
 let g:ycm_config_extra_conf = 0
 
 let g:ycm_min_num_of_chars_for_completion = 2
 let g:ycm_use_ultisnips_completer = 0
 
-let g:ycm_add_preview_to_completeopt = 1
+let g:ycm_add_preview_to_completeopt = 0
 let g:ycm_autoclose_preview_window_after_completion = 1
 let g:ycm_autoclose_preview_window_after_insertion = 1
 
@@ -651,27 +680,46 @@ let g:airline_theme = 'motoko'
 " percentage, line number, column number
 let g:airline_section_z = ''
 let g:airline_mode_map = {
-  \ '__' : '一',
-  \ 'n'  : '常',
-  \ 'i'  : '挿',
-  \ 'R'  : '代',
-  \ 'c'  : '令',
-  \ 'v'  : '視',
-  \ 'V'  : '視',
-  \ '' : '視',
-  \ 's'  : '選',
-  \ 'S'  : '選',
-  \ '' : '選',
+  \ '__'  : g:sym.nothing,
+  \ 'n'   : g:sym.normal,
+  \ 'no'  : g:sym.normal,
+  \ 'niI' : g:sym.insert,
+  \ 'niR' : g:sym.replace,
+  \ 'niV' : g:sym.replace,
+  \ 'v'   : g:sym.visual,
+  \ 'V'   : g:sym.visual,
+  \ ''  : g:sym.visual,
+  \ 's'   : g:sym.select,
+  \ 'S'   : g:sym.select,
+  \ ''  : g:sym.select,
+  \ 'i'   : g:sym.insert,
+  \ 'ic'  : g:sym.insert,
+  \ 'ix'  : g:sym.insert,
+  \ 'R'   : g:sym.replace,
+  \ 'Rc'  : g:sym.replace,
+  \ 'Rv'  : g:sym.replace,
+  \ 'Rx'  : g:sym.replace,
+  \ 'c'   : g:sym.command,
+  \ 'cv'  : g:sym.command,
+  \ 'ce'  : g:sym.command,
+  \ 'r'   : g:sym.query,
+  \ 'rm'  : g:sym.query,
+  \ 'r?'  : g:sym.query,
+  \ '!'   : g:sym.terminal,
+  \ 't'   : g:sym.terminal,
   \}
 
 let g:airline_symbols = extend(get(g:, 'airline_symbols', {}), {
-      \ 'branch':    '枝',
-      \ 'paste':     '貼',
+      \ 'branch':    g:sym.branch,
+      \ 'paste':     g:sym.paste,
       \ 'linenr':    '',
       \ 'maxlinenr': g:sym.line,
-      \ 'notexists': '無',
-      \ 'readonly':  '読'
+      \ 'notexists': g:sym.nothing,
+      \ 'readonly':  g:sym.readonly
       \})
+
+" vaxe uses this but just expects it to exist
+let g:airline_statusline_funcrefs = get(g:, 'airline_statusline_funcrefs', [])
 
 " -- TABLINE -------------------------------------------------------------- {{{3
 
@@ -684,22 +732,22 @@ let g:airline#extensions#tabline#buffer_nr_show    = 0
 let g:airline#extensions#tabline#buffer_nr_format  = '%s '
 let g:airline#extensions#tabline#buffer_idx_mode   = 1
 let g:airline#extensions#tabline#buffer_idx_format = {
-      \ '0': '零',
-      \ '1': '一',
-      \ '2': 'ニ',
-      \ '3': '三',
-      \ '4': '四',
-      \ '5': '五',
-      \ '6': '六',
-      \ '7': '七',
-      \ '8': '八',
-      \ '9': '九'
+      \ '0': g:sym.num[0],
+      \ '1': g:sym.num[1],
+      \ '2': g:sym.num[2],
+      \ '3': g:sym.num[3],
+      \ '4': g:sym.num[4],
+      \ '5': g:sym.num[5],
+      \ '6': g:sym.num[6],
+      \ '7': g:sym.num[7],
+      \ '8': g:sym.num[8],
+      \ '9': g:sym.num[9]
       \}
 
 " -- QUICKFIX ------------------------------------------------------------- {{{3
 
-let g:airline#extensions#quickfix#quickfix_text = '直'
-let g:airline#extensions#quickfix#location_text = '場'
+let g:airline#extensions#quickfix#quickfix_text = g:sym.quickfix
+let g:airline#extensions#quickfix#location_text = g:sym.location
 
 " -- YCM ------------------------------------------------------------------ {{{3
 
@@ -738,7 +786,7 @@ let g:airline#extensions#whitespace#mixed_indent_file_format =
 
 " -- TAGBAR --------------------------------------------------------------- {{{2
 
-let g:tagbar_iconchars = [ '+', '-' ]
+let g:tagbar_iconchars = [ g:sym.open, g:sym.close ]
 
 " -- JSX ------------------------------------------------------------------ {{{2
 
@@ -778,25 +826,40 @@ let g:rubycomplete_load_gemfile = 1
 "
 " highlight whitespace errors
 " let ruby_space_errors = 1
-" folding
-let g:ruby_fold = 0
+" ruby.vim only tests _existence_ of ruby_fold, not value ..
+" let g:ruby_fold = 0
 " let ruby_foldable_ground = ' '
-let g:ruby_no_expensive = 1
+" NOTE: cannot set no expensive and use ]m
+" let g:ruby_no_expensive = 1
 
 " let ruby_spellcheck_strings = 1
+
+" -- HAXE ----------------------------------------------------------------- {{{2
+
+let g:vaxe_airline_project         = g:sym.correct
+let g:vaxe_airline_project_missing = g:sym.incorrect
 
 " -- VIM TABLE MODE ------------------------------------------------------- {{{2
 " Markdown-compatible tables
 let g:table_mode_corner = '|'
 
 " -- ACK ------------------------------------------------------------------ {{{2
+"
 if executable('ag')
-  let g:ackprg = 'ag --vimgrep'
+  let g:ack_exe = 'ag'
+  let g:ack_default_options =
+        \ ' --silent --filename --numbers'.
+        \ ' --nocolor --nogroup --column'
+  let g:ack_options = '--vimgrep'
+  let g:ack_whitelisted_options = g:ack_options.
+        \ ' --literal --depth --max-count --one-device'.
+        \ ' --case-sensitive --smart-case --unrestricted'
+  let g:ack_use_dispatch = 1
 
   Key ':Ack (word under cursor)', '<leader>a/A'
   nnoremap <leader>a :Ack
 else
-  nnoremap <leader>a :echoerr "Ack executable not found"<CR>
+  nnoremap <leader>a :echoerr "ag executable not found"<CR>
 endif
 
 " -- FZF ------------------------------------------------------------------ {{{2
@@ -820,18 +883,21 @@ let g:UltiSnipsSnippetsDirectories = [ '~/.vim/UltiSnips', 'UltiSnips' ]
 " -- CALENDAR ------------------------------------------------------------- {{{2
 
 let g:calendar_monday = 1
-let g:calendar_wruler = '日 月 火 水 木 金 土'
+let g:calendar_wruler = join(g:sym.day, ' ')
 
 " -- POLYGLOT ------------------------------------------------------------- {{{2
+" lua: bad syntax
+"
 let g:polyglot_disabled = [
       \ 'markdown',
       \ 'lua',
       \ ]
-" lua: bad syntax
+
 
 " -- MARKDOWN ------------------------------------------------------------- {{{2
 
 let g:markdown_fenced_languages = [
+      \ 'c',
       \ 'ruby',
       \ 'eruby',
       \ 'sh'
@@ -855,9 +921,10 @@ for [key, desc] in [
       \ [ '-', 'stop task' ],
       \ [ 'd', 'task done' ],
       \ [ 'C', 'calendar' ]
-      \ ]
+    \ ]
   FtKey 'vimwiki', '(vimwiki) '.desc, '<leader>t'.key
 endfor
+nmap <leader><CR> <Plug>VimwikiVSplitLink
 
 " -- EASY ALIGN ----------------------------------------------------------- {{{2
 

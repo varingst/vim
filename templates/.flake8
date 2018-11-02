@@ -1,0 +1,5 @@
+[flake8]
+# ignore = E128
+exclude =
+  .git,
+  __pycache__

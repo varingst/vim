@@ -58,7 +58,6 @@ fun! s:KeyList(...)
   endif
   return s:keys[ft]
 endfun
-" == Function key mapping and listing ===================================== {{{2
 
 fun! s:MapFkeys(keys)
   for [key, cmd] in items(a:keys)
