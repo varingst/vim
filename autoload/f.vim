@@ -157,7 +157,8 @@ fun! f#ConcealToggle()
     let b:conceal_level = &conceallevel
     setlocal conceallevel=0
   else
-    exe 'setlocal conceallevel='.b:conceal_level
+    exe 'setlocal conceallevel='.get(b:, 'conceal_level', get(
+                                    \g:, 'default_conceal_level', 2))
   endif
 endfun
 
@@ -261,6 +262,18 @@ endfun
 
 function! s:G(line, mode) " {{{2
   return a:mode == 'n' ? "\<ESC>".a:line."G" : "\<ESC>".a:mode.a:line."G"
+endfun
+
+" == Linewise ============================================================= {{{1
+
+function! f#linewise(count, on_count, default)
+  let mode = mode()
+  if !a:count
+    return a:default
+  endif
+  return mode == 'n' ? 
+        \ "\<ESC>".(a:count - 1).a:on_count :
+        \ "\<ESC>".mode.(a:count - 1).a:on_count
 endfun
 
 " == Copy {motion} to register o, paste it on next line =================== {{{1

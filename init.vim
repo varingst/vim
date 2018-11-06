@@ -52,8 +52,6 @@ PlugFT {
     \ ]
   \ }
 
-" ruby, but not working 'hackhowtofaq/vim-solargraph',
-
 " testing for neovim
 Plug 'autozimu/LanguageClient-neovim', {
       \ 'branch': 'next',
@@ -61,8 +59,6 @@ Plug 'autozimu/LanguageClient-neovim', {
 " needs to run: 'bash install.sh',
 
 Plug 'junegunn/vader.vim'
-
-" Plug 'vim-ruby/vim-ruby'
 
 " -- Tim Pope obviously --------------------------------------------------- {{{2
 
@@ -158,7 +154,7 @@ let g:sym = {
 
 " == OPTIONS ============================================================== {{{1
 
-" vim-plug do these automatically
+" vim-plug handles these automatically
 " filetype plugin indent on
 " syntax enable
 
@@ -215,7 +211,8 @@ exe ':set listchars='.join([
       \ 'precedes:'   .g:sym.nowrap_precedes,
       \ 'extends:'    .g:sym.nowrap_extends
       \  ], ',')
-set conceallevel=2           " conceal, replace if defined char
+let g:default_conceal_level = 2
+exe ':set conceallevel='.g:default_conceal_level
 set concealcursor=nc         " conceal in normal and commandmode
 
 set textwidth=80
@@ -271,7 +268,7 @@ inoremap <C-@> <C-Space>
 " prevent editing from fumbling with tmux key
 nnoremap <C-A> <nop>
 
-" <C-W><C-U> compliment
+" <C-W><C-U> complement
 inoremap <C-L> <C-O>d$
 
 " jump to closest line matching <count>$
@@ -381,7 +378,7 @@ nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
 map ]<space> ]m
 map [<space> [m
 
-" -- Linewise Movement ---------------------------------------------------- {{{2
+" -- Linewise Movement Overrides ------------------------------------------ {{{2
 
 " The default:
 " ^       - First CHAR of current line
@@ -391,29 +388,16 @@ map [<space> [m
 " N<CR>   - First CHAR N lines lower
 " N$      - End of line N-1 lines lower
 
-" What would make more sense:
+" Here
+" N_         - First char N-1 lines lower
+" N<space>_  - First char N-1 lines higher
+" N$         - Last char N-1 lines lower
+" N<space>_  - Last char N-1 lines higher
 
-" N-      - First CHAR N lines higher
-" N^      - First CHAR N-1 lines lower
-" N<CR>   - First CHAR N lines lower
+" TODO: operator-pending mode
 
-" N+      - End of line N lines lower
-" N$      - End of line N-1 lines lower
-" N_      - End of line N lines higher
-
-" Even better:
-
-" nnoremap <expr>^         v:count ? "+" : "^"
-" nnoremap <expr><leader>^ v:count ? "-" : "^"
-" xnoremap <expr>^         v:count ? "+" : "^"
-" xnoremap <expr><leader>^ v:count ? "-" : "^"
-
-" nnoremap <expr>$         v:count ? "j$" : "$"
-" nnoremap <expr><leader>$ v:count ? "k$" : "$"
-" xnoremap <expr>$         v:count ? "j$" : "$"
-" xnoremap <expr><leader>$ v:count ? "k$" : "$"
-
-" Could probably find better use for these, but ..
+noremap <expr><space>_ f#linewise(v:count, "-", "_")
+noremap <expr><space>$ f#linewise(v:count, "k$", "$")
 
 nnoremap + <C-A>
 nnoremap - <C-X>
@@ -456,13 +440,13 @@ command! -nargs=0 SynStack     echo join(f#SynStack(), "\n")
 
 " see :he :DiffOrig
 command! DiffOrig
-      \ vert new |
-      \ set bt=nofile |
-      \ r++edit # |
-      \ 0d_ |
-      \ diffthis |
-      \ wincmd p |
-      \ diffthis
+      \   vert new
+      \ | set bt=nofile
+      \ | r++edit #
+      \ | 0d_
+      \ | diffthis
+      \ | wincmd p
+      \ | diffthis
 
 command! Exe silent call system(printf('chmod +x "%s"', expand("%")))
 
