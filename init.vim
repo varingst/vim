@@ -301,9 +301,19 @@ inoremap ƒ function
 
 map <leader>' cs"'
 map <leader>" cs'"
+
 " -- Yank visual selection to register ------------------------------------ {{{2
 
 vnoremap <silent><C-R> :<C-U>exe 'normal! gv"'.nr2char(getchar()).'y'<CR>
+
+" -- Open file under cursor in split window ------------------------------- {{{2
+
+nnoremap <expr><silent>gf v:count ? "gf" : join([
+       \ ":let cur=winbufnr('.')",
+       \ "gF:let new=winbufnr('.')",
+       \ ":exe 'buffer '.cur",
+       \ ":exe (winwidth('.') > 140 ? 'vertical ' : '').'sbuffer '.new",
+       \ ""], "\<CR>")
 
 " -- Fun with o ----------------------------------------------------------- {{{2
 
