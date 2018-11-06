@@ -82,7 +82,6 @@ Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
 
 " -- Markup, Template, Formatting, et al ---------------------------------- {{{2
 
-Plug 'powerman/vim-plugin-AnsiEsc' " ANSI color coding
 Plug 'othree/html5-syntax.vim'     " handles HTML5 syntax highlighting
 
 " Todo/Project
@@ -360,8 +359,8 @@ vnoremap <C-X> "+d
 " -- Sticky Shift Camel Case Relief --------------------------------------- {{{2
 
 Key 'Downcase last uppercase letter', '<leader>u', 'ni'
-nnoremap <leader>u :s/.*\zs\(\u\)/\L\1/<CR><C-O>
-inoremap <leader>u <ESC>:s/.*\zs\(\u\)/\L\1/<CR><C-O>a
+nnoremap <silent><leader>u :s/.*\zs\(\u\)/\L\1/<CR><C-O>
+inoremap <silent><leader>u <ESC>:s/.*\zs\(\u\)/\L\1/<CR><C-O>a
 
 " -- Function arguments join/break ---------------------------------------- {{{2
 
