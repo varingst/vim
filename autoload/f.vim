@@ -172,6 +172,69 @@ fun! f#ColorColumnToggle()
   endif
 endfun
 
+" == Gdiff Toggle ========================================================= {{{1
+
+fun! f#GdiffToggle()
+  let did_close = v:false
+
+  if exists('g:gdiff_file')
+    for buf in getbufinfo({ 'listed': 1 })
+      if buf.name == g:gdiff_file
+        exe 'bdelete '. buf.bufnr
+        let did_close = v:true
+        break
+      endif
+    endfor
+
+    unlet! g:gdiff_file
+    if did_close
+      return
+    endif
+  endif
+
+  Gdiff!
+  for buf in getbufinfo({ 'listed': 1 })
+    if (match(buf.name, '^fugitive.*'.expand('%').'$') == 0)
+      let g:gdiff_file = buf.name
+    endif
+  endfor
+endfun
+
+" == PreviewHunkToggle ==================================================== {{{1
+
+fun! f#PreviewHunkToggle()
+  let current_hunk = s:current_hunk()
+  if exists('s:viewed_hunk')
+    if empty(current_hunk) || current_hunk == s:viewed_hunk
+      unlet! s:viewed_hunk
+      pclose
+      return
+    endif
+  endif
+
+  if empty(current_hunk)
+    return
+  endif
+
+  let s:viewed_hunk = current_hunk
+  GitGutterPreviewHunk
+endfun
+
+fun! s:current_hunk()
+  let current_hunk = []
+  let bufnr = bufnr('')
+
+  for hunk in gitgutter#hunk#hunks(bufnr)
+    if gitgutter#hunk#cursor_in_hunk(hunk)
+      let current_hunk = hunk
+      break
+    endif
+  endfor
+
+  return current_hunk
+endfun
+
+
 " == Close all open non-dirty buffers ===================================== {{{1
 
 let s:bufarg = { 'listed': 1 }

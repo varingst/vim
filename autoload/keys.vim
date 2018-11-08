@@ -68,13 +68,29 @@ fun! s:MapFkeys(keys)
 endfun
 
 fun! keys#flist(...)
+  let rows = [['']]
+  let format = '%-7s'
   for pre in a:0 ? a:000 : ['', '<leader>']
+    call add(rows[0], pre)
+    let max_width = strdisplaywidth(pre)
+
     for i in range(1, 12)
-      let key = pre.'<F'.i.'>'
-      if has_key(s:fkeys, key)
-        echo key . ' ' . s:fkeys[key]
+      let key = '<F'.i.'>'
+      if len(rows) < i + 1
+        call add(rows, [])
+        call add(rows[-1], key)
       endif
+      let key = pre.key
+      let mapping = get(s:fkeys, key, '')
+      let max_width = max([max_width, strdisplaywidth(mapping)])
+      call add(rows[i], mapping)
     endfor
+
+    let format .= '%-'.(max_width + 2).'s'
+  endfor
+
+  for row in rows
+    echo call('printf', [format] + row)
   endfor
 endfun
 

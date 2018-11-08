@@ -415,21 +415,22 @@ nnoremap ^ :<C-U>call f#crosshair(v:count1)<CR>
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
 FKeys {
-  \ '<F1>':           ':call keys#flist("")',
+  \ '<F1>':           ':call keys#flist()',
   \ '<F2>':           ':call f#LocListToggle()',
   \ '<F3>':           ':NERDTreeToggle',
   \ '<F4>':           ':TagbarToggle',
   \ '<F5>':           ':CheatSheet',
+  \ '<F8>':           ':call f#PreviewHunkToggle()',
   \ '<F9>':           ':Gstatus',
   \ '<F10>':          ':Dispatch',
   \ '<F11>':          ':Make',
-  \ '<leader><F1>':   ':call keys#flist("<lt>leader>")',
   \ '<leader><F2>':   ':set relativenumber!',
   \ '<leader><F3>':   ':set cursorcolumn!',
   \ '<leader><F4>':   ':set hlsearch!',
   \ '<leader><F5>':   ':call f#ConcealToggle()',
   \ '<leader><F6>':   ':call f#ColorColumnToggle()',
-  \ '<leader><F9>':   ':Gdiff',
+  \ '<leader><F8>':   ':call f#GdiffToggle()',
+  \ '<leader><F9>':   ':Gcommit --all',
   \ '<leader><F10>':  ':Dispatch!',
   \ '<leader><F11>':  ':Make!'
   \ }
