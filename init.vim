@@ -247,6 +247,9 @@ augroup vimrc_autocmd
         \ '~/.vim/autoload/f.vim',
         \ ], ','). ' call f#VimRcExtra()'
 
+  au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim cd ~/.vim
+                                              \ | call FugitiveDetect(expand('~/.vim'))
+
   au BufWinEnter .eslintrc set filetype=json
 augroup END
 
@@ -546,6 +549,9 @@ let g:projectionist_heuristics = f#projectionist({
       \ '.eslintrc'      : { 'type': 'eslint' },
       \ 'spec/*_spec.js' : { 'alternate': 'src/{}.js' },
       \ 'src/*.js'       : { 'alternate': 'spec/{}_spec.js' },
+    \ },
+    \ 'autoload/&plugin/': {
+      \ '*.vim' : { 'alternate': 'test/{}.vader' },
     \ },
   \ })
 
