@@ -471,7 +471,7 @@ command! -nargs=? -complete=file Open
 
 " == PLUGINS ============================================================== {{{1
 
-" == COMMON =============================================================== {{{1
+" == COMMON =============================================================== {{{2
 "
 let g:gcc_flags = {
     \  'common': [
@@ -765,7 +765,7 @@ let g:airline#extensions#ale#close_lnum_symbol = g:sym.line
 " slow
 let g:airline#extensions#tagbar#enabled = 0
 
-" -- GIT GUTTER ----------------------------------------------------------- {{{2
+" -- GIT GUTTER ----------------------------------------------------------- {{{3
 
 let g:airline#extensions#hunks#enabled = 0
 
