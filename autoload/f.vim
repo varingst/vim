@@ -174,35 +174,36 @@ endfun
 
 " == Gdiff Toggle ========================================================= {{{1
 
-fun! f#GdiffToggle()
+fun! f#GdiffToggle() abort
   let did_close = v:false
 
-  if exists('g:gdiff_file')
+  if exists('s:gdiff_file')
     for buf in getbufinfo({ 'listed': 1 })
-      if buf.name == g:gdiff_file
+      if buf.name == s:gdiff_file
         exe 'bdelete '. buf.bufnr
         let did_close = v:true
         break
       endif
     endfor
 
-    unlet! g:gdiff_file
+    unlet! s:gdiff_file
     if did_close
       return
     endif
   endif
 
   Gdiff!
+
   for buf in getbufinfo({ 'listed': 1 })
     if (match(buf.name, '^fugitive.*'.expand('%').'$') == 0)
-      let g:gdiff_file = buf.name
+      let s:gdiff_file = buf.name
     endif
   endfor
 endfun
 
 " == PreviewHunkToggle ==================================================== {{{1
 
-fun! f#PreviewHunkToggle()
+fun! f#PreviewHunkToggle() abort
   let current_hunk = s:current_hunk()
   if exists('s:viewed_hunk')
     if empty(current_hunk) || current_hunk == s:viewed_hunk
@@ -220,7 +221,7 @@ fun! f#PreviewHunkToggle()
   GitGutterPreviewHunk
 endfun
 
-fun! s:current_hunk()
+fun! s:current_hunk() abort " {{{2
   let current_hunk = []
   let bufnr = bufnr('')
 
@@ -313,9 +314,9 @@ function! f#G(n) " {{{2
     let above = l - i
     if above < 1 && below > last
       return ":\<C-U>echoerr 'no line number match: ".a:n."$'\<CR>"
-    elseif string(below) =~# a:n.'$'
+    elseif below <= last && string(below) =~# a:n.'$'
       return s:G(below, mode())
-    elseif string(above) =~# a:n.'$'
+    elseif above >= 1 && string(above) =~# a:n.'$'
       return s:G(above, mode())
     else
       let i += 1
@@ -334,7 +335,7 @@ function! f#linewise(count, on_count, default)
   if !a:count
     return a:default
   endif
-  return mode == 'n' ? 
+  return mode == 'n' ?
         \ "\<ESC>".(a:count - 1).a:on_count :
         \ "\<ESC>".mode.(a:count - 1).a:on_count
 endfun
@@ -388,8 +389,8 @@ endfun
 " == Return Syntax Stack for what's under the cursor ====================== {{{1
 
 fun! f#SynStack() abort " {{{2
-  map(synstack(line('.'), col('.')),
-    \ 'synIDattr(v:val, "name")')
+  return map(synstack(line('.'), col('.')),
+           \ 'synIDattr(v:val, "name")')
 endfun
 
 " == Projectionist expander =============================================== {{{1

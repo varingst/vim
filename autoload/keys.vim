@@ -1,13 +1,13 @@
 
-let s:all_ft = '*'
+" == Interface ============================================================ {{{1
 
-fun! keys#init()
+fun! keys#init() " {{{2
   let s:keys = {}
   let s:width = {}
   let s:fkeys = {}
 endfun
 
-fun! keys#list(...)
+fun! keys#list(...) " {{{2
   let args = a:0 ? a:1 : { 'all': 1 }
 
   let filetype = get(args, 'filetype', &filetype)
@@ -36,38 +36,7 @@ fun! keys#list(...)
   endfor
 endfun
 
-
-fun! s:AddKey(ft, ...)
-  let entry = {
-        \ 'text': a:1,
-        \ 'keys': a:2,
-        \ 'mode': a:0 > 2 ? a:3 : 'n'
-        \ }
-  call add(s:KeyList(a:ft), entry)
-
-  for k in ['keys', 'mode', 'text']
-    let s:width[k] = max([get(s:width, k, 0), strdisplaywidth(entry[k])])
-  endfor
-endfun
-
-fun! s:KeyList(...)
-  let ft = a:0 ? a:1 : s:all_ft
-
-  if !has_key(s:keys, ft)
-    let s:keys[ft] = []
-  endif
-  return s:keys[ft]
-endfun
-
-fun! s:MapFkeys(keys)
-  for [key, cmd] in items(a:keys)
-    let s:fkeys[key] = cmd
-    exe 'nnoremap ' . key . ' ' . cmd . '<CR>'
-    exe 'inoremap ' . key . ' <ESC>' . cmd . '<CR>'
-  endfor
-endfun
-
-fun! keys#flist(...)
+fun! keys#flist(...) " {{{2
   let rows = [['']]
   let format = '%-7s'
   for pre in a:0 ? a:000 : ['', '<leader>']
@@ -93,6 +62,42 @@ fun! keys#flist(...)
     echo call('printf', [format] + row)
   endfor
 endfun
+
+" == Private ============================================================== {{{1
+
+let s:all_ft = '*'
+
+fun! s:AddKey(ft, ...) " {{{2
+  let entry = {
+        \ 'text': a:1,
+        \ 'keys': a:2,
+        \ 'mode': a:0 > 2 ? a:3 : 'n'
+        \ }
+  call add(s:KeyList(a:ft), entry)
+
+  for k in ['keys', 'mode', 'text']
+    let s:width[k] = max([get(s:width, k, 0), strdisplaywidth(entry[k])])
+  endfor
+endfun
+
+fun! s:KeyList(...) " {{{2
+  let ft = a:0 ? a:1 : s:all_ft
+
+  if !has_key(s:keys, ft)
+    let s:keys[ft] = []
+  endif
+  return s:keys[ft]
+endfun
+
+fun! s:MapFkeys(keys) " {{{2
+  for [key, cmd] in items(a:keys)
+    let s:fkeys[key] = cmd
+    exe 'nnoremap ' . key . ' ' . cmd . '<CR>'
+    exe 'inoremap ' . key . ' <ESC>' . cmd . '<CR>'
+  endfor
+endfun
+
+" == Commands ============================================================= {{{1
 
 command! -nargs=+ Key call s:AddKey(s:all_ft, <args>)
 command! -nargs=+ FtKey call s:AddKey(<args>)

@@ -89,7 +89,6 @@ Plug 'vim-scripts/SyntaxRange'
 Plug 'mattn/calendar-vim'
 Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
 Plug 'tbabej/taskwiki'
-" Plug 'farseer90718/vim-taskwarrior'
 Plug 'varingst/vim-skeleton'
 
 " grammar
@@ -241,8 +240,13 @@ augroup vimrc_autocmd
   " Dont show tabs in vim help, vsplit if space available
   au FileType help setlocal nolist | if winwidth('.') > 140 | wincmd L | endif
 
-  au BufWinEnter ~/.vimrc,~/.config/nvim/init.vim,~/.vim/init.vim call
-                 \ f#VimRcExtra()
+  exe 'au BufWinEnter '.join([
+        \ '~/.vimrc',
+        \ '~/.config/nvim/init.vim',
+        \ '~/.vim/init.vim',
+        \ '~/.vim/autoload/f.vim',
+        \ ], ','). ' call f#VimRcExtra()'
+
   au BufWinEnter .eslintrc set filetype=json
 augroup END
 
@@ -273,6 +277,10 @@ inoremap <C-L> <C-O>d$
 " jump to closest line matching <count>$
 nnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
 xnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
+
+" wrapping next/prev in location list
+nnoremap <up>   :call f#LPrev()<CR>
+nnoremap <down> :call f#LNext()<CR>
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
@@ -435,10 +443,6 @@ FKeys {
   \ '<leader><F11>':  ':Make!'
   \ }
 
-" -- wrapping next/prev in location list ---------------------------------- {{{2
-
-nnoremap <up>   :call f#LPrev()<CR>
-nnoremap <down> :call f#LNext()<CR>
 
 " == COMMANDS ============================================================= {{{1
 
@@ -449,14 +453,13 @@ command! -nargs=1 Profile      call f#Profile(<q-args>)
 command! -nargs=0 SynStack     echo join(f#SynStack(), "\n")
 
 " see :he :DiffOrig
-command! DiffOrig
-      \   vert new
-      \ | set bt=nofile
-      \ | r++edit #
-      \ | 0d_
-      \ | diffthis
-      \ | wincmd p
-      \ | diffthis
+command! DiffOrig vert new
+              \ | set bt=nofile
+              \ | r++edit #
+              \ | 0d_
+              \ | diffthis
+              \ | wincmd p
+              \ | diffthis
 
 command! Exe silent call system(printf('chmod +x "%s"', expand("%")))
 
@@ -468,6 +471,23 @@ command! -nargs=? -complete=file Open
 
 " == PLUGINS ============================================================== {{{1
 
+" == COMMON =============================================================== {{{1
+"
+let g:gcc_flags = {
+    \  'common': [
+      \ '-Wall',
+      \ '-Wextra',
+      \ ],
+    \ 'c': [
+      \ '-Wstrict-prototypes',
+      \ '-xc',
+      \ '-std=c11',
+      \ ],
+    \ 'cpp': [
+      \ '-xc++',
+      \ '-std=c++11',
+      \ ],
+  \ }
 
 
 " -- CHEATSHEET ----------------------------------------------------------- {{{2
@@ -536,21 +556,6 @@ let g:ale_sign_warning =       g:sym.gutter_warning
 let g:ale_sign_column_always = 1
 let g:ale_echo_msg_format =    '[%linter%] %code%: %s'
 
-let g:gcc_flags = {
-    \  'common': [
-      \ '-Wall',
-      \ '-Wextra',
-      \ ],
-    \ 'c': [
-      \ '-Wstrict-prototypes',
-      \ '-xc',
-      \ '-std=c11',
-      \ ],
-    \ 'cpp': [
-      \ '-xc++',
-      \ '-std=c++11',
-      \ ],
-  \ }
 
 let g:ale_linters = {
       \ 'python': ['flake8'],
@@ -567,7 +572,6 @@ let g:ale_python_auto_pipenv = 0
 
 " highlight ALEWarning ctermfg=166
 highlight ALEWarningSign ctermfg=166
-
 
 " -- YOU COMPLETE ME ------------------------------------------------------ {{{2
 
