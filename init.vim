@@ -526,9 +526,6 @@ let g:cheatsheet_subtype_redirect = {
 
 let g:projectionist_heuristics = f#projectionist({
     \ 'README.md': {
-      \ 'README.md': {
-      \   'type': 'readme'
-      \ }
     \ },
     \ 'CMakeLists.txt|Makefile': {
       \ 'CMakeLists.txt': {

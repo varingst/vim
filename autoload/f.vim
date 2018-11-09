@@ -416,6 +416,7 @@ endfun
 
 " == Projectionist expander =============================================== {{{1
 
+let s:readme = { 'type': 'readme' }
 fun! f#projectionist(conf)
   for [root, config] in items(a:conf)
     for [filematch, _] in items(config)
@@ -426,6 +427,9 @@ fun! f#projectionist(conf)
         endfor
       endif
     endfor
+    if !has_key(config, 'README.md')
+      let config['README.md'] = s:readme
+    endif
   endfor
   return a:conf
 endfun
