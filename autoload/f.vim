@@ -258,7 +258,8 @@ endfun
 
 fun! f#plug_begin() " {{{2
   call plug#begin()
-  command! -nargs=1 PlugFT call s:AddPlugs(<args>)
+  command! -nargs=1 PlugFT    call s:AddPlugs(<args>)
+  command! -nargs=+ PlugLocal call s:MaybeLocal(<args>)
 endfun
 
 " PlugFT {
@@ -281,7 +282,7 @@ fun! s:AddPlugs(dict) " {{{2
       if type(repo_or_options) == type('')
         let plugins[repo_or_options] = { 'for': split(ft, ',') }
         let last_insert = repo_or_options
-      elseif type(repo_or_options) == type({})
+      elseif type(repo_or_options) == v:t_dict
         try
           for [opt, value] in items(repo_or_options)
             let plugins[last_insert][opt] = value
@@ -301,6 +302,26 @@ fun! s:AddPlugs(dict) " {{{2
   for [repo, opts] in items(plugins)
     call plug#(repo, opts)
   endfor
+endfun
+
+fun! s:MaybeLocal(repo, ...)
+  if a:0 == 0
+    let opts = {}
+    let local = substitute(a:repo, '[^/]*', expand('~/dev/'), '')
+  elseif a:0 == 1
+    if type(a:1) == v:t_string
+      let opts = {}
+      let local = expand('~/dev/').a:1
+    elseif type(a:1) == v:t_dict
+      let opts = a:1
+      let local = substitute(a:repo, '[^/]*', expand('~/dev/'), '')
+    endif
+  elseif a:0 == 2
+    let local = expand('~/dev/').a:1
+    let opts = a:2
+  endif
+
+  call plug#(isdirectory(local) ? local : a:repo, opts)
 endfun
 
 " == G to closest line number n$ ========================================== {{{1

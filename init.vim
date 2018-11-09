@@ -7,7 +7,7 @@ Plug 'Valloric/YouCompleteMe'
 Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
 
 Plug 'w0rp/ale'                    " async syntax checker
-Plug 'varingst/ale-silence'
+PlugLocal 'varingst/ale-silence'
 Plug 'scrooloose/nerdcommenter'    " batch commenting +++
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
@@ -16,7 +16,7 @@ Plug 'honza/vim-snippets'
 
 " Code search, nav, vim-bling
 Plug 'mileszs/ack.vim'             " code grepper (ag/ack) wapper
-Plug 'varingst/ack-extend'
+PlugLocal 'varingst/ack-extend'
 Plug 'majutsushi/tagbar', { 'on' : 'TagbarToggle' }
 Plug 'junegunn/fzf.vim'            " fuzzy file, buffer, everything nav
 Plug 'vim-airline/vim-airline'     " statusline
@@ -25,7 +25,7 @@ Plug 'KabbAmine/zeavim.vim'        " doc lookup
 Plug 'airblade/vim-gitgutter'
 Plug 'vim-scripts/camelcasemotion' " camelcase text objects
 Plug 'junegunn/vim-easy-align'
-Plug 'varingst/vim-skeleton'
+PlugLocal 'varingst/vim-skeleton', 'vim-skeleton-fork'
 
 " -- Programming Language Extras ------------------------------------------ {{{2
 "
