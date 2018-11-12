@@ -27,6 +27,17 @@ Plug 'vim-scripts/camelcasemotion' " camelcase text objects
 Plug 'junegunn/vim-easy-align'
 PlugLocal 'varingst/vim-skeleton', 'vim-skeleton-fork'
 
+" testing nvim-completion-manager-2
+
+Plug 'roxma/vim-hug-neovim-rpc'    " neovim rpc client comp layer
+Plug 'roxma/nvim-yarp'             " yet another remote plugin framework
+Plug 'ncm2/ncm2'
+Plug 'ncm2/ncm2-pyclang'           " c/c++
+Plug 'ncm2/ncm2-vim'
+Plug 'Shougo/neco-vim'             " vim dep
+" needs to run: 'bash install.sh'
+Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next' }
+
 " -- Programming Language Extras ------------------------------------------ {{{2
 "
 Plug 'sheerun/vim-polyglot'        " language pack
@@ -55,11 +66,6 @@ PlugFT {
     \ ]
   \ }
 
-" testing for neovim
-Plug 'autozimu/LanguageClient-neovim', {
-      \ 'branch': 'next',
-      \ }
-" needs to run: 'bash install.sh',
 
 Plug 'junegunn/vader.vim'
 
@@ -269,6 +275,15 @@ map , <nop>
 let g:maplocalleader = ','
 inoremap <leader><ESC> ;<ESC>
 
+" requires urxvt configuration, see ~/.Xresources
+map  <ESC>[; <C-;>
+map! <ESC>[; <C-;>
+map  <ESC>[13;2u <S-CR>
+map! <ESC>[13;2u <S-CR>
+map  <ESC>[13;5u <C-CR>
+map! <ESC>[13;5u <C-CR>
+nnoremap <C-;> :
+
 " terminal sends ^@ on <C-Space>
 inoremap <C-@> <C-Space>
 
@@ -278,13 +293,19 @@ nnoremap <C-A> <nop>
 " <C-W><C-U> complement
 inoremap <C-L> <C-O>d$
 
+" wrapping next/prev in location list
+nnoremap <up>   :call f#LPrev()<CR>
+nnoremap <down> :call f#LNext()<CR>
+
+" -- <CR> mapping --------------------------------------------------------- {{{2
+
 " jump to closest line matching <count>$
 nnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
 xnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
 
-" wrapping next/prev in location list
-nnoremap <up>   :call f#LPrev()<CR>
-nnoremap <down> :call f#LNext()<CR>
+imap <expr><CR> (pumvisible() ?
+      \ "\<C-Y>\<CR>\<Plug>DiscretionaryEnd" :
+      \ "\<CR>\<Plug>DiscretionaryEnd")
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
@@ -339,10 +360,6 @@ inoremap <silent><leader>o <ESC>^"oyf.o<C-R>o
 nnoremap <silent><leader>o ^:set opfunc=f#copyO<CR>g@
 
 " -- Command mode mappings ------------------------------------------------ {{{2
-" requires urxvt configuration, see ~/.Xresources
-map  <ESC>[; <C-;>
-map! <ESC>[; <C-;>
-nnoremap <C-;> :
 
 cmap w!! w !sudo tee % > /dev/null
 cmap e!! silent Git checkout -- % <BAR> redraw!
@@ -481,6 +498,8 @@ let g:gcc_flags = {
     \  'common': [
       \ '-Wall',
       \ '-Wextra',
+      \ '-isystem', '/usr/include',
+      \ '-I', '.',
       \ ],
     \ 'c': [
       \ '-Wstrict-prototypes',
@@ -492,6 +511,127 @@ let g:gcc_flags = {
       \ '-std=c++11',
       \ ],
   \ }
+
+" -- COMPLETION ----------------------------------------------------------- {{{2
+
+let g:ncm2_completion_filetypes = {
+      \ 'vim': 1,
+      \ 'ruby': 1,
+      \}
+
+" -- YCM ------------------------------------------------------------------ {{{3
+
+"let g:ycm_filetype_whitelist = { '*': 1 }
+let g:ycm_filetype_blacklist = g:ncm2_completion_filetypes
+
+"let g:ycm_filetype_specific_completion_to_disable = {}
+let g:ycm_collect_identifiers_from_tags_files = 1
+let g:ycm_seed_identifiers_with_syntax = 1
+
+let g:ycm_key_invoke_completion = '<C-Space>'
+let g:ycm_key_list_select_completion = ['<C-j>', '<Tab>', '<Down>']
+let g:ycm_key_list_previous_completion = ['<C-k>', '<Up>']
+
+let g:ycm_max_num_candidates = 200
+
+let g:ycm_global_ycm_extra_conf = expand('$HOME').'/.vim/ycm.py'
+let g:ycm_extra_conf_vim_data = [
+      \ '&filetype',
+      \ 'g:gcc_flags',
+      \]
+" let g:ycm_config_extra_conf = 0
+
+let g:ycm_min_num_of_chars_for_completion = 2
+let g:ycm_use_ultisnips_completer = 0
+
+let g:ycm_add_preview_to_completeopt = 0
+let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_autoclose_preview_window_after_insertion = 1
+
+let g:ycm_error_symbol = g:sym.gutter_error
+let g:ycm_warning_symbol = g:sym.gutter_warning
+
+let g:ycm_semantic_triggers = {
+  \   'c'               : ['->', '.'],
+  \   'objc'            : ['->', '.'],
+  \   'ocaml'           : ['.', '#'],
+  \   'cpp,objcpp'      : ['->', '.', '::'],
+  \   'perl'            : ['->'],
+  \   'php'             : ['->', '::'],
+  \   join([
+        \ 'cs',
+        \ 'd',
+        \ 'elixir',
+        \ 'haskell',
+        \ 'java',
+        \ 'javascript',
+        \ 'python',
+        \ 'perl6',
+        \ 'ruby',
+        \ 'scala',
+        \ 'vb',
+        \ 'vim'
+  \   ], ',')           : [ '.' ],
+  \   'lua'             : ['.', ':'],
+  \   'erlang'          : [':'],
+  \ }
+
+nnoremap <leader>gg :YcmCompleter GoTo<CR>
+nnoremap <leader>gt :YcmCompleter GetType<CR>
+nnoremap <leader>gT :YcmCompleter GoToType<CR>
+nnoremap <leader>gp :YcmCompleter GetParent<CR>
+nnoremap <leader>gr :YcmCompleter GoToReferences<CR>
+nnoremap <leader>gi :YcmCompleter GoToInclude<CR>
+nnoremap <leader>gd :YcmCompleter GoToDefinition<CR>
+nnoremap <leader>gD :YcmCompleter GoToDeclaration<CR>
+
+nnoremap <leader>g<space> :call keys#list({ 'filetype': '_ycm' })<CR>
+
+FtKey '_ycm', '(ycm) GoTo',                '<leader>gg'
+FtKey '_ycm', '(ycm) GoTo Type',           '<leader>gT'
+FtKey '_ycm', '(ycm) GoTo References',     '<leader>gr'
+FtKey '_ycm', '(ycm) GoTo Include',        '<leader>gi'
+FtKey '_ycm', '(ycm) GoTo Definition',     '<leader>gd'
+FtKey '_ycm', '(ycm) Goto Declaration',    '<leader>gD'
+
+FtKey '_ycm', '(ycm) Get Type',            '<leader>gt'
+FtKey '_ycm', '(ycm) Get Parent',          '<leader>gp'
+
+" -- NCM2 ----------------------------------------------------------------- {{{3
+
+let g:clang_path = '/usr/lib/llvm/6'
+let g:ncm2_pyclang#library_path = g:clang_path.'/lib64/libclang.so.6'
+let g:ncm2_pyclang#clang_path   = g:clang_path.'/bin/clang'
+let g:ncm2_pyclang#database_path = [ 'compile_commands.json' ]
+let g:ncm2_pyclang#args_file_path = [ '.clang_complete' ]
+
+" see :help Ncm2PopupOpen
+let g:normal_completeopt = &completeopt
+
+
+" -- Language Client ------------------------------------------------------ {{{3
+
+let g:LanguageClient_loggingFile = '/tmp/langclient.log'
+
+let g:LanguageClient_serverCommands = {
+    \ 'ruby': ['/usr/bin/solargraph', 'stdio']
+    \ }
+
+let g:LanguageClient_rootMarkers = {
+    \ 'ruby': ['Gemfile']
+    \ }
+
+" -- Augroup -------------------------------------------------------------- {{{3
+
+augroup ncm2_completion_autocmd
+  autocmd!
+  au BufWinEnter * if has_key(g:ncm2_completion_filetypes, &filetype)
+               \ |   call ncm2#enable_for_buffer()
+               \ |   imap <C-Space> <Plug>(ncm2_manual_trigger)
+               \ | endif
+  au User Ncm2PopupOpen set completeopt=noinsert,menuone,noselect
+  exe "au User Ncm2PopupClose set completeopt=".g:normal_completeopt
+augroup END
 
 
 " -- CHEATSHEET ----------------------------------------------------------- {{{2
@@ -565,7 +705,7 @@ let g:ale_linters = {
       \ 'python': ['flake8'],
       \ 'sh':     ['shellcheck'],
       \ 'vim':    [],
-      \ 'c':      ['gcc'],
+      \ 'c':      [],
       \ }
 
 let g:ale_c_gcc_options   = join(g:gcc_flags['common'] + g:gcc_flags['c'])
@@ -576,85 +716,6 @@ let g:ale_python_auto_pipenv = 0
 
 " highlight ALEWarning ctermfg=166
 highlight ALEWarningSign ctermfg=166
-
-" -- YOU COMPLETE ME ------------------------------------------------------ {{{2
-
-"let g:ycm_filetype_whitelist = { '*': 1 }
-" let g:ycm_filetype_blacklist = {
-      " \ 'ruby': 1
-      " \}
-"let g:ycm_filetype_specific_completion_to_disable = {}
-let g:ycm_collect_identifiers_from_tags_files = 1
-let g:ycm_seed_identifiers_with_syntax = 1
-
-let g:ycm_key_invoke_completion = '<C-Space>'
-let g:ycm_key_list_select_completion = ['<C-j>', '<Tab>', '<Down>']
-let g:ycm_key_list_previous_completion = ['<C-k>', '<Up>']
-
-let g:ycm_max_num_candidates = 200
-
-let g:ycm_global_ycm_extra_conf = expand('$HOME').'/.vim/ycm.py'
-let g:ycm_extra_conf_vim_data = [
-      \ '&filetype',
-      \ 'g:gcc_flags',
-      \]
-let g:ycm_config_extra_conf = 0
-
-let g:ycm_min_num_of_chars_for_completion = 2
-let g:ycm_use_ultisnips_completer = 0
-
-let g:ycm_add_preview_to_completeopt = 0
-let g:ycm_autoclose_preview_window_after_completion = 1
-let g:ycm_autoclose_preview_window_after_insertion = 1
-
-let g:ycm_error_symbol = g:sym.gutter_error
-let g:ycm_warning_symbol = g:sym.gutter_warning
-
-let g:ycm_semantic_triggers = {
-  \   'c'               : ['->', '.'],
-  \   'objc'            : ['->', '.'],
-  \   'ocaml'           : ['.', '#'],
-  \   'cpp,objcpp'      : ['->', '.', '::'],
-  \   'perl'            : ['->'],
-  \   'php'             : ['->', '::'],
-  \   join([
-        \ 'cs',
-        \ 'd',
-        \ 'elixir',
-        \ 'haskell',
-        \ 'java',
-        \ 'javascript',
-        \ 'python',
-        \ 'perl6',
-        \ 'ruby',
-        \ 'scala',
-        \ 'vb',
-        \ 'vim'
-  \   ], ',')           : [ '.' ],
-  \   'lua'             : ['.', ':'],
-  \   'erlang'          : [':'],
-  \ }
-
-nnoremap <leader>gg :YcmCompleter GoTo<CR>
-nnoremap <leader>gt :YcmCompleter GetType<CR>
-nnoremap <leader>gT :YcmCompleter GoToType<CR>
-nnoremap <leader>gp :YcmCompleter GetParent<CR>
-nnoremap <leader>gr :YcmCompleter GoToReferences<CR>
-nnoremap <leader>gi :YcmCompleter GoToInclude<CR>
-nnoremap <leader>gd :YcmCompleter GoToDefinition<CR>
-nnoremap <leader>gD :YcmCompleter GoToDeclaration<CR>
-
-nnoremap <leader>g<space> :call keys#list({ 'filetype': '_ycm' })<CR>
-
-FtKey '_ycm', '(ycm) GoTo',                '<leader>gg'
-FtKey '_ycm', '(ycm) GoTo Type',           '<leader>gT'
-FtKey '_ycm', '(ycm) GoTo References',     '<leader>gr'
-FtKey '_ycm', '(ycm) GoTo Include',        '<leader>gi'
-FtKey '_ycm', '(ycm) GoTo Definition',     '<leader>gd'
-FtKey '_ycm', '(ycm) Goto Declaration',    '<leader>gD'
-
-FtKey '_ycm', '(ycm) Get Type',            '<leader>gt'
-FtKey '_ycm', '(ycm) Get Parent',          '<leader>gp'
 
 " -- AIRLINE -------------------------------------------------------------- {{{2
 
@@ -969,27 +1030,4 @@ xmap s <Plug>VSurround
 " -- ABOLISH -------------------------------------------------------------- {{{2
 
 Key '(abolish) Change to snake/camel/mixed/upper case', 'cr(s/c/m/u)'
-
-" -- LanguageClient PROTO ------------------------------------------------- {{{2
-
-" this thing is .. messy
-if v:false
-  call add(g:polyglot_disabled, 'ruby')
-  let g:LanguageClient_serverCommands = {
-        \ 'ruby': ['solargraph', 'stdio']
-        \ }
-
-  let g:LanguageClient_autoStop = 1
-  let g:LanguageClient_autoStart = 0
-
-  let g:LanguageClient_rootMarkers = {
-    \ 'ruby': ['Gemfile']
-    \}
-
-  augroup ruby_langserver
-    autocmd!
-    autocmd FileType ruby setlocal omnifunc=LanguageClient#complete
-  augroup END
-endif
-
 " vim: foldmethod=marker
