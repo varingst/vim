@@ -97,8 +97,38 @@ fun! s:MapFkeys(keys) " {{{2
   endfor
 endfun
 
+fun! s:MapCode(code, key) " {{{2
+  exe 'map <ESC>['.a:code.' '.a:key
+  exe 'map! <ESC>['.a:code.' '.a:key
+endfun
+
+let s:prefixes = ['S', 'C', 'C-S']
+
+fun! s:MapCodes(codemap) " {{{2
+  for [key, code] in items(a:codemap)
+    let type = type(code)
+    if type is v:t_list
+      for i in range(len(code))
+        try
+          if strlen(code[i])
+            call s:MapCode(code[i],
+                  \        printf('<%s-%s>',
+                  \               s:prefixes[i],
+                  \               substitute(key, '<\|>', '', 'g')))
+          endif
+        catch /E684/
+          echoerr 'No prefix for index '.i
+        endtry
+      endfor
+    elseif type is v:t_string
+      call s:MapCode(code, key)
+    endif
+  endfor
+endfun
+
 " == Commands ============================================================= {{{1
 
 command! -nargs=+ Key call s:AddKey(s:all_ft, <args>)
 command! -nargs=+ FtKey call s:AddKey(<args>)
 command! -nargs=1 FKeys call s:MapFkeys(<args>)
+command! -nargs=1 KeyCodes call s:MapCodes(<args>)

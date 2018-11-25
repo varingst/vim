@@ -71,35 +71,62 @@ fun! f#LocListToggle() " {{{2
 
   " open and stay in current window
   let winnr = winnr()
+  call f#filter_loclist()
   lopen
   if winnr() != winnr
     wincmd p
   endif
 endfun
 
-fun! f#LNext() " {{{2
+fun! f#Wrap(prefix, next, wrap)
   try
-    lnext
+    exe a:prefix.a:next
   catch /^Vim\%((\a\+)\)\=:E42/
     return
   catch /^Vim\%((\a\+)\)\=:E776/
     return
   catch /^Vim\%((\a\+)\)\=:E553/
-    lfirst
+    exe a:prefix.a:wrap
   endtry
 endfun
 
-fun! f#LPrev() " {{{2
-  try
-    lprev
-  catch /^Vim\%((\a\+)\)\=:E42/
-    return
-  catch /^Vim\%((\a\+)\)\=:E776/
-    return
-  catch /^Vim\%((\a\+)\)\=:E553/
-    llast
-  endtry
+nnoremap <silent> <Plug>LPrev :call f#Wrap('l', 'prev', 'last')<CR>
+nnoremap <silent> <Plug>LNext :call f#Wrap('l', 'next', 'first')<CR>
+nnoremap <silent> <Plug>CPrev :call f#Wrap('c', 'prev', 'first')<CR>
+nnoremap <silent> <Plug>CNext :call f#Wrap('c', 'next', 'first')<CR>
+
+fun! f#LocalVimGrep(...) " {{{2
+  let pattern = substitute(a:0 ? a:1 : @/, '^/\(.*\)/$', '\1', '')
+  let lnum = line('.')
+
+  silent! exe 'vimgrep /'.pattern.'/ %'
+  let qf = getqflist()
+  if len(qf)
+    exe "copen ".min([len(qf), 15])
+    wincmd p
+    for entry in qf
+      if entry.lnum == lnum
+        return
+      endif
+      try
+        cnext
+      catch /E553/
+        cfirst
+      endtry
+    endfor
+  endif
 endfun
+
+fun! f#QuickFixFlush() " {{{2
+  for winnr in range(1, winnr('$'))
+    if getwinvar(winnr, '&syntax') == 'qf'
+      cclose
+      break
+    endif
+  endfor
+  call setqflist([])
+endfun
+
 
 " == Set/Remove Fold Markers ============================================== {{{1
 
@@ -434,6 +461,23 @@ fun! f#projectionist(conf)
   return a:conf
 endfun
 
+" == Toggle =============================================================== {{{1
+fun! f#toggle(dict, key)
+  let a:dict[a:key] = !get(a:dict, a:key)
+endfun
+
+" == Toggle Completion ==================================================== {{{1
+
+fun! f#AutoCompletionToggle()
+  if has_key(g:ycm_filetype_blacklist, &filetype)
+    call f#toggle(g:, 'ncm2#auto_popup')
+  else
+    call f#toggle(g:, 'ycm_auto_trigger')
+    " TODO: check if this is actually necessary
+    YcmRestartServer
+  endif
+endfun
+
 " == PROTOTYPES =========================================================== {{{1
 
 " -- Select Window -------------------------------------------------------- {{{2
@@ -512,3 +556,40 @@ fun! f#lgrep_revision_history(file, ...)
   lopen
 endfun
 
+fun! f#fold(list, f, ...)
+  try
+    let acc = a:0 ? a:1 : remove(a:list, 0)
+  catch /E684/
+    throw "Thou canst not fold that which is empty"
+  endtry
+
+  for e in a:list
+    let acc = a:f(acc, e)
+  endfor
+
+  return acc
+endfun
+
+fun! f#filter_loclist(...)
+  let winnr = a:0 ? a:1 : winnr()
+  let loclist = getloclist(winnr)
+
+  if empty(loclist)
+    return
+  endif
+
+  let bufnrs = {}
+  for item in loclist
+   call remove(item, 'type')
+   let bufnrs[item.bufnr] = 1
+   call remove(item, 'col')
+  endfor
+
+  if len(bufnrs) == 1
+    for item in loclist
+      call remove(item, 'bufnr')
+    endfor
+  endif
+
+  call setloclist(winnr, loclist)
+endfun
