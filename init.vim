@@ -269,10 +269,16 @@ augroup ncm2_completion_autocmd
   autocmd!
   au BufWinEnter * if has_key(g:ncm2_filetype_whitelist, &filetype)
                \ |   call ncm2#enable_for_buffer()
-               \ |   exe 'imap '.g:completion_key.' <Plug>(ncm2_manual_trigger)'
+               \ |   exe 'imap <buffer> '.g:completion_key.' <Plug>(ncm2_manual_trigger)'
                \ | endif
   au User Ncm2PopupOpen set completeopt=noinsert,menuone,noselect
   exe "au User Ncm2PopupClose set completeopt=".g:default_completeopt
+augroup END
+
+" -- VimWiki -------------------------------------------------------------- {{{2
+
+augroup vimwiki_mapping
+  au FileType vimwiki nmap <buffer><leader><CR> <Plug>VimwikiVSplitLink
 augroup END
 
 
@@ -280,8 +286,9 @@ augroup END
 
 " ~/.vim/autoload/keys.vim
 call keys#init()
-
 nnoremap <C-B> :call keys#list()<CR>
+
+" -- KeyCodes ------------------------------------------------------------- {{{2
 
 KeyCodes {
       \ '<C-;>':      ';',
@@ -298,27 +305,34 @@ KeyCodes {
 
 
 nnoremap <C-;> :
-
-" terminal sends ^@ on <C-Space>
-inoremap <C-@> <C-Space>
-
 " prevent editing from fumbling with tmux key
 nnoremap <C-A> <nop>
-
-inoremap <C-C> <ESC>
-
-" like i_<C-U> but to end of line, rather than start
-inoremap <C-L> <C-O>d$
-" line i_<C-W> but stop at snake_case camelCase boundaries
-inoremap <C-Q> <C-O>dv?^\<BAR>_\<BAR>\u\<BAR>\<\<BAR>\s<CR>
-
+" increment under cursor
+nnoremap + <C-A>
+" decrement under cursor
+nnoremap - <C-X>
+" line/column guides
+nnoremap ^ :<C-U>call f#crosshair(v:count1)<CR>
+" insert on N additional lines
 nnoremap <expr> I v:count ? '<ESC><C-V>'.(v:count).'jI' : 'I'
-
 " jump to sinful whitespace
 nnoremap <expr><leader><space>
       \ strlen(get(b:, 'airline_whitespace_check', '')) ?
       \ substitute(b:airline_whitespace_check, '\D\+', '', 'g').'G' :
       \ ''
+
+" terminal sends ^@ on <C-Space>
+inoremap <C-@> <C-Space>
+let g:completion_key = '<C-Space>'
+
+" fire InsertLeave even on <C-C>
+inoremap <C-C> <ESC>
+
+" like i_<C-U> but to end of line, rather than start
+inoremap <C-L> <C-O>d$
+" like i_<C-W> but stop at snake_case/camelCase boundaries
+inoremap <C-Q> <C-O>dv?^\<BAR>_\<BAR>\u\<BAR>\<\<BAR>\s<CR>
+
 
 " -- Leader mapping ------------------------------------------------------- {{{2
 map ; <nop>
@@ -328,7 +342,7 @@ map , <nop>
 let g:maplocalleader = ','
 inoremap <leader><ESC> ;<ESC>
 
-" -- Arrowkeys/PGDN/PGUP -------------------------------------------------- {{{2
+" -- Arrowkeys/Buffernav -------------------------------------------------- {{{2
 
 nmap <expr><Left>  v:count ? '<C-W><' : '<Plug>AirlineSelectPrevTab'
 nmap <expr><Right> v:count ? '<C-W>>' : '<Plug>AirlineSelectNextTab'
@@ -336,6 +350,16 @@ nmap <expr><Up>    v:count ? '<C-W>+' : '<Plug>LPrev'
 nmap <expr><Down>  v:count ? '<C-W>-' : '<Plug>LNext'
 nmap       <S-Up>                        <Plug>CPrev
 nmap       <S-Down>                      <Plug>CNext
+
+nmap <leader>1 <Plug>AirlineSelectTab1
+nmap <leader>2 <Plug>AirlineSelectTab2
+nmap <leader>3 <Plug>AirlineSelectTab3
+nmap <leader>4 <Plug>AirlineSelectTab4
+nmap <leader>5 <Plug>AirlineSelectTab5
+nmap <leader>6 <Plug>AirlineSelectTab6
+nmap <leader>7 <Plug>AirlineSelectTab7
+nmap <leader>8 <Plug>AirlineSelectTab8
+nmap <leader>9 <Plug>AirlineSelectTab9
 
 nmap <C-Left>  <C-W>h
 nmap <C-Right> <C-W>l
@@ -407,13 +431,16 @@ inoremap ƒ function
 map <leader>' cs"'
 map <leader>" cs'"
 
-" -- Search local file ---------------------------------------------------- {{{2
+" -- Code Search ---------------------------------------------------------- {{{2
 
 nnoremap <leader>*  :call f#LocalVimGrep('\<'.expand("<cword>").'\>')<CR>
 nnoremap <leader>#  :call f#LocalVimGrep('\<'.expand("<cword>").'\>')<CR>
 nnoremap <leader>g* :call f#LocalVimGrep(expand("<cword>"))<CR>
 nnoremap <leader>g# :call f#LocalVimGrep(expand("<cword>"))<CR>
 nnoremap <leader>/ :LocalGrep<space>
+
+Key ':Ack (word under cursor)', '<leader>a/A'
+nnoremap <leader>a :Ack
 
 " -- Yank visual selection to register ------------------------------------ {{{2
 
@@ -518,9 +545,33 @@ map [<space> [m
 noremap <expr><leader>_ f#linewise(v:count, "-", "_")
 noremap <expr><leader>$ f#linewise(v:count, "k$", "$")
 
-nnoremap + <C-A>
-nnoremap - <C-X>
-nnoremap ^ :<C-U>call f#crosshair(v:count1)<CR>
+" -- EasyAlign ------------------------------------------------------------ {{{2
+
+xmap ga <Plug>(EasyAlign)
+nmap ga <Plug>(EasyAlign)
+
+xmap <bar> gaip
+nmap <bar> gaip
+
+Key '(EasyAlign) Align operator',  'ga', 'nv'
+Key '(EasyAlign) inner paragraph', '|',  'nv'
+
+" -- ZeaVim --------------------------------------------------------------- {{{2
+"
+Key '(Zeavim) Search word under cursor', '<leader>z', 'nv'
+Key '(Zeavim) Search motion operator',   'gz'
+Key '(Zeavim) Docset',                   '<leader><leader>z'
+
+" don't know why these don't work in config
+
+nmap <leader>z <Plug>Zeavim
+vmap <leader>z <Plug>ZVVisSelection
+nmap <leader><leader>z <Plug>ZVKeyDocset
+nmap gz <Plug>ZVOperator
+
+" -- Surround ------------------------------------------------------------- {{{2
+
+xmap s <Plug>VSurround
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
@@ -604,8 +655,6 @@ let g:gcc_flags = {
 " ~/.vim/autoload/ide.vim
 call ide#init()
 
-let g:completion_key = '<C-Space>'
-
 " -- Language Client ------------------------------------------------------ {{{3
 
 " leave diagnostics to ALE, for now
@@ -629,7 +678,7 @@ let g:LanguageClient_rootMarkers = {
 
 let g:LanguageClient_diagnosticsList = 'Quickfix'
 
-if v:false
+if v:false " needs more haxx
   let tmp = tempname()
   let g:LanguageClient_loggingFile = tmp.'lc-client.log'
   let g:LanguageClient_serverStderr = tmp.'lc-server.log'
@@ -866,7 +915,6 @@ let g:ale_linters = {
       \ 'python': ['flake8'],
       \ 'sh':     ['shellcheck'],
       \ 'vim':    [],
-      \ 'c':      [],
       \ 'ruby':   ['rubocop', 'solargraph'],
       \ }
 
@@ -880,16 +928,6 @@ let g:ale_python_auto_pipenv = 0
 highlight ALEWarningSign ctermfg=166
 
 " -- AIRLINE -------------------------------------------------------------- {{{2
-
-nmap <leader>1 <Plug>AirlineSelectTab1
-nmap <leader>2 <Plug>AirlineSelectTab2
-nmap <leader>3 <Plug>AirlineSelectTab3
-nmap <leader>4 <Plug>AirlineSelectTab4
-nmap <leader>5 <Plug>AirlineSelectTab5
-nmap <leader>6 <Plug>AirlineSelectTab6
-nmap <leader>7 <Plug>AirlineSelectTab7
-nmap <leader>8 <Plug>AirlineSelectTab8
-nmap <leader>9 <Plug>AirlineSelectTab9
 
 " remove (fileencoding, fileformat)
 let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
@@ -1079,22 +1117,16 @@ let g:table_mode_corner = '|'
 
 " -- ACK ------------------------------------------------------------------ {{{2
 "
-if executable('ag')
-  let g:ack_exe = 'ag'
-  let g:ack_default_options =
-        \ ' --silent --filename --numbers'.
-        \ ' --nocolor --nogroup --column'
-  let g:ack_options = '--vimgrep'
-  let g:ack_whitelisted_options = g:ack_options.
-        \ ' --literal --depth --max-count --one-device'.
-        \ ' --case-sensitive --smart-case --unrestricted'
-  let g:ack_use_dispatch = 1
+let g:ack_exe = 'ag'
+let g:ack_default_options =
+      \ ' --silent --filename --numbers'.
+      \ ' --nocolor --nogroup --column'
+let g:ack_options = '--vimgrep'
+let g:ack_whitelisted_options = g:ack_options.
+      \ ' --literal --depth --max-count --one-device'.
+      \ ' --case-sensitive --smart-case --unrestricted'
+let g:ack_use_dispatch = 1
 
-  Key ':Ack (word under cursor)', '<leader>a/A'
-  nnoremap <leader>a :Ack
-else
-  nnoremap <leader>a :echoerr "ag executable not found"<CR>
-endif
 
 
 " -- ULTISNIPS ------------------------------------------------------------ {{{2
@@ -1142,40 +1174,6 @@ let g:vimwiki_list = [
 " fold on sections and code blocks
 let g:vimwiki_folding = 'expr'
 
-for [key, desc] in [
-      \ [ '+', 'start task' ],
-      \ [ '-', 'stop task' ],
-      \ [ 'd', 'task done' ],
-      \ [ 'C', 'calendar' ]
-    \ ]
-  FtKey 'vimwiki', '(vimwiki) '.desc, '<leader>t'.key
-endfor
-nmap <leader><CR> <Plug>VimwikiVSplitLink
-
-" -- EASY ALIGN ----------------------------------------------------------- {{{2
-
-xmap ga <Plug>(EasyAlign)
-nmap ga <Plug>(EasyAlign)
-
-xmap <bar> gaip
-nmap <bar> gaip
-
-Key '(EasyAlign) Align operator',  'ga', 'nv'
-Key '(EasyAlign) inner paragraph', '|',  'nv'
-
-" -- ZEAVIM --------------------------------------------------------------- {{{2
-
-Key '(Zeavim) Search word under cursor', '<leader>z', 'nv'
-Key '(Zeavim) Search motion operator',   'gz'
-Key '(Zeavim) Docset',                   '<leader><leader>z'
-
-" don't know why these don't work in config
-
-nmap <leader>z <Plug>Zeavim
-vmap <leader>z <Plug>ZVVisSelection
-nmap <leader><leader>z <Plug>ZVKeyDocset
-nmap gz <Plug>ZVOperator
-
 " -- GIT GUTTER ----------------------------------------------------------- {{{2
 
 let g:gitgutter_sign_added              = g:sym.gutter_added
@@ -1187,10 +1185,6 @@ let g:gitgutter_sign_modified_removed   = g:sym.gutter_modified_removed
 let g:gitgutter_override_sign_column_highlight = 0
 
 Key '(gitgutter) Next/Prev Hunk', '[/]c'
-
-" -- SURROUND ------------------------------------------------------------- {{{2
-
-xmap s <Plug>VSurround
 
 " -- ABOLISH -------------------------------------------------------------- {{{2
 

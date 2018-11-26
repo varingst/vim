@@ -45,16 +45,26 @@
 
 " TODO: add symbol search
 let s:map = {
-      \ 'Goto':           ['Goto',               'definition',     'GotoDefinition', v:true],
-      \ 'Definition':     ['GotoDefinition',     'definition',     'GotoDefinition', v:true],
-      \ 'Declaration':    ['GotoDeclaration',    '',               '',               v:true],
-      \ 'Implementation': ['GotoImplementation', 'implementation', '',               v:true],
-      \ 'TypeDefinition': ['GoToType',           'typeDefinition', '',               v:true],
-      \ 'References':     ['GoToReferences',     'references',     'FindReferences', v:true],
-      \ 'Include':        ['GotoInclude',        '',               '',               v:true],
-      \ 'Parent':         ['GetParent',          '',               '',               v:false],
-      \ 'Doc':            ['GetDoc',             'hover',          'Hover',          v:false],
-      \ 'Type':           ['GetType',            'hover',          'Hover',          v:false],
+  \ 'Goto':
+      \ ['Goto',               'definition',     'GotoDefinition', v:true],
+  \ 'Definition':
+      \ ['GotoDefinition',     'definition',     'GotoDefinition', v:true],
+  \ 'Declaration':
+      \ ['GotoDeclaration',    '',               '',               v:true],
+  \ 'Implementation':
+      \ ['GotoImplementation', 'implementation', '',               v:true],
+  \ 'TypeDefinition':
+      \ ['GoToType',           'typeDefinition', '',               v:true],
+  \ 'References':
+      \ ['GoToReferences',     'references',     'FindReferences', v:true],
+  \ 'Include':
+      \ ['GotoInclude',        '',               '',               v:true],
+  \ 'Parent':
+      \ ['GetParent',          '',               '',               v:false],
+  \ 'Doc':
+      \ ['GetDoc',             'hover',          'Hover',          v:false],
+  \ 'Type':
+      \ ['GetType',            'hover',          'Hover',          v:false],
       \}
 
 fun! s:ft_in(dict)
