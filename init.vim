@@ -288,6 +288,13 @@ augroup END
 call keys#init()
 nnoremap <C-B> :call keys#list()<CR>
 
+map ; <nop>
+let g:mapleader = ';'
+
+map , <nop>
+let g:maplocalleader = ','
+inoremap <leader><ESC> ;<ESC>
+
 " -- KeyCodes ------------------------------------------------------------- {{{2
 
 KeyCodes {
@@ -303,6 +310,7 @@ KeyCodes {
       \ '<PageDown>': ['6;2~',  '6;5~',  '6;6~'],
       \}
 
+" -- Various Normal ------------------------------------------------------- {{{2
 
 nnoremap <C-;> :
 " prevent editing from fumbling with tmux key
@@ -321,6 +329,8 @@ nnoremap <expr><leader><space>
       \ substitute(b:airline_whitespace_check, '\D\+', '', 'g').'G' :
       \ ''
 
+" -- Various Insert ------------------------------------------------------- {{{2
+
 " terminal sends ^@ on <C-Space>
 inoremap <C-@> <C-Space>
 let g:completion_key = '<C-Space>'
@@ -333,14 +343,15 @@ inoremap <C-L> <C-O>d$
 " like i_<C-W> but stop at snake_case/camelCase boundaries
 inoremap <C-Q> <C-O>dv?^\<BAR>_\<BAR>\u\<BAR>\<\<BAR>\s<CR>
 
+" -- Various Command ------------------------------------------------------ {{{2
 
-" -- Leader mapping ------------------------------------------------------- {{{2
-map ; <nop>
-let g:mapleader = ';'
-
-map , <nop>
-let g:maplocalleader = ','
-inoremap <leader><ESC> ;<ESC>
+cmap w!! w !sudo tee % > /dev/null
+cmap e!! silent Git checkout -- % <BAR> redraw!
+cmap r!! Read<space>
+cnoremap <C-K> <up>
+cnoremap <C-J> <down>
+cnoremap <C-V> vsplit<space>
+cnoremap <C-X> split<space>
 
 " -- Arrowkeys/Buffernav -------------------------------------------------- {{{2
 
@@ -465,16 +476,6 @@ inoremap <C-O><C-O> <C-O>O
 inoremap <C-R><C-O> <C-R>o
 inoremap <silent><leader>o <ESC>^"oyf.o<C-R>o
 nnoremap <silent><leader>o ^:set opfunc=f#copyO<CR>g@
-
-" -- Command mode mappings ------------------------------------------------ {{{2
-
-cmap w!! w !sudo tee % > /dev/null
-cmap e!! silent Git checkout -- % <BAR> redraw!
-cmap r!! Read<space>
-cnoremap <C-K> <up>
-cnoremap <C-J> <down>
-cnoremap <C-V> vsplit<space>
-cnoremap <C-X> split<space>
 
 
 " -- Normal jkJK ---------------------------------------------------------- {{{2
