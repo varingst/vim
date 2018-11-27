@@ -325,9 +325,12 @@ nnoremap ^ :<C-U>call f#crosshair(v:count1)<CR>
 nnoremap <expr> I v:count ? '<ESC><C-V>'.(v:count).'jI' : 'I'
 " jump to sinful whitespace
 nnoremap <expr><leader><space>
-      \ strlen(get(b:, 'airline_whitespace_check', '')) ?
-      \ substitute(b:airline_whitespace_check, '\D\+', '', 'g').'G' :
-      \ ''
+      \ get(filter(split(get(b:, 'airline_whitespace_check', ''),
+      \                  '\D'),
+      \            'strlen(v:val)'),
+      \     0,
+      \     line('.')
+      \).'G'
 
 " -- Various Insert ------------------------------------------------------- {{{2
 
@@ -520,10 +523,26 @@ Key 'Break inline tag/properties',   '<leader>d/D'
 nnoremap <silent><leader>d vit:s/\(\%V.*\%V\S\?\)\s*/\r\1\r/<CR>vat=
 nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
 
-" -- Classes and methods -------------------------------------------------- {{{2
+" -- Text objects --------------------------------------------------------- {{{2
+
+" classes and methods, ruby only perhaps
 
 map ]<space> ]m
 map [<space> [m
+
+" to same indentation level forward/backward
+
+noremap <expr> ]<TAB> search('^'.matchstr(getline('.'), '^\s*').'\S', 'nW').'G^'
+noremap <expr> [<TAB> search('^'.matchstr(getline('.'), '^\s*').'\S', 'nWbz').'G^'
+
+" as above, but include blank lines
+
+noremap <expr> ]<S-TAB> (nextnonblank(
+                         \ search('^'.matchstr(
+                           \ getline('.'), '^\s*').'\S', 'nW') + 1) - 1).'G^'
+noremap <expr> [<S-TAB> (prevnonblank(
+                         \ search('^'.matchstr(
+                           \ getline('.'), '^\s*').'\S', 'nWbz') - 1) + 1).'G^'
 
 " -- Linewise Movement Overrides ------------------------------------------ {{{2
 
@@ -573,6 +592,7 @@ nmap gz <Plug>ZVOperator
 " -- Surround ------------------------------------------------------------- {{{2
 
 xmap s <Plug>VSurround
+imap <leader>s <Plug>Isurround
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
@@ -610,7 +630,7 @@ command! -nargs=0 Exe          silent call system(printf('chmod +x "%s"',
                                                        \ expand("%")))
 command! -nargs=* LocalGrep    silent call f#LocalVimGrep(<q-args>)
 command! -nargs=* Date         read !date --date=<q-args> "+\%Y-\%m-\%d"
-command! -nargs=1 Read         silent call append(line('.'), systemlist(
+command! -nargs=? Read         silent call append(line('.'), systemlist(
                                    \ strlen(<q-args>) ?
                                    \ <q-args> :
                                    \ substitute(getline('.'), '^\$ *', '', '')))
