@@ -556,7 +556,7 @@ fun! f#lgrep_revision_history(file, ...)
   lopen
 endfun
 
-fun! f#fold(list, f, ...)
+fun! f#fold(list, f, ...) " {{{2
   try
     let acc = a:0 ? a:1 : remove(a:list, 0)
   catch /E684/
@@ -570,7 +570,7 @@ fun! f#fold(list, f, ...)
   return acc
 endfun
 
-fun! f#filter_loclist(...)
+fun! f#filter_loclist(...) " {{{2
   let winnr = a:0 ? a:1 : winnr()
   let loclist = getloclist(winnr)
 
@@ -593,3 +593,102 @@ fun! f#filter_loclist(...)
 
   call setloclist(winnr, loclist)
 endfun
+
+fun! s:next_dedented(lnum, backward) " {{{2
+  let lnum = a:lnum
+  let current = indent(lnum)
+  let delta = a:backward ? -1 : 1
+  if current == 0
+    return lnum
+  endif
+  " while:  on valid line (1-$)
+  "         and >=indentation level
+  "             or line is blank
+  while indent(lnum) >= 0
+        \ && (indent(lnum) >= current || nextnonblank(lnum) != lnum)
+    let lnum += delta
+  endwhile
+
+  return (indent(lnum) < current
+        \ && indent(lnum) >= 0
+        \ && nextnonblank(lnum) == lnum) ? lnum : line('.')
+endfun
+
+fun! f#next_dedented(count, ...) " {{{2
+  if a:0 && type(a:1) == v:t_number
+    let lnum = a:1
+    let flags = f#flags(a:000[1:])
+  else
+    let lnum = line('.')
+    let flags = f#flags(a:000)
+  endif
+
+  let i = a:count
+  while i > 0
+    let lnum = s:next_dedented(lnum, and(flags, g:indent_flags.BACKWARD))
+    let i -= 1
+  endwhile
+  return lnum
+endfun
+
+let g:indent_flags = {
+      \  'BACKWARD': 1,
+      \  'INCLUDE_BLANK': 2,
+      \  'SKIP_FIRST': 4,
+      \}
+
+fun! f#same_indent(count, ...) " {{{2
+  if a:0 && type(a:1) == v:t_number
+    let lnum = a:1
+    let flags = f#flags(a:000[1:])
+  else
+    let lnum = line('.')
+    let flags = f#flags(a:000)
+  endif
+
+  if and(flags, g:indent_flags.BACKWARD)
+    let NonBlank = function('prevnonblank')
+    let delta = -1
+  else
+    let NonBlank = function('nextnonblank')
+    let delta = 1
+  end
+
+  let origin = lnum
+  let start = lnum
+  let indent = indent(lnum)
+  let i = a:count
+
+  while i > 0
+    let lnum = NonBlank(lnum + delta)
+    let current_indent = indent(lnum)
+
+    while current_indent != indent && current_indent >= 0
+      let lnum = NonBlank(lnum + delta)
+      let current_indent = indent(lnum)
+    endwhile
+
+    if current_indent < 0
+      break
+    endif
+    let start = lnum
+    let i -= 1
+  endwhile
+
+  if !and(flags, g:indent_flags.INCLUDE_BLANK)
+    return start
+  endif
+
+  " NOTE: blank lines at start or end of file are not included
+  let non_blank = NonBlank(start + delta)
+  return non_blank ? non_blank - delta : start
+endfun
+
+fun! f#flags(flags) " {{{2
+  let flags = 0
+  for flag in a:flags
+    let flags = or(flags, g:indent_flags[flag])
+  endfor
+  return flags
+endfun
+

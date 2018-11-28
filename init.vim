@@ -530,19 +530,30 @@ nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
 map ]<space> ]m
 map [<space> [m
 
-" to same indentation level forward/backward
+" TODO: make this a plugin
 
-noremap <expr> ]<TAB> search('^'.matchstr(getline('.'), '^\s*').'\S', 'nW').'G^'
-noremap <expr> [<TAB> search('^'.matchstr(getline('.'), '^\s*').'\S', 'nWbz').'G^'
+noremap <expr> `<TAB>   '<ESC>'.f#next_dedented(v:count1, 'BACKWARD').'G^'
+noremap <expr> `<S-TAB> '<ESC>'.f#next_dedented(v:count1).'G^'
 
-" as above, but include blank lines
+nnoremap <silent><expr> ]<TAB> '<ESC>'.f#same_indent(v:count1).'G^'
+nnoremap <silent><expr> [<TAB> '<ESC>'.f#same_indent(v:count1, 'BACKWARD').'G^'
 
-noremap <expr> ]<S-TAB> (nextnonblank(
-                         \ search('^'.matchstr(
-                           \ getline('.'), '^\s*').'\S', 'nW') + 1) - 1).'G^'
-noremap <expr> [<S-TAB> (prevnonblank(
-                         \ search('^'.matchstr(
-                           \ getline('.'), '^\s*').'\S', 'nWbz') - 1) + 1).'G^'
+onoremap <silent><expr> ]<TAB> '<ESC>'.v:operator.f#same_indent(v:count1).'G^'
+onoremap <silent><expr> [<TAB> '<ESC>'.v:operator.f#same_indent(v:count1, 'BACKWARD').'G^'
+
+vnoremap <silent><expr> ]<TAB> '<ESC>gv'.(mode()==#'V'?'':'V').f#same_indent(v:count1).'G^'
+vnoremap <silent><expr> [<TAB> '<ESC>gv'.(mode()==#'V'?'':'V').f#same_indent(v:count1, 'BACKWARD').'G^'
+
+nnoremap <silent><expr> ]<S-TAB> '<ESC>'.f#same_indent(v:count1, 'INCLUDE_BLANK').'G^'
+nnoremap <silent><expr> [<S-TAB> '<ESC>'.f#same_indent(v:count1, 'INCLUDE_BLANK', 'BACKWARD').'G^'
+
+onoremap <silent><expr> ]<S-TAB> '<ESC>'.v:operator.f#same_indent(v:count1, 'INCLUDE_BLANK').'G^'
+onoremap <silent><expr> [<S-TAB> '<ESC>'.v:operator.f#same_indent(v:count1, 'INCLUDE_BLANK', 'BACKWARD').'G^'
+
+vnoremap <silent><expr> ]<S-TAB> '<ESC>gv'.(mode()==#'V'?'':'V').f#same_indent(v:count1, 'INCLUDE_BLANK').'G^'
+vnoremap <silent><expr> [<S-TAB> '<ESC>gv'.(mode()==#'V'?'':'V').f#same_indent(v:count1, 'BACKWARD').'G^'
+
+
 
 " -- Linewise Movement Overrides ------------------------------------------ {{{2
 
