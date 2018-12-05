@@ -343,6 +343,8 @@ inoremap <C-C> <ESC>
 
 " like i_<C-U> but to end of line, rather than start
 inoremap <C-L> <C-O>d$
+" like i_<C-W> but to the right
+inoremap <C-;> <C-O>dw
 " like i_<C-W> but stop at snake_case/camelCase boundaries
 inoremap <C-Q> <C-O>dv?^\<BAR>_\<BAR>\u\<BAR>\<\<BAR>\s<CR>
 
