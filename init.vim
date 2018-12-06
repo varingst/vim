@@ -99,7 +99,8 @@ Plug 'mattn/calendar-vim'
 Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
 Plug 'tbabej/taskwiki'
 
-" grammar
+Plug 'dhruvasagar/vim-table-mode'
+
 Plug 'rhysd/vim-grammarous', { 'on': 'GrammarousCheck' }
 
 Plug 'nathanaelkane/vim-indent-guides'
@@ -242,7 +243,7 @@ let g:vimsyn_embed = 0 " no embedded perl, lua, ruby, etc syntax in .vim files
 
 augroup vimrc_autocmd
   autocmd!
-" auto save and load folds, options, and cursor
+  " auto save and load folds, options, and cursor
   au BufWinLeave *.* mkview
   au BufWinEnter *.* silent! loadview
 
@@ -278,6 +279,7 @@ augroup END
 " -- VimWiki -------------------------------------------------------------- {{{2
 
 augroup vimwiki_mapping
+  autocmd!
   au FileType vimwiki nmap <buffer><leader><CR> <Plug>VimwikiVSplitLink
 augroup END
 
@@ -323,6 +325,13 @@ nnoremap - <C-X>
 nnoremap ^ :<C-U>call f#crosshair(v:count1)<CR>
 " insert on N additional lines
 nnoremap <expr> I v:count ? '<ESC><C-V>'.(v:count).'jI' : 'I'
+" replace with char in current column for N additional lines
+nnoremap <expr> r v:count ? '<ESC><C-V>'.(v:count).'jr' : 'r'
+" blockwise visual select paragraph from current column to end of line
+nnoremap <leader><C-V> <C-V>}k$
+" lookup keyword under cursor with 'keywordprg'
+nnoremap <leader>k K
+
 " jump to sinful whitespace
 nnoremap <expr><leader><space>
       \ get(filter(split(get(b:, 'airline_whitespace_check', ''),
@@ -341,12 +350,23 @@ let g:completion_key = '<C-Space>'
 " fire InsertLeave even on <C-C>
 inoremap <C-C> <ESC>
 
-" like i_<C-U> but to end of line, rather than start
-inoremap <C-L> <C-O>d$
 " like i_<C-W> but to the right
-inoremap <C-;> <C-O>dw
+inoremap <C-L> <C-O>dw
+" like i_<C-U> but to end of line, rather than start
+inoremap <C-;> <C-O>d$
 " like i_<C-W> but stop at snake_case/camelCase boundaries
 inoremap <C-Q> <C-O>dv?^\<BAR>_\<BAR>\u\<BAR>\<\<BAR>\s<CR>
+" like i_<C-W> but WORD rather than word
+inoremap <C-E> <C-O>dB
+
+inoremap <leader><C-V> <C-V>
+
+" -- Various Visual ------------------------------------------------------- {{{2
+
+" yank visual selection to register
+vnoremap <silent><C-R> :<C-U>exe 'normal! gv"'.nr2char(getchar()).'y'<CR>
+" replace on all lines of visual selection
+vnoremap R dgvI
 
 " -- Various Command ------------------------------------------------------ {{{2
 
@@ -388,9 +408,7 @@ nmap <C-Down>  <C-W>j
 nnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
 xnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
 
-imap <expr><CR> (pumvisible() ?
-      \ "\<C-Y>\<CR>\<Plug>DiscretionaryEnd" :
-      \ "\<CR>\<Plug>DiscretionaryEnd")
+imap <expr><CR> (pumvisible() ? "\<C-Y>" : '')."\<CR>\<Plug>DiscretionaryEnd"
 
 " -- <space> mapping ------------------------------------------------------ {{{2
 
@@ -456,11 +474,7 @@ nnoremap <leader>g# :call f#LocalVimGrep(expand("<cword>"))<CR>
 nnoremap <leader>/ :LocalGrep<space>
 
 Key ':Ack (word under cursor)', '<leader>a/A'
-nnoremap <leader>a :Ack
-
-" -- Yank visual selection to register ------------------------------------ {{{2
-
-vnoremap <silent><C-R> :<C-U>exe 'normal! gv"'.nr2char(getchar()).'y'<CR>
+nnoremap <leader>a :Ack<space>
 
 " -- Open file under cursor in split window ------------------------------- {{{2
 
@@ -483,7 +497,7 @@ inoremap <silent><leader>o <ESC>^"oyf.o<C-R>o
 nnoremap <silent><leader>o ^:set opfunc=f#copyO<CR>g@
 
 
-" -- Normal jkJK ---------------------------------------------------------- {{{2
+" -- Normal jkJKHL -------------------------------------------------------- {{{2
 
 " j/k on visual lines, not actual lines
 nnoremap j gj
@@ -492,12 +506,6 @@ nnoremap k gk
 nnoremap <expr><silent>J foldlevel('.') && foldclosed('.') != -1 ? "zo" : "zj"
 nnoremap <expr><silent>K foldlevel('.') &&
       \ (foldclosed('.') == -1 <BAR><BAR> foldlevel('.') > 1) ? "zc" : "gk"
-" join <count> lines
-nnoremap <leader>j J
-" lookup keyword under cursor with 'keywordprg'
-nnoremap <leader>k K
-
-Key 'join <count> lines', '<leader>j'
 
 noremap <expr> H getcharsearch().forward ? ',' : ';'
 noremap <expr> L getcharsearch().forward ? ';' : ','
@@ -505,25 +513,29 @@ noremap <expr> L getcharsearch().forward ? ';' : ','
 " -- System Clipboard ----------------------------------------------------- {{{2
 
 " TODO: "+ is Xwin clipboard, set this up for osx as well
-nnoremap <leader><C-V> "+p
+inoremap <C-V> <C-O>"+p
 vnoremap <C-C> "+y
 vnoremap <C-X> "+d
 
 " -- Sticky Shift Camel Case Relief --------------------------------------- {{{2
 
 Key 'Downcase last uppercase letter', '<leader>u', 'ni'
-nnoremap <silent><leader>u :s/.*\zs\(\u\)/\L\1/<CR><C-O>
-inoremap <silent><leader>u <ESC>:s/.*\zs\(\u\)/\L\1/<CR><C-O>a
+nnoremap <silent><leader>u md:s/.*\zs\(\u\)/\L\1/e<CR>`d
+inoremap <silent><leader>u <ESC>:s/.*\zs\(\u\)/\L\1/e<CR>`^
 
-" -- Function arguments join/break ---------------------------------------- {{{2
+" -- Line join/break ---------------------------------------- {{{2
+
+Key 'join <count> lines', '<leader>j'
+nnoremap <leader>j J
 
 Key 'Break/Join function arguments', '<leader>f/F'
-nnoremap <silent><leader>f :s/,/,\r/g<CR>$=%
-nnoremap <silent><leader>F f(v%J
+nnoremap <silent><leader>f 0f(:let c=col('.')-1<CR>:s/,/\=",\r".repeat(' ', c)/ge<CR>
+nnoremap <silent><leader>F 0f(v%J
 
-Key 'Break inline tag/properties',   '<leader>d/D'
-nnoremap <silent><leader>d vit:s/\(\%V.*\%V\S\?\)\s*/\r\1\r/<CR>vat=
-nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
+Key 'Break/Join XML attributes',   '<leader>x/X'
+nnoremap <silent><leader>x :s/\(<\w\+\\|\w\+=\({[^}]*}\\|"[^"]*"\\|'[^']*'\)\)\s*/\1\r/ge<CR>:redraw<CR>='[
+nnoremap <silent><leader>X v/\/\?><CR>J:s/\s\(\/\?>\)/\1/<CR>
+
 
 " -- Text objects --------------------------------------------------------- {{{2
 
@@ -531,31 +543,6 @@ nnoremap <silent><leader>D md:s/\(\S\+\zs\s\+\\|\(\s*\ze\)>\)/\r/g<CR>v`d=
 
 map ]<space> ]m
 map [<space> [m
-
-" TODO: make this a plugin
-
-noremap <expr> `<TAB>   '<ESC>'.f#next_dedented(v:count1, 'BACKWARD').'G^'
-noremap <expr> `<S-TAB> '<ESC>'.f#next_dedented(v:count1).'G^'
-
-nnoremap <silent><expr> ]<TAB> '<ESC>'.f#same_indent(v:count1).'G^'
-nnoremap <silent><expr> [<TAB> '<ESC>'.f#same_indent(v:count1, 'BACKWARD').'G^'
-
-onoremap <silent><expr> ]<TAB> '<ESC>'.v:operator.f#same_indent(v:count1).'G^'
-onoremap <silent><expr> [<TAB> '<ESC>'.v:operator.f#same_indent(v:count1, 'BACKWARD').'G^'
-
-vnoremap <silent><expr> ]<TAB> '<ESC>gv'.(mode()==#'V'?'':'V').f#same_indent(v:count1).'G^'
-vnoremap <silent><expr> [<TAB> '<ESC>gv'.(mode()==#'V'?'':'V').f#same_indent(v:count1, 'BACKWARD').'G^'
-
-nnoremap <silent><expr> ]<S-TAB> '<ESC>'.f#same_indent(v:count1, 'INCLUDE_BLANK').'G^'
-nnoremap <silent><expr> [<S-TAB> '<ESC>'.f#same_indent(v:count1, 'INCLUDE_BLANK', 'BACKWARD').'G^'
-
-onoremap <silent><expr> ]<S-TAB> '<ESC>'.v:operator.f#same_indent(v:count1, 'INCLUDE_BLANK').'G^'
-onoremap <silent><expr> [<S-TAB> '<ESC>'.v:operator.f#same_indent(v:count1, 'INCLUDE_BLANK', 'BACKWARD').'G^'
-
-vnoremap <silent><expr> ]<S-TAB> '<ESC>gv'.(mode()==#'V'?'':'V').f#same_indent(v:count1, 'INCLUDE_BLANK').'G^'
-vnoremap <silent><expr> [<S-TAB> '<ESC>gv'.(mode()==#'V'?'':'V').f#same_indent(v:count1, 'BACKWARD').'G^'
-
-
 
 " -- Linewise Movement Overrides ------------------------------------------ {{{2
 
@@ -644,9 +631,9 @@ command! -nargs=0 Exe          silent call system(printf('chmod +x "%s"',
 command! -nargs=* LocalGrep    silent call f#LocalVimGrep(<q-args>)
 command! -nargs=* Date         read !date --date=<q-args> "+\%Y-\%m-\%d"
 command! -nargs=? Read         silent call append(line('.'), systemlist(
-                                   \ strlen(<q-args>) ?
-                                   \ <q-args> :
-                                   \ substitute(getline('.'), '^\$ *', '', '')))
+                                   \ strlen(<q-args>)
+                                   \ ? <q-args>
+                                   \ : substitute(getline('.'), '^\$ *', '', '')))
 
 " see :he :DiffOrig
 command! DiffOrig vert new
@@ -661,6 +648,13 @@ command! -nargs=? -complete=file Open silent call netrw#BrowseX(
                                    \ expand(strwidth(<q-args>) ? <q-args> : '%'),
                                    \ netrw#CheckIfRemote())
 
+command! -nargs=1 -complete=function Function execute
+      \ (winwidth('.') < 140 ? 'split' : 'vsplit').' +'.
+      \   join(
+      \     reverse(
+      \       matchlist(
+      \         execute('verbose function'),
+      \         <q-args>.'[^\n]*\n\s*Last set from \(\S\+\) line \(\d\+\)')[1:2]))
 
 " == PLUGINS ============================================================== {{{1
 
@@ -1160,8 +1154,6 @@ let g:ack_whitelisted_options = g:ack_options.
       \ ' --literal --depth --max-count --one-device'.
       \ ' --case-sensitive --smart-case --unrestricted'
 let g:ack_use_dispatch = 1
-
-
 
 " -- ULTISNIPS ------------------------------------------------------------ {{{2
 
