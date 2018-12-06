@@ -363,17 +363,17 @@ function! f#G(n) " {{{2
     if above < 1 && below > last
       return ":\<C-U>echoerr 'no line number match: ".a:n."$'\<CR>"
     elseif below <= last && string(below) =~# a:n.'$'
-      return s:G(below, mode())
+      return s:G(below)
     elseif above >= 1 && string(above) =~# a:n.'$'
-      return s:G(above, mode())
+      return s:G(above)
     else
       let i += 1
     endif
   endwhile
 endfun
 
-function! s:G(line, mode) " {{{2
-  return a:mode == 'n' ? "\<ESC>".a:line."G" : "\<ESC>".a:mode.a:line."G"
+function! s:G(lnum) " {{{2
+  return "\<ESC>".(mode() == 'n' ? '' : 'gv').a:lnum."G"
 endfun
 
 " == Linewise ============================================================= {{{1

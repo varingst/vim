@@ -521,12 +521,13 @@ vnoremap <C-X> "+d
 
 Key 'Downcase last uppercase letter', '<leader>u', 'ni'
 nnoremap <silent><leader>u md:s/.*\zs\(\u\)/\L\1/e<CR>`d
-inoremap <silent><leader>u <ESC>:s/.*\zs\(\u\)/\L\1/e<CR>`^
+inoremap <silent><leader>u <ESC>:s/.*\zs\(\u\)/\L\1/e<CR>`^i
 
 " -- Line join/break ---------------------------------------- {{{2
 
-Key 'join <count> lines', '<leader>j'
+Key 'join <count> lines/paragraph', '<leader>j/J'
 nnoremap <leader>j J
+nnoremap <leader>J v}J
 
 Key 'Break/Join function arguments', '<leader>f/F'
 nnoremap <silent><leader>f 0f(:let c=col('.')-1<CR>:s/,/\=",\r".repeat(' ', c)/ge<CR>
@@ -626,14 +627,8 @@ command! -nargs=0 CloseBuffers silent call f#CloseBuffers()
 command! -nargs=1 ScriptNames  silent call f#ScriptNames(<q-args>)
 command! -nargs=1 Profile      silent call f#Profile(<q-args>)
 command! -nargs=0 SynStack     echo join(f#SynStack(), "\n")
-command! -nargs=0 Exe          silent call system(printf('chmod +x "%s"',
-                                                       \ expand("%")))
 command! -nargs=* LocalGrep    silent call f#LocalVimGrep(<q-args>)
 command! -nargs=* Date         read !date --date=<q-args> "+\%Y-\%m-\%d"
-command! -nargs=? Read         silent call append(line('.'), systemlist(
-                                   \ strlen(<q-args>)
-                                   \ ? <q-args>
-                                   \ : substitute(getline('.'), '^\$ *', '', '')))
 
 " see :he :DiffOrig
 command! DiffOrig vert new
@@ -644,9 +639,18 @@ command! DiffOrig vert new
               \ | wincmd p
               \ | diffthis
 
-command! -nargs=? -complete=file Open silent call netrw#BrowseX(
-                                   \ expand(strwidth(<q-args>) ? <q-args> : '%'),
-                                   \ netrw#CheckIfRemote())
+command! -nargs=0 Exe silent call
+      \ system(printf('chmod +x "%s"', expand("%")))
+
+command! -nargs=? Read silent call
+      \ append(line('.'),
+      \        systemlist(strlen(<q-args>)
+      \                   ? <q-args>
+      \                   : substitute(getline('.'), '^\$ *', '', '')))
+
+command! -nargs=? -complete=file Open silent call
+      \ netrw#BrowseX(expand(strwidth(<q-args>) ? <q-args> : '%'),
+      \               netrw#CheckIfRemote())
 
 command! -nargs=1 -complete=function Function execute
       \ (winwidth('.') < 140 ? 'split' : 'vsplit').' +'.
