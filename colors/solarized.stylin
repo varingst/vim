@@ -1,0 +1,24 @@
+color base03   #002b36    0   8:16
+color base02   #073642  235   0:16
+color base01   #586e75  239  10:16
+color base00   #657b83  240  11:16
+
+color base0   #839496   244  12:16
+color base1   #93a1a1   245  14:16
+color base2   #eee8d5   187   7:16
+color base3   #fdf6e3   230  15:16
+
+color yellow  #b58900  136  3:16
+color orange  #cb4b16  166  9:16
+color red     #dc322f  124  1:16
+color magenta #d33682  125  5:16
+color violet  #6c71c4   61 13:16
+color blue    #268bd2   33  4:16
+color cyan    #2aa198   37  6:16
+color green   #719e07   64  2:16
+color foo     #731645 22 17:16
+
+color back    #002b36    0  0:16
+
+hi Normal base0 none
+hi Comment base01 none

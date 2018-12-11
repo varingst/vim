@@ -158,6 +158,7 @@ let g:sym = {
       \ 'gutter_modified':           '–',
       \ 'gutter_removed':            '…',
       \ 'gutter_removed_first_line': '¨',
+      \ 'gutter_removed_above_below':'‹',
       \ 'gutter_modified_removed':   '¬',
       \ 'num': split('零壱弐三四五六七八九', '\zs'),
       \ 'day': split('日月火水木金土', '\zs')
@@ -738,7 +739,7 @@ let g:LanguageClient_diagnosticsDisplay = {
       \   'signTexthl': 'ALEInfoSign',
       \ },
       \ 4: {
-      \   'name': g:sym.error,
+      \   'name': g:sym.info,
       \   'texthl': 'ALEInfo',
       \   'signText': g:sym.gutter_info,
       \   'signTexthl': 'ALEInfoSign',
@@ -1206,11 +1207,12 @@ let g:vimwiki_folding = 'expr'
 
 " -- GIT GUTTER ----------------------------------------------------------- {{{2
 
-let g:gitgutter_sign_added              = g:sym.gutter_added
-let g:gitgutter_sign_modified           = g:sym.gutter_modified
-let g:gitgutter_sign_removed            = g:sym.gutter_removed
-let g:gitgutter_sign_removed_first_line = g:sym.gutter_removed_first_line
-let g:gitgutter_sign_modified_removed   = g:sym.gutter_modified_removed
+let g:gitgutter_sign_added                   = g:sym.gutter_added
+let g:gitgutter_sign_modified                = g:sym.gutter_modified
+let g:gitgutter_sign_removed                 = g:sym.gutter_removed
+let g:gitgutter_sign_removed_first_line      = g:sym.gutter_removed_first_line
+let g:gitgutter_sign_removed_above_and_below = g:sym.gutter_removed_above_below
+let g:gitgutter_sign_modified_removed        = g:sym.gutter_modified_removed
 
 let g:gitgutter_override_sign_column_highlight = 0
 
