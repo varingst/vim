@@ -376,8 +376,8 @@ cmap e!! silent Git checkout -- % <BAR> redraw!
 cmap r!! Read<space>
 cnoremap <C-K> <up>
 cnoremap <C-J> <down>
-cnoremap <C-V> vsplit<space>
-cnoremap <C-X> split<space>
+cnoremap <C-V> <HOME><S-Right><Right><C-W>vsplit<space><END>
+cnoremap <C-X> <HOME><S-Right><Right><C-W>split<space><END>
 
 " -- Arrowkeys/Buffernav -------------------------------------------------- {{{2
 
