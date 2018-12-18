@@ -451,31 +451,6 @@ fun! f#AutoCompletionToggle()
   endif
 endfun
 
-" == Insert Table ========================================================= {{{1
-
-fun! f#InsertTable(...)
-  let l:count = a:0 ? a:1 : 22
-  if l:count < 11
-    return
-  endif
-
-  let l:count = string(l:count)
-  let split = strlen(l:count) / 2
-
-  let columns = str2nr(l:count[:split-1])
-  let rows = str2nr(l:count[split:])
-
-  let lines = []
-  call add(lines, repeat('|-', columns).'|')
-  for i in range(rows)
-    call add(lines, repeat('| ', columns).'|')
-    call add(lines, repeat('|-', columns).'|')
-  endfor
-
-  TableModeEnable
-
-  call append(line('.'), lines)
-endfun
 
 " == PROTOTYPES =========================================================== {{{1
 
