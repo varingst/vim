@@ -143,6 +143,7 @@ let g:sym = {
       \ 'query':                     '問',
       \ 'modified':                  '改',
       \ 'bug':                       '虫',
+      \ 'table':                     '表',
       \ 'open':                      '+',
       \ 'close':                     '-',
       \ 'whitespace_trailing':       '§',
@@ -153,7 +154,7 @@ let g:sym = {
       \ 'nowrap_extends':            '›',
       \ 'gutter_error':              '»',
       \ 'gutter_warning':            '›',
-      \ 'gutter_info':               '¨',
+      \ 'gutter_info':               '°',
       \ 'gutter_added':              '·',
       \ 'gutter_modified':           '–',
       \ 'gutter_removed':            '…',
@@ -398,10 +399,14 @@ nmap <leader>7 <Plug>AirlineSelectTab7
 nmap <leader>8 <Plug>AirlineSelectTab8
 nmap <leader>9 <Plug>AirlineSelectTab9
 
-nmap <C-Left>  <C-W>h
-nmap <C-Right> <C-W>l
-nmap <C-Up>    <C-W>k
-nmap <C-Down>  <C-W>j
+nmap <expr><C-Left>  get(b:, 'table_mode_active')
+      \ ? '<Plug>(table-mode-motion-left)'  : '<C-W>h'
+nmap <expr><C-Right> get(b:, 'table_mode_active')
+      \ ? '<Plug>(table-mode-motion-right)' : '<C-W>l'
+nmap <expr><C-Up>    get(b:, 'table_mode_active')
+      \ ? '<Plug>(table-mode-motion-up)'    : '<C-W>k'
+nmap <expr><C-Down>  get(b:, 'table_mode_active')
+      \ ? '<Plug>(table-mode-motion-down)'  : '<C-W>j'
 
 " -- <CR> mapping --------------------------------------------------------- {{{2
 
@@ -596,6 +601,23 @@ nmap gz <Plug>ZVOperator
 xmap s <Plug>VSurround
 imap <leader>s <Plug>Isurround
 
+" -- Table mode ----------------------------------------------------------- {{{2
+
+" cell movement is in Arrowkeys section, <C-arrows>
+
+Key '(TableMode) cell object',       'a/i|', 'xo'
+Key '(TableMode) delete row/column', '<leader>tdr/c'
+Key '(TableMode) sort',              '<leader>ts'
+
+omap a<Bar> <Plug>(table-mode-cell-text-object-a)
+xmap a<Bar> <Plug>(table-mode-cell-text-object-a)
+omap i<Bar> <Plug>(table-mode-cell-text-object-i)
+xmap i<Bar> <Plug>(table-mode-cell-text-object-i)
+
+nmap <leader>tdr <Plug>(table-mode-delete-row)
+nmap <leader>tdc <Plug>(table-mode-delete-column)
+nmap <leader>ts  <Plug>(table-mode-sort)
+
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
 FKeys {
@@ -610,7 +632,7 @@ FKeys {
   \ '<F10>':          ':Dispatch',
   \ '<F11>':          ':Make',
   \ '<leader><F2>':   ':call f#QuickFixFlush()',
-  \ '<leader><F3>':   ':set relativenumber!',
+  \ '<leader><F3>':   ':TableModeToggle',
   \ '<leader><F4>':   ':set hlsearch!',
   \ '<leader><F5>':   ':call f#ConcealToggle()',
   \ '<leader><F6>':   ':call f#ColorColumnToggle()',
@@ -624,35 +646,54 @@ FKeys {
 " == COMMANDS ============================================================= {{{1
 
 command! -nargs=* Variations   silent call f#Variations(<f-args>)
-command! -nargs=0 CloseBuffers silent call f#CloseBuffers()
-command! -nargs=1 ScriptNames  silent call f#ScriptNames(<q-args>)
 command! -nargs=1 Profile      silent call f#Profile(<q-args>)
-command! -nargs=0 SynStack     echo join(f#SynStack(), "\n")
 command! -nargs=* LocalGrep    silent call f#LocalVimGrep(<q-args>)
 command! -nargs=* Date         read !date --date=<q-args> "+\%Y-\%m-\%d"
 
-" see :he :DiffOrig
-command! DiffOrig vert new
-              \ | set bt=nofile
-              \ | r++edit #
-              \ | 0d_
-              \ | diffthis
-              \ | wincmd p
-              \ | diffthis
+" diff file and buffer, see :he :DiffOrig
+command! -nargs=0 DiffOrig vert new
+                       \ | set bt=nofile
+                       \ | r++edit #
+                       \ | 0d_
+                       \ | diffthis
+                       \ | wincmd p
+                       \ | diffthis
+
+" close all open non-dirty buffers
+command! -nargs=0 CloseBuffers for buf in getbufinfo({ 'listed': 1 })
+                           \ |   if !buf.changed && empty(buf.windows)
+                           \ |     exe 'bdelete '.buf.bufnr
+                           \ |   endif
+                           \ | endfor
+
+" write loaded scripts to file and open
+command! -nargs=1 ScriptNames call writefile(split(execute('scriptnames'), "\n"),
+                          \                  expand(<q-args>))
+                          \ | exe printf("%s %s",
+                          \          winwidth('.') > 140 ? 'vsplit' : 'split',
+                          \          <q-args>)
+
+" echo syntax stack for what's under the cursor
+command! -nargs=0 SynStack echo join(map(synstack(line('.'), col('.')),
+      \                                  'synIDattr(v:val, "name")'),
+      \                              "\n")
 
 command! -nargs=0 Exe silent call
       \ system(printf('chmod +x "%s"', expand("%")))
 
+" append output of given shell command or current line
 command! -nargs=? Read silent call
       \ append(line('.'),
       \        systemlist(strlen(<q-args>)
       \                   ? <q-args>
       \                   : substitute(getline('.'), '^\$ *', '', '')))
 
+" open file with xdg-open
 command! -nargs=? -complete=file Open silent call
       \ netrw#BrowseX(expand(strwidth(<q-args>) ? <q-args> : '%'),
       \               netrw#CheckIfRemote())
 
+" open vim function definition
 command! -nargs=1 -complete=function Function execute
       \ (winwidth('.') < 140 ? 'split' : 'vsplit').' +'.
       \   join(
@@ -1011,6 +1052,19 @@ let g:airline_symbols = extend(get(g:, 'airline_symbols', {}), {
       \ 'readonly':  g:sym.readonly
       \})
 
+" extend default mode sections with table mode status
+let g:airline_section_a = airline#section#create_left([
+      \ 'mode',
+      \ 'crypt',
+      \ 'paste',
+      \ 'keymap',
+      \ 'spell',
+      \ 'capslock',
+      \ 'xkblayout',
+      \ 'iminsert']).
+      \ '%{(get(b:, "table_mode_active") ? g:sym.table : "")}'
+
+
 " extend the default file/path section with some 'auto echo' for debugging
 let g:airline_section_c = airline#section#create([
       \ '%<',
@@ -1145,6 +1199,11 @@ let g:vaxe_airline_project         = g:sym.correct
 let g:vaxe_airline_project_missing = g:sym.incorrect
 
 " -- VIM TABLE MODE ------------------------------------------------------- {{{2
+
+let g:table_mode_verbose = 0
+
+let g:table_mode_disable_mappings = 1
+
 " Markdown-compatible tables
 let g:table_mode_corner = '|'
 

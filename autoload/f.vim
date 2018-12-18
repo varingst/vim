@@ -263,16 +263,6 @@ fun! s:current_hunk() abort " {{{2
 endfun
 
 
-" == Close all open non-dirty buffers ===================================== {{{1
-
-let s:bufarg = { 'listed': 1 }
-fun! f#CloseBuffers() " {{{2
-  for buf in getbufinfo(s:bufarg)
-    if !buf.changed && empty(buf.windows)
-      exe 'bdelete '.buf.bufnr
-    endif
-  endfor
-endfun
 
 " == Cycle Cursorlines ==================================================== {{{1
 fun! f#crosshair(n)
@@ -422,23 +412,6 @@ fun! f#Profile(file) abort " {{{2
     profile func *
     profile file *
   endif
-endfun
-
-" == Write loaded scripts to file and open in split ======================= {{{1
-
-fun! f#ScriptNames(file) abort " {{{2
-  call writefile(split(execute('scriptnames'), "\n"),
-               \ expand(a:file))
-  exe printf("%s %s",
-           \ winwidth('.') > 140 ? 'vsplit' : 'split',
-           \ a:file)
-endfun
-
-" == Return Syntax Stack for what's under the cursor ====================== {{{1
-
-fun! f#SynStack() abort " {{{2
-  return map(synstack(line('.'), col('.')),
-           \ 'synIDattr(v:val, "name")')
 endfun
 
 " == Projectionist expander =============================================== {{{1
