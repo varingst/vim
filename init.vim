@@ -605,9 +605,10 @@ imap <leader>s <Plug>Isurround
 
 " cell movement is in Arrowkeys section, <C-arrows>
 
-Key '(TableMode) cell object',       'a/i|', 'xo'
-Key '(TableMode) delete row/column', '<leader>tdr/c'
-Key '(TableMode) sort',              '<leader>ts'
+Key '(TableMode) cell object',            'a/i|', 'xo'
+Key '(TableMode) delete row/column',      '<leader>tdr/c'
+Key '(TableMode) insert count:NxM table', '<leader>tc'
+Key '(TableMode) sort',                   '<leader>ts'
 
 omap a<Bar> <Plug>(table-mode-cell-text-object-a)
 xmap a<Bar> <Plug>(table-mode-cell-text-object-a)
@@ -617,6 +618,8 @@ xmap i<Bar> <Plug>(table-mode-cell-text-object-i)
 nmap <leader>tdr <Plug>(table-mode-delete-row)
 nmap <leader>tdc <Plug>(table-mode-delete-column)
 nmap <leader>ts  <Plug>(table-mode-sort)
+
+nnoremap <silent> <leader>tc :<C-U>call f#InsertTable(v:count1)<CR>
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 

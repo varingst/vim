@@ -92,7 +92,7 @@ endfun
 
 nnoremap <silent> <Plug>LPrev :call f#Wrap('l', 'prev', 'last')<CR>
 nnoremap <silent> <Plug>LNext :call f#Wrap('l', 'next', 'first')<CR>
-nnoremap <silent> <Plug>CPrev :call f#Wrap('c', 'prev', 'first')<CR>
+nnoremap <silent> <Plug>CPrev :call f#Wrap('c', 'prev', 'last')<CR>
 nnoremap <silent> <Plug>CNext :call f#Wrap('c', 'next', 'first')<CR>
 
 fun! f#LocalVimGrep(...) " {{{2
@@ -449,6 +449,32 @@ fun! f#AutoCompletionToggle()
     " TODO: check if this is actually necessary
     YcmRestartServer
   endif
+endfun
+
+" == Insert Table ========================================================= {{{1
+
+fun! f#InsertTable(...)
+  let l:count = a:0 ? a:1 : 22
+  if l:count < 11
+    return
+  endif
+
+  let l:count = string(l:count)
+  let split = strlen(l:count) / 2
+
+  let columns = str2nr(l:count[:split-1])
+  let rows = str2nr(l:count[split:])
+
+  let lines = []
+  call add(lines, repeat('|-', columns).'|')
+  for i in range(rows)
+    call add(lines, repeat('| ', columns).'|')
+    call add(lines, repeat('|-', columns).'|')
+  endfor
+
+  TableModeEnable
+
+  call append(line('.'), lines)
 endfun
 
 " == PROTOTYPES =========================================================== {{{1
