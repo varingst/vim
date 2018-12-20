@@ -380,6 +380,32 @@ cnoremap <C-J> <down>
 cnoremap <C-V> <HOME><S-Right><Right><C-W>vsplit<space><END>
 cnoremap <C-X> <HOME><S-Right><Right><C-W>split<space><END>
 
+" -- Various Window ------------------------------------------------------- {{{2
+
+" go to last accessed window, like tmux
+nnoremap <C-W>; <C-W>p
+
+" set window width to 90/180 columns
+nnoremap <C-W>i <ESC>90<C-W><BAR>
+nnoremap <C-W>I <ESC>180<C-W><BAR>
+
+" swap window with window <count>
+" TODO: doesn't work very well, but that is <C-X> not working as expected
+nnoremap <C-W>p <C-W>x
+
+" NOTE: regarding <count><C-W>w
+" moves to window number min(highest_win_nr, <count>)
+
+" close window <count>, or current window
+nnoremap <expr> <C-W>x (v:count ? v:count."\<C-W>w\<BAR>" : "").":close\<CR>"
+" delete buffer in window <count>, or current window
+nnoremap <expr> <C-W>X (v:count ? v:count."\<C-W>w\<BAR>" : "").":bd\<CR>"
+
+" move cursor to window
+for i in range(1, 9)
+  exe printf('nnoremap <C-W>%d <ESC>%d<C-W>w', i, i)
+endfor
+
 " -- Arrowkeys/Buffernav -------------------------------------------------- {{{2
 
 nmap <expr><Left>  v:count ? '<C-W><' : '<Plug>AirlineSelectPrevTab'
@@ -454,7 +480,7 @@ nnoremap z4 :call f#SetFoldMarker(4)<CR>
 
 " -- Faster file Saving --------------------------------------------------- {{{2
 
-inoremap <leader>w <ESC>:w<CR>
+inoremap <leader>w <C-O>:w<CR>
 nnoremap <leader>w :w<CR>
 
 " -- Awkward symbol shorthands -------------------------------------------- {{{2
@@ -1082,7 +1108,9 @@ let g:airline_section_a = airline#section#create_left([
 
 
 " extend the default file/path section with some 'auto echo' for debugging
-let g:airline_section_c = airline#section#create([
+let g:airline_section_c =
+      \ '%{get(g:sym.num, winnr(), winnr())}'.
+      \ airline#section#create([
       \ '%<',
       \ exists('+autochdir') && &autochdir ? 'path' : 'file',
       \ g:airline_symbols.space,
