@@ -26,6 +26,7 @@ Plug 'airblade/vim-gitgutter'
 Plug 'vim-scripts/camelcasemotion' " camelcase text objects
 Plug 'junegunn/vim-easy-align'
 PlugLocal 'varingst/vim-skeleton', 'vim-skeleton-fork'
+PlugLocal 'varingst/vim-indent-object', 'indent-object'
 
 " testing nvim-completion-manager-2
 
@@ -229,6 +230,7 @@ let g:default_conceal_level = 2
 exe 'set conceallevel='.g:default_conceal_level
 set concealcursor=nc         " conceal in normal and commandmode
 
+set nowrap
 set textwidth=80
 set synmaxcol=128     " limit max number of columns to search for syntax items
 set signcolumn=yes
@@ -660,6 +662,7 @@ FKeys {
   \ '<F9>':           ':Gstatus',
   \ '<F10>':          ':Dispatch',
   \ '<F11>':          ':Make',
+  \ '<leader><F1>':   ':set wrap!',
   \ '<leader><F2>':   ':call f#QuickFixFlush()',
   \ '<leader><F3>':   ':TableModeToggle',
   \ '<leader><F4>':   ':set hlsearch!',
