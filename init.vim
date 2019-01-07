@@ -8,7 +8,7 @@ Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
 
 Plug 'w0rp/ale'
 PlugLocal 'varingst/ale-silence'
-Plug 'scrooloose/nerdcommenter'    " batch commenting +++
+Plug 'tomtom/tcomment_vim'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
 
 Plug 'SirVer/ultisnips'
@@ -463,6 +463,8 @@ nnoremap <space>t :BTags<CR>
 nnoremap <space>T :Tags<CR>
 nnoremap <space>h :History<CR>
 
+nnoremap <space>v :AV<CR>
+
 nnoremap <space>? :nmap <lt>space><CR>
 
 " -- pum movement --------------------------------------------------------- {{{2
@@ -534,8 +536,8 @@ nnoremap <silent><leader>o ^:set opfunc=f#copyO<CR>g@
 " -- Normal jkJKHL -------------------------------------------------------- {{{2
 
 " j/k on visual lines, not actual lines
-nnoremap j gj
-nnoremap k gk
+nnoremap <expr> j v:count ? 'j' : 'gj'
+nnoremap <expr> k v:count ? 'k' : 'gk'
 " navigate folds with J/K
 nnoremap <expr><silent>J foldlevel('.') && foldclosed('.') != -1 ? "zo" : "zj"
 nnoremap <expr><silent>K foldlevel('.') &&

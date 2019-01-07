@@ -131,14 +131,15 @@ endfun
 " == Set/Remove Fold Markers ============================================== {{{1
 
 fun! f#SetFoldMarker(level) " {{{2
-  let map = s:GetCommentMarker()
   let line = getline('.')
   let open_fold = '{{{'
   let pat = open_fold . '\d'
 
   if a:level == 0
     " level = 0 => clear marker
-    let marker_start = match(line, '\s*\(' . map['left'] . '\s*\)\?' . open_fold)
+    let cmtopen = split(printf(&commentstring, '|'), '|')[0]
+
+    let marker_start = match(line, '\s*\(' . cmtopen . '\s*\)\?' . open_fold)
     if marker_start >= 0
       let line = line[0:marker_start - 1]
     else
@@ -150,27 +151,14 @@ fun! f#SetFoldMarker(level) " {{{2
       " update existing marker with new level
       let line = substitute(line, pat, open_fold . a:level, '')
     else
-      if !s:IsAlreadyComment(line)
-        let line .= ' ' . map['left']
-      endif
-      let line .= ' ' . open_fold . a:level
-      if strlen(map['right'])
-        let line .= ' ' . map['right']
-      end
+      let line .= printf((s:IsAlreadyComment(line)
+                        \ ? '%s'
+                        \ : &commentstring),
+                        \ open_fold.a:level)
     endif
   endif
 
   call setline('.', line)
-endfun
-
-fun! s:GetCommentMarker() " {{{2
-  if has_key(g:NERDDelimiterMap, &filetype)
-    return g:NERDDelimiterMap[&filetype]
-  elseif &filetype ==# 'vim'
-    return { 'left': '"', 'right': '' }
-  else
-    return 0
-  end
 endfun
 
 fun! s:IsAlreadyComment(line) " {{{2
@@ -568,3 +556,70 @@ fun! f#filter_loclist(...) " {{{2
   call setloclist(winnr, loclist)
 endfun
 
+fun! f#vim_coverage(...) abort " {{{2
+  let covfile = a:0 ? a:1 : 'coverage.xml'
+  let file = a:0 > 1 ? a:2 : expand('%')
+
+  let fpat = '^\s\+<class .*filename="'.file.'"'
+  let lpat = '^\s\+<line hits="0" number="\(\d\+\)"\/>'
+  let epat = '^\s\+</class>'
+  let read = v:false
+
+  let entries = []
+
+  try
+    for line in readfile(covfile)
+      if !read
+        if match(line, fpat) < 0
+          continue
+        endif
+        let read = v:true
+      endif
+
+      if match(line, epat) >= 0
+        break
+      endif
+
+      let linematch = matchlist(line, lpat)
+      if !empty(linematch)
+        call add(entries, {
+              \ 'lnum': linematch[1],
+              \ 'filename': file,
+              \ 'text': 'no test coverage',
+              \})
+      endif
+    endfor
+  catch
+    echoerr v:exception
+    return
+  endtry
+
+  let l = len(entries)
+
+  if !l
+    echo "Full coverage!"
+    return
+  endif
+
+  call setloclist(winnr(), entries)
+  exe "lopen ".min([15, l])
+  wincmd p
+endfun
+
+fun! f#comment_motion(type, ...)
+  let sel_save = &selection
+  let &selection = 'inclusive'
+  let reg_save = @@
+
+  if a:0
+  elseif a:type == 'line'
+    exe "normal '[V'] \<Plug>NERDCommenterToggleComment"
+  else
+    exe "normal `[v`] \<Plug>NERDCommenterToggleComment"
+  endif
+
+  let &selection = sel_save
+  let @@ = reg_save
+endfun
+
+nmap <silent> <leader>C :set opfunc=f#comment_motion<CR>g@
