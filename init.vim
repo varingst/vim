@@ -102,7 +102,7 @@ Plug 'tbabej/taskwiki'
 
 Plug 'dhruvasagar/vim-table-mode'
 
-Plug 'rhysd/vim-grammarous', { 'on': 'GrammarousCheck' }
+Plug 'rhysd/vim-grammarous'
 
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'michaeljsmith/vim-indent-object'
@@ -162,6 +162,7 @@ let g:sym = {
       \ 'gutter_removed_first_line': '¨',
       \ 'gutter_removed_above_below':'‹',
       \ 'gutter_modified_removed':   '¬',
+      \ 'no_coverage':               '`',
       \ 'num': split('零壱弐三四五六七八九', '\zs'),
       \ 'day': split('日月火水木金土', '\zs')
       \ }
@@ -200,6 +201,7 @@ set autoread     " reloads file if changed and buffer not dirty
 set title        " set terminal title
 set visualbell   " dont beep
 set noerrorbells " dont beep
+set noshowmode
 set ttimeout
 
 set history=1000    " command and search history
@@ -359,11 +361,21 @@ inoremap <C-L> <C-O>dw
 " like i_<C-U> but to end of line, rather than start
 inoremap <C-;> <C-O>d$
 " like i_<C-W> but stop at snake_case/camelCase boundaries
-inoremap <C-Q> <C-O>dv?^\<BAR>_\<BAR>\u\<BAR>\<\<BAR>\s<CR>
+inoremap <C-E> <C-O>dv?^\<BAR>_\<BAR>\u\<BAR>\<\<BAR>\s<CR>
 " like i_<C-W> but WORD rather than word
-inoremap <C-E> <C-O>dB
+inoremap <C-Q> <C-O>dB
+inoremap <C-B> <ESC>:let @b = @.<CR>a
 
 inoremap <leader><C-V> <C-V>
+
+
+for pair in ['()', '{}', '[]']
+  execute printf('imap <leader>%s <Plug>Isurround%s', pair[0], pair[1])
+  execute printf('imap <leader>%s <Plug>ISurround%s<C-T>', pair[1], pair[0])
+endfor
+for char in ["'", '"']
+  execute printf('imap <leader>%s <Plug>Isurround%s', char, char)
+endfor
 
 " -- Various Visual ------------------------------------------------------- {{{2
 
@@ -392,11 +404,7 @@ nnoremap <C-W>i <ESC>90<C-W><BAR>
 nnoremap <C-W>I <ESC>180<C-W><BAR>
 
 " swap window with window <count>
-" TODO: doesn't work very well, but that is <C-X> not working as expected
 nnoremap <C-W>p <C-W>x
-
-" NOTE: regarding <count><C-W>w
-" moves to window number min(highest_win_nr, <count>)
 
 " close window <count>, or current window
 nnoremap <expr> <C-W>x (v:count ? v:count."\<C-W>w\<BAR>" : "").":close\<CR>"
@@ -407,6 +415,11 @@ nnoremap <expr> <C-W>X (v:count ? v:count."\<C-W>w\<BAR>" : "").":bd\<CR>"
 for i in range(1, 9)
   exe printf('nnoremap <C-W>%d <ESC>%d<C-W>w', i, i)
 endfor
+
+" -- Various Operators ---------------------------------------------------- {{{2
+
+call op#map('<leader>R', 'op#replace')
+call op#map('<leader>D', 'op#double')
 
 " -- Arrowkeys/Buffernav -------------------------------------------------- {{{2
 
@@ -528,10 +541,8 @@ Key 'yank current line until . to @o, put on next line', '<leader>o', 'i'
 
 " open line above
 inoremap <C-O><C-O> <C-O>O
-inoremap <C-R><C-O> <C-R>o
-inoremap <silent><leader>o <ESC>^"oyf.o<C-R>o
-nnoremap <silent><leader>o ^:set opfunc=f#copyO<CR>g@
-
+inoremap <silent><leader>o <ESC>^:set opfunc=op#copyO<CR>g@
+call op#map('<leader>o', 'copyO')
 
 " -- Normal jkJKHL -------------------------------------------------------- {{{2
 
@@ -574,12 +585,6 @@ nnoremap <silent><leader>x :s/\(<\w\+\\|\w\+=\({[^}]*}\\|"[^"]*"\\|'[^']*'\)\)\s
 nnoremap <silent><leader>X v/\/\?><CR>J:s/\s\(\/\?>\)/\1/<CR>
 
 
-" -- Text objects --------------------------------------------------------- {{{2
-
-" classes and methods, ruby only perhaps
-
-map ]<space> ]m
-map [<space> [m
 
 " -- Linewise Movement Overrides ------------------------------------------ {{{2
 
@@ -627,9 +632,10 @@ nmap <leader><leader>z <Plug>ZVKeyDocset
 nmap gz <Plug>ZVOperator
 
 " -- Surround ------------------------------------------------------------- {{{2
-
 xmap s <Plug>VSurround
+imap <C-S> <Plug>Isurround
 imap <leader>s <Plug>Isurround
+imap <leader>S <Plug>ISurround
 
 " -- Table mode ----------------------------------------------------------- {{{2
 

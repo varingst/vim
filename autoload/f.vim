@@ -354,6 +354,7 @@ function! s:G(lnum) " {{{2
   return "\<ESC>".(mode() == 'n' ? '' : 'gv').a:lnum."G"
 endfun
 
+
 " == Linewise ============================================================= {{{1
 
 function! f#linewise(count, on_count, default)
@@ -372,20 +373,45 @@ fun! f#copyO(type, ...) " {{{2
   let sel_save = &selection
   let selection = "inclusive"
 
-  let reg_save = @@
   if a:0 "invoked from Visual mode, use '< and '> marks
-    return
-  elseif a:type == 'line'
-    echoerr "linewise not supported"
-  elseif a:type == 'block'
-    echoerr "blockwise not supported"
-  else " a:type == char
+    silent exe "normal! gv\"oyo\<C-R>o"
+    startinsert!
+  elseif a:type == char
     silent exe "normal! `[v`]\"oyo\<C-R>o"
     startinsert!
   endif
 
   let &selection = sel_save
-  let @@ = reg_save
+endfun
+
+fun! f#double(type, ...) " {{{2
+  let sel_save = &selection
+  let selection = "inclusive"
+
+  if a:0 " invoked from visual mode
+    silent exe "normal! gv\"oy\"oP"
+  elseif a:type == 'line'
+    silent exe "normal! '[V']\"oy\"oP"
+  else
+    silent exe "normal! `[v`]\"oy\"oP"
+  endif
+  let &selection = sel_save
+endfun
+
+fun! f#replace(type, ...) " {{{2
+  let sel_save = &selection
+  let selection = 'inclusive'
+  let r_save = @r
+  let @r = @"
+  if a:0
+    silent exe "normal! gvd\"rp"
+  elseif a:type == 'line'
+    silent exe "normal! '[V']d\"rp"
+  else
+    silent exe "normal! `[v`]d\"rp"
+  endif
+  let @r = r_save
+  let &selection = sel_save
 endfun
 
 " == Toggle Profiling ===================================================== {{{1
@@ -441,23 +467,6 @@ endfun
 
 
 " == PROTOTYPES =========================================================== {{{1
-
-" -- Select Window -------------------------------------------------------- {{{2
-fun! f#SelectWindow()
-  let s:wins = {}
-  windo let s:wins[winnr()] = bufname(winbufnr(winnr()))
-  " call inputlist(map(sort(keys(s:wins)), 'printf("%-8s%s", v:val, s:wins[v:val])'))
-  for winnr in sort(keys(s:wins))
-    echo printf('%-8s%s', winnr, s:wins[winnr])
-  endfor
-  let inp = 0
-  echo printf('1-%d > ', len(s:wins))
-  while inp < char2nr('1') || inp > char2nr(string(len(s:wins)))
-    let inp = getchar()
-  endwhile
-  call win_gotoid(win_getid(str2nr(nr2char(inp))))
-endfun
-
 
 " -- Grep revision history for file --------------------------------------_{{{2
 let s:max_matches = 50
@@ -556,57 +565,8 @@ fun! f#filter_loclist(...) " {{{2
   call setloclist(winnr, loclist)
 endfun
 
-fun! f#vim_coverage(...) abort " {{{2
-  let covfile = a:0 ? a:1 : 'coverage.xml'
-  let file = a:0 > 1 ? a:2 : expand('%')
 
-  let fpat = '^\s\+<class .*filename="'.file.'"'
-  let lpat = '^\s\+<line hits="0" number="\(\d\+\)"\/>'
-  let epat = '^\s\+</class>'
-  let read = v:false
-
-  let entries = []
-
-  try
-    for line in readfile(covfile)
-      if !read
-        if match(line, fpat) < 0
-          continue
-        endif
-        let read = v:true
-      endif
-
-      if match(line, epat) >= 0
-        break
-      endif
-
-      let linematch = matchlist(line, lpat)
-      if !empty(linematch)
-        call add(entries, {
-              \ 'lnum': linematch[1],
-              \ 'filename': file,
-              \ 'text': 'no test coverage',
-              \})
-      endif
-    endfor
-  catch
-    echoerr v:exception
-    return
-  endtry
-
-  let l = len(entries)
-
-  if !l
-    echo "Full coverage!"
-    return
-  endif
-
-  call setloclist(winnr(), entries)
-  exe "lopen ".min([15, l])
-  wincmd p
-endfun
-
-fun! f#comment_motion(type, ...)
+fun! f#comment_motion(type, ...) " {{{2
   let sel_save = &selection
   let &selection = 'inclusive'
   let reg_save = @@
