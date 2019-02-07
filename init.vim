@@ -3,52 +3,27 @@ call f#plug_begin()
 
 " -- Programmer QoL ------------------------------------------------------- {{{2
 
-Plug 'Valloric/YouCompleteMe'
-Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
-
-Plug 'w0rp/ale'
-PlugLocal 'varingst/ale-silence'
-Plug 'tomtom/tcomment_vim'
-Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }   " file navigator
-
-Plug 'SirVer/ultisnips'
-Plug 'honza/vim-snippets'
-
 " Code search, nav, vim-bling
 Plug 'mileszs/ack.vim'             " code grepper (ag/ack) wapper
 PlugLocal 'varingst/ack-extend'
+PlugLocal 'varingst/vim-superg'
 Plug 'majutsushi/tagbar', { 'on' : 'TagbarToggle' }
 Plug 'junegunn/fzf.vim'            " fuzzy file, buffer, everything nav
 Plug 'vim-airline/vim-airline'     " statusline
-Plug 'vim-airline/vim-airline-themes'
 Plug 'KabbAmine/zeavim.vim'        " doc lookup
 Plug 'airblade/vim-gitgutter'
-Plug 'vim-scripts/camelcasemotion' " camelcase text objects
 Plug 'junegunn/vim-easy-align'
 PlugLocal 'varingst/vim-skeleton', 'vim-skeleton-fork'
-PlugLocal 'varingst/vim-indent-object', 'indent-object'
-
-" testing nvim-completion-manager-2
-
-Plug 'roxma/vim-hug-neovim-rpc'    " neovim rpc client comp layer
-Plug 'roxma/nvim-yarp'             " yet another remote plugin framework
-Plug 'ncm2/ncm2'
-Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next',
-                                       \ 'do': 'language-client-install' }
 
 " -- Programming Language Extras ------------------------------------------ {{{2
 "
 Plug 'sheerun/vim-polyglot'        " language pack
 
 PlugFT {
-    \ 'ruby': [
-      \ 'danchoi/ri.vim',
-    \ ],
     \ 'javascript': [
       \ 'maxmellon/vim-jsx-pretty',
       \ 'othree/jspc.vim',
       \ 'othree/javascript-libraries-syntax.vim',
-      \ 'alexbyk/vim-ultisnips-react',
       \ 'moll/vim-node'
     \ ],
     \ 'haxe': [
@@ -64,10 +39,6 @@ PlugFT {
     \ ]
   \ }
 
-Plug 'ncm2/ncm2-pyclang'           " c/c++
-Plug 'ncm2/ncm2-vim'
-Plug 'Shougo/neco-vim'             " vim dep
-
 Plug 'junegunn/vader.vim'
 
 " -- Tim Pope obviously --------------------------------------------------- {{{2
@@ -79,8 +50,8 @@ Plug 'tpope/vim-endwise'          " autoadd closing symbols (end/endif/endfun)
 Plug 'tpope/vim-dispatch'         " Run builds and test suites
 Plug 'tpope/vim-repeat'           " make '.' handle plugins nicer
 Plug 'tpope/vim-abolish'          " Smarter substitution ++
-Plug 'tpope/vim-markdown'
 Plug 'tpope/vim-scriptease'
+Plug 'tpope/vim-commentary'
 
 " Ruby snaxx
 Plug 'tpope/vim-bundler'
@@ -89,6 +60,12 @@ Plug 'tpope/vim-projectionist'
 Plug 'tpope/vim-rails'
 Plug 'tpope/vim-rbenv'            " Tell vim to use the right ruby
 Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
+
+" -- Vim motions and objects ---------------------------------------------- {{{2
+
+Plug 'vim-scripts/camelcasemotion'
+PlugLocal 'varingst/vim-indent-object', 'indent-object'
+PlugLocal 'varingst/vim-text-objects'
 
 " -- Markup, Template, Formatting, et al ---------------------------------- {{{2
 
@@ -114,6 +91,7 @@ for proto in glob('~/.vim/proto/*', v:false, v:true)
 endfor
 
 " }}}
+call ide#plug('ale', 'ncm2', 'lc')
 
 call plug#end()
 
@@ -153,6 +131,9 @@ let g:sym = {
       \ 'whitespace_nobreak':        '¬',
       \ 'nowrap_precedes':           '‹',
       \ 'nowrap_extends':            '›',
+      \ 'fill_vert':                 '\ ',
+      \ 'fill_fold':                 '\ ',
+      \ 'fill_diff_removed':         '…',
       \ 'gutter_error':              '»',
       \ 'gutter_warning':            '›',
       \ 'gutter_info':               '°',
@@ -186,8 +167,7 @@ set nomore                " remove more message after shell command
 set winminheight=0        " windows may be minimized down to just a status bar
 set splitright
 set splitbelow
-let g:default_completeopt = 'menuone' " use popupmenu also with just one match
-exe 'set completeopt='.g:default_completeopt
+set completeopt=menuone
 
 if &modifiable && !has('nvim')
   set fileencoding=utf-8
@@ -219,6 +199,7 @@ set tabstop=2                " set tab character to 2 characters
 set shiftwidth=2             " ident width for autoindent
 set expandtab                " turn tabs into whitespace
 set foldmethod=marker        " type of folding
+set foldtext=printf('%s%3d\ %s',v:folddashes,(v:foldend-v:foldstart),getline(v:foldstart))
 set backspace=2              " make backspace work like most other apps
 set list                     " replace whitespace with listchars
 exe ':set listchars='.join([
@@ -228,16 +209,22 @@ exe ':set listchars='.join([
       \ 'precedes:'   .g:sym.nowrap_precedes,
       \ 'extends:'    .g:sym.nowrap_extends
       \  ], ',')
-let g:default_conceal_level = 2
-exe 'set conceallevel='.g:default_conceal_level
-set concealcursor=nc         " conceal in normal and commandmode
+exe ':set fillchars='.join([
+      \ 'vert:'       .g:sym.fill_vert,
+      \ 'fold:'       .g:sym.fill_fold,
+      \ 'diff:'       .g:sym.fill_diff_removed,
+      \ ], ',')
+
+set conceallevel=2
+set concealcursor=nc         " conceal cursorline in normal and commandmode
 
 set nowrap
 set textwidth=80
+set formatoptions=cqj
 set synmaxcol=128     " limit max number of columns to search for syntax items
 set signcolumn=yes
 set iskeyword=@,48-57,_,192-255,-
-set viewoptions="cursor,folds"
+set viewoptions=cursor,folds
 
 set ttyfast      " send more chars to screen for redrawing
 set lazyredraw   " don't redraw while executing macros
@@ -253,7 +240,7 @@ augroup vimrc_autocmd
   au BufWinLeave *.* mkview
   au BufWinEnter *.* silent! loadview
 
-  au FileType gitcommit,qf wincmd J
+  au FileType gitcommit,qf wincmd J | setlocal nonumber | setlocal signcolumn=no
 
   " Dont show tabs in vim help, vsplit if space available
   au FileType help setlocal nolist | if winwidth('.') > 140 | wincmd L | endif
@@ -267,20 +254,15 @@ augroup vimrc_autocmd
 
   au BufWinEnter ~/.vimrc cd ~/.vim | call FugitiveDetect(expand('~/.vim'))
 
-  au BufWinEnter .eslintrc set filetype=json
+  " set tmux window title to repo root dir or current file name
+  au BufReadPost,FileReadPost,BufNewFile,WinEnter * call
+        \ system(printf("tmux rename-window '%s'",
+        \               substitute(strlen(FugitiveWorkTree())
+        \                                 ? fnamemodify(FugitiveWorkTree(), ':~')
+        \                                 : expand('%:~:.'),
+        \                          '^\~/\.sync/dotfiles/', '~/.', '')))
 augroup END
 
-" -- NCM2 ----------------------------------------------------------------- {{{2
-
-augroup ncm2_completion_autocmd
-  autocmd!
-  au BufWinEnter * if has_key(g:ncm2_filetype_whitelist, &filetype)
-               \ |   call ncm2#enable_for_buffer()
-               \ |   exe 'imap <buffer> '.g:completion_key.' <Plug>(ncm2_manual_trigger)'
-               \ | endif
-  au User Ncm2PopupOpen set completeopt=noinsert,menuone,noselect
-  exe "au User Ncm2PopupClose set completeopt=".g:default_completeopt
-augroup END
 
 " -- VimWiki -------------------------------------------------------------- {{{2
 
@@ -351,7 +333,6 @@ nnoremap <expr><leader><space>
 
 " terminal sends ^@ on <C-Space>
 inoremap <C-@> <C-Space>
-let g:completion_key = '<C-Space>'
 
 " fire InsertLeave even on <C-C>
 inoremap <C-C> <ESC>
@@ -368,6 +349,11 @@ inoremap <C-B> <ESC>:let @b = @.<CR>a
 
 inoremap <leader><C-V> <C-V>
 
+imap <Tab>   <Plug>CompleteNext
+imap <S-Tab> <Plug>CompletePrev
+
+" TODO: C-Y shouldn't be remapped here
+imap <expr><CR> pumvisible() ? "\<C-Y>" : "\<CR>\<Plug>DiscretionaryEnd"
 
 for pair in ['()', '{}', '[]']
   execute printf('imap <leader>%s <Plug>Isurround%s', pair[0], pair[1])
@@ -377,12 +363,6 @@ for char in ["'", '"']
   execute printf('imap <leader>%s <Plug>Isurround%s', char, char)
 endfor
 
-" -- Various Visual ------------------------------------------------------- {{{2
-
-" yank visual selection to register
-vnoremap <silent><C-R> :<C-U>exe 'normal! gv"'.nr2char(getchar()).'y'<CR>
-" replace on all lines of visual selection
-vnoremap R dgvI
 
 " -- Various Command ------------------------------------------------------ {{{2
 
@@ -449,13 +429,12 @@ nmap <expr><C-Up>    get(b:, 'table_mode_active')
 nmap <expr><C-Down>  get(b:, 'table_mode_active')
       \ ? '<Plug>(table-mode-motion-down)'  : '<C-W>j'
 
-" -- <CR> mapping --------------------------------------------------------- {{{2
+" -- SuperG --------------------------------------------------------------- {{{2
 
-" jump to closest line matching <count>$
-nnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
-xnoremap <expr><CR> v:count ? f#G(v:count) : "<CR>"
-
-imap <expr><CR> (pumvisible() ? "\<C-Y>" : '')."\<CR>\<Plug>DiscretionaryEnd"
+let g:superg_fallback = "\<CR>"
+map <CR> <Plug>SuperG
+map $ <Plug>Super$
+map _ <Plug>Super_
 
 " -- <space> mapping ------------------------------------------------------ {{{2
 
@@ -495,10 +474,6 @@ nnoremap z2 :call f#SetFoldMarker(2)<CR>
 nnoremap z3 :call f#SetFoldMarker(3)<CR>
 nnoremap z4 :call f#SetFoldMarker(4)<CR>
 
-" -- Faster file Saving --------------------------------------------------- {{{2
-
-inoremap <leader>w <C-O>:w<CR>
-nnoremap <leader>w :w<CR>
 
 " -- Awkward symbol shorthands -------------------------------------------- {{{2
 inoremap ,. ->
@@ -544,6 +519,10 @@ inoremap <C-O><C-O> <C-O>O
 inoremap <silent><leader>o <ESC>^:set opfunc=op#copyO<CR>g@
 call op#map('<leader>o', 'copyO')
 
+vnoremap <expr>O line('.') == line("'<")
+      \ ? "o\<ESC>o\<ESC>gvo"
+      \ : "o\<ESC>O\<ESC>gvo"
+
 " -- Normal jkJKHL -------------------------------------------------------- {{{2
 
 " j/k on visual lines, not actual lines
@@ -570,7 +549,7 @@ Key 'Downcase last uppercase letter', '<leader>u', 'ni'
 nnoremap <silent><leader>u md:s/.*\zs\(\u\)/\L\1/e<CR>`d
 inoremap <silent><leader>u <ESC>:s/.*\zs\(\u\)/\L\1/e<CR>`^i
 
-" -- Line join/break ---------------------------------------- {{{2
+" -- Line join/break ------------------------------------------------------ {{{2
 
 Key 'join <count> lines/paragraph', '<leader>j/J'
 nnoremap <leader>j J
@@ -583,29 +562,6 @@ nnoremap <silent><leader>F 0f(v%J
 Key 'Break/Join XML attributes',   '<leader>x/X'
 nnoremap <silent><leader>x :s/\(<\w\+\\|\w\+=\({[^}]*}\\|"[^"]*"\\|'[^']*'\)\)\s*/\1\r/ge<CR>:redraw<CR>='[
 nnoremap <silent><leader>X v/\/\?><CR>J:s/\s\(\/\?>\)/\1/<CR>
-
-
-
-" -- Linewise Movement Overrides ------------------------------------------ {{{2
-
-" The default:
-" ^       - First CHAR of current line
-" N-      - First CHAR N lines higher
-" N_      - First CHAR N-1 lines lower
-" N+      - First CHAR N lines lower
-" N<CR>   - First CHAR N lines lower
-" N$      - End of line N-1 lines lower
-
-" Here
-" N_         - First char N-1 lines lower
-" N<leader>_ - First char N-1 lines higher
-" N$         - Last char N-1 lines lower
-" N<leader>_ - Last char N-1 lines higher
-
-" TODO: operator-pending mode
-
-noremap <expr><leader>_ f#linewise(v:count, "-", "_")
-noremap <expr><leader>$ f#linewise(v:count, "k$", "$")
 
 " -- EasyAlign ------------------------------------------------------------ {{{2
 
@@ -662,7 +618,6 @@ nnoremap <leader>tc :TableModeInsert<space>
 FKeys {
   \ '<F1>':           ':call keys#flist()',
   \ '<F2>':           ':call f#LocListToggle()',
-  \ '<F3>':           ':NERDTreeToggle',
   \ '<F4>':           ':TagbarToggle',
   \ '<F5>':           ':CheatSheet',
   \ '<F6>':           ':call f#AutoCompletionToggle()',
@@ -682,12 +637,15 @@ FKeys {
   \ '<leader><F11>':  ':Make!'
   \ }
 
+" -- Commentary Extension ------------------------------------------------- {{{2
+nnoremap <silent> gC :set opfunc=f#CommentToggle<CR>g@
+xnoremap <silent> gC :<C-U>call f#CommentToggle(v:true)<CR>
 
 " == COMMANDS ============================================================= {{{1
 
-command! -nargs=* Variations   silent call f#Variations(<f-args>)
+command! -nargs=? ReplaceEach  silent call f#ReplaceEach(<q-args>)
 command! -nargs=1 Profile      silent call f#Profile(<q-args>)
-command! -nargs=* LocalGrep    silent call f#LocalVimGrep(<q-args>)
+command! -nargs=* LocalGrep    silent call f#LocalGrep(<q-args>)
 command! -nargs=* Date         read !date --date=<q-args> "+\%Y-\%m-\%d"
 
 " diff file and buffer, see :he :DiffOrig
@@ -734,14 +692,27 @@ command! -nargs=? -complete=file Open silent call
       \ netrw#BrowseX(expand(strwidth(<q-args>) ? <q-args> : '%'),
       \               netrw#CheckIfRemote())
 
-" open vim function definition
-command! -nargs=1 -complete=function Function execute
+command! -nargs=1 -complete=file Move call mkdir(fnamemodify(<q-args>, ":p:h"), "p")
+                                  \ | call rename(expand('%'), <q-args>)
+                                  \ | bwipeout %
+                                  \ | exe 'e '.<q-args>
+
+" open vim function definition, default previous with error
+command! -nargs=? -complete=function Function silent execute
       \ (winwidth('.') < 140 ? 'split' : 'vsplit').' +'.
       \   join(
       \     reverse(
       \       matchlist(
-      \         execute('verbose function'),
-      \         <q-args>.'[^\n]*\n\s*Last set from \(\S\+\) line \(\d\+\)')[1:2]))
+      \         execute('verbose function '
+      \           .substitute(
+      \             strlen(<q-args>)
+      \             ? <q-args>
+      \             : get(filter(map(split(execute('messages'), '\n'),
+      \                              {_, m -> matchstr(m, 'processing function \zs[^:]*\ze')}),
+      \                          {_, f -> strlen(f) }),
+      \                   -1, '')
+      \             '(.*$', '', '')),
+      \         'Last set from \(\S\+\) line \(\d\+\)')[1:2]))
 
 " insert NxM table
 command! -nargs=+ TableModeInsert
@@ -782,191 +753,6 @@ let g:gcc_flags = {
 " ~/.vim/autoload/ide.vim
 call ide#init()
 
-" -- Language Client ------------------------------------------------------ {{{3
-
-" leave diagnostics to ALE, for now
-let g:LanguageClient_diagnosticsEnable = 0
-
-let g:LanguageClient_serverCommands = {
-    \ 'ruby': ['solargraph', 'stdio'],
-    \ }
-
-if filereadable(expand('~/.jars/EmmyLua-LS-all.jar'))
-  let g:LanguageClient_serverCommands['lua'] = [
-        \ 'java',
-        \ '-cp',
-        \ expand('~/.jars/EmmyLua-LS-all.jar'),
-        \ 'com.tang.vscode.MainKt' ]
-endif
-
-let g:LanguageClient_rootMarkers = {
-    \ 'ruby': ['Gemfile']
-    \ }
-
-let g:LanguageClient_diagnosticsList = 'Quickfix'
-
-if v:false " needs more haxx
-  let tmp = tempname()
-  let g:LanguageClient_loggingFile = tmp.'lc-client.log'
-  let g:LanguageClient_serverStderr = tmp.'lc-server.log'
-  command! LangClientLog exe "vsplit ".g:LanguageClient_loggingFile
-  command! LangServerLog exe "vsplit ".g:LanguageClient_serverStderr
-endif
-
-let g:LanguageClient_diagnosticsDisplay = {
-      \ 1: {
-      \   'name': g:sym.error,
-      \   'texthl': 'ALEError',
-      \   'signText': g:sym.gutter_error,
-      \   'signTexthl': 'ALEErrorSign',
-      \ },
-      \ 2: {
-      \   'name': g:sym.warning,
-      \   'texthl': 'ALEWarning',
-      \   'signText': g:sym.gutter_warning,
-      \   'signTexthl': 'ALEWarningSign',
-      \ },
-      \ 3: {
-      \   'name': g:sym.info,
-      \   'texthl': 'ALEInfo',
-      \   'signText': g:sym.gutter_info,
-      \   'signTexthl': 'ALEInfoSign',
-      \ },
-      \ 4: {
-      \   'name': g:sym.info,
-      \   'texthl': 'ALEInfo',
-      \   'signText': g:sym.gutter_info,
-      \   'signTexthl': 'ALEInfoSign',
-      \ },
-      \}
-
-
-" -- NCM2 ----------------------------------------------------------------- {{{3
-
-let g:ncm2_filetype_whitelist = extend({
-      \ 'vim': 1,
-      \}, g:LanguageClient_serverCommands)
-
-let g:clang_path = '/usr/lib/llvm/6'
-let g:ncm2_pyclang#library_path = g:clang_path.'/lib64/libclang.so.6'
-let g:ncm2_pyclang#clang_path   = g:clang_path.'/bin/clang'
-let g:ncm2_pyclang#database_path = [ 'compile_commands.json' ]
-let g:ncm2_pyclang#args_file_path = [ '.clang_complete' ]
-
-" see :help Ncm2PopupOpen
-let g:normal_completeopt = &completeopt
-
-
-" -- YCM ------------------------------------------------------------------ {{{3
-
-let g:ycm_filetype_whitelist = { '*': 1 }
-let g:ycm_filetype_blacklist = extend({
-      \ 'tagbar': 1,
-      \ 'markdown': 1,
-      \ 'vimwiki': 1,
-      \}, g:ncm2_filetype_whitelist)
-
-" minimum chars to trigger identifier completion (2)
-let g:ycm_min_num_of_chars_for_completion = 2
-" minimum matching characters for candidate to be shown (0)
-let g:ycm_min_num_identifier_candidate_chars = 0
-" max number of indentifier suggestions in menu (10)
-let g:ycm_max_num_identifier_candidates = 50
-
-" max number of semantic suggestions in menu (50)
-let g:ycm_max_num_candidates = 100
-
-" completion menu auto popup (1)
-let g:ycm_auto_trigger = 1
-
-let g:ycm_complete_in_comments = 0
-let g:ycm_complete_in_strings = 1
-
-" filetypes for which to disable filepath completion
-let g:ycm_filepath_blacklist = {
-      \ 'html': 1,
-      \ 'jsx': 1,
-      \ 'xml': 1,
-      \ }
-" -- diagnostics -- {{{4
-"
-" Let ALE handle diagnostics
-
-" diagnostics for c, cpp, objc, objcpp, cuda
-let g:ycm_show_diagnostics_ui = 0
-
-" put icons in vim's gutter
-let g:ycm_enable_diagnostic_signs = 0
-let g:ycm_enable_diagnostic_highlighting = 0
-
-" echo diagnostic of current line
-let g:ycm_echo_current_diagnostic = 0
-
-" gutter symbols
-let g:ycm_error_symbol = g:sym.gutter_error
-let g:ycm_warning_symbol = g:sym.gutter_warning
-
-
-" filter
-" 'filetype: { 'regex': [ ... ], 'level': 'error',
-let g:ycm_filter_diagnostics = {}
-
-" populate location list on new data
-let g:ycm_always_populate_location_list = 0
-
-" auto open location list after :YcmDiags
-let g:ycm_open_loclist_on_ycm_diags = 0
-
-" --- }}}
-
-let g:ycm_use_ultisnips_completer = 0
-
-let g:ycm_add_preview_to_completeopt = 0
-
-
-"let g:ycm_filetype_specific_completion_to}
-let g:ycm_collect_identifiers_from_tags_files = 1
-let g:ycm_seed_identifiers_with_syntax = 1
-
-let g:ycm_key_invoke_completion = g:completion_key
-let g:ycm_key_list_select_completion = ['<C-j>', '<Tab>', '<Down>']
-let g:ycm_key_list_previous_completion = ['<C-k>', '<S-Tab>', '<Up>']
-
-
-let g:ycm_global_ycm_extra_conf = expand('$HOME').'/.vim/ycm.py'
-let g:ycm_extra_conf_vim_data = [
-      \ '&filetype',
-      \ 'g:gcc_flags',
-      \]
-" let g:ycm_config_extra_conf = 0
-
-let g:ycm_autoclose_preview_window_after_completion = 1
-let g:ycm_autoclose_preview_window_after_insertion = 1
-
-let g:ycm_semantic_triggers = {
-  \   'c'               : ['->', '.'],
-  \   'objc'            : ['->', '.'],
-  \   'ocaml'           : ['.', '#'],
-  \   'cpp,objcpp'      : ['->', '.', '::'],
-  \   'perl'            : ['->'],
-  \   'php'             : ['->', '::'],
-  \   join([
-        \ 'cs',
-        \ 'd',
-        \ 'elixir',
-        \ 'haskell',
-        \ 'java',
-        \ 'javascript',
-        \ 'python',
-        \ 'perl6',
-        \ 'ruby',
-        \ 'scala',
-        \ 'vb',
-        \ 'vim'
-  \   ], ',')           : [ '.' ],
-  \   'lua'             : ['.', ':'],
-  \   'erlang'          : [':'],
-  \ }
 
 " -- CHEATSHEET ----------------------------------------------------------- {{{2
 
@@ -1274,14 +1060,6 @@ let g:ack_whitelisted_options = g:ack_options.
       \ ' --case-sensitive --smart-case --unrestricted'
 let g:ack_use_dispatch = 1
 
-" -- ULTISNIPS ------------------------------------------------------------ {{{2
-
-let g:UltiSnipsExpandTrigger       = '<leader>l'
-let g:UltiSnipsJumpForwardTrigger  = '<leader>j'
-let g:UltiSnipsJumpBackwardTrigger = '<leader>k'
-
-let g:UltiSnipsEditSplit           = 'horizontal'
-let g:UltiSnipsSnippetsDirectories = [ '~/.vim/UltiSnips', 'UltiSnips' ]
 
 " -- CALENDAR ------------------------------------------------------------- {{{2
 
@@ -1319,6 +1097,8 @@ let g:vimwiki_list = [
 " fold on sections and code blocks
 let g:vimwiki_folding = 'expr'
 
+let g:vimwiki_map_prefix = '<leader>W'
+
 " -- GIT GUTTER ----------------------------------------------------------- {{{2
 
 let g:gitgutter_sign_added                   = g:sym.gutter_added
@@ -1336,3 +1116,16 @@ Key '(gitgutter) Next/Prev Hunk', '[/]c'
 
 Key '(abolish) Change to snake/camel/mixed/upper case', 'cr(s/c/m/u)'
 " vim: foldmethod=marker
+
+" -- CAMEL CASE MOTION ---------------------------------------------------- {{{2
+
+map <leader>w <Plug>CamelCaseMotion_w
+map <leader>b <Plug>CamelCaseMotion_b
+map <leader>e <Plug>CamelCaseMotion_e
+
+xmap i<leader>w <Plug>CamelCaseMotion_iw
+omap i<leader>w <Plug>CamelCaseMotion_iw
+xmap i<leader>b <Plug>CamelCaseMotion_ib
+omap i<leader>b <Plug>CamelCaseMotion_ib
+xmap i<leader>e <Plug>CamelCaseMotion_ie
+omap i<leader>e <Plug>CamelCaseMotion_ie

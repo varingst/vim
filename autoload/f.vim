@@ -8,28 +8,29 @@ fun! f#VimRcExtra()
   command! Source :source ~/.vimrc<BAR>:source ~/.vim/autoload/f.vim
 endfunction
 
-" == Variations =========================================================== {{{1
-" a:1: pattern, a:2 .. a:n: replacements
-" copies current line and inserts a new one
-" per replacement, with pattern replaced
-function! f#Variations(...) " {{{2
-  if a:0
-    let words = a:000[:]
-  else
-    call inputsave()
-    let words = split(input('match sub1 sub2 ... : '))
-    call inputrestore()
-  endif
+" == ReplaceEach =========================================================== {{{1
 
-  if len(words) <= 1
-    return
-  endif
-
-  let curline = getline('.')
-  for i in range(1, len(words) - 1)
-    let words[i] = substitute(curline, words[0], words[i], 'g')
-  endfor
-  call append(line('.'), words[1: -1])
+fun! f#ReplaceEach(pattern) abort
+  let pattern = strlen(a:pattern) ? a:pattern : '{\w*}'
+  let template = getline('.')
+  let to_replace = []
+  call substitute(template, pattern, '\=add(to_replace, submatch(0))', 'g')
+  call inputsave()
+  while v:true
+    for pattern in filter(to_replace, 'index(to_replace, v:val) == v:key')
+      let replacement = input('s/'.pattern.'/')
+      if !strlen(replacement)
+        call inputrestore()
+        normal! "_dd
+        return
+      endif
+      exe printf('s/%s/%s/g', pattern, replacement)
+      redraw
+    endfor
+    call append('.', template)
+    normal! j
+    redraw
+  endwhile
 endfun
 
 " == VimRCHeadline ======================================================== {{{1
@@ -44,23 +45,14 @@ endfun
 
 " == Location/Error list ================================================== {{{1
 
-" http://vim.wikia.com/wiki/Toggle_to_open_or_close_the_quickfix_window
-fun! s:GetBufferList() " {{{2
-  redir =>buflist
-  silent! ls!
-  redir END
-  return buflist
-endfunction
-
 fun! f#LocListToggle() " {{{2
   if !len(getloclist(0))
     return
   endif
 
-  let buflist = s:GetBufferList()
-
   " find if open by positive winnr
-  for bufnum in map(filter(split(buflist, '\n'),
+  for bufnum in map(filter(split(execute('silent! ls!'),
+                 \               '\n'),
                  \         'v:val =~# "Location List"'),
                  \  'str2nr(matchstr(v:val, "\\d\\+"))')
     if bufwinnr(bufnum) != -1
@@ -95,7 +87,7 @@ nnoremap <silent> <Plug>LNext :call f#Wrap('l', 'next', 'first')<CR>
 nnoremap <silent> <Plug>CPrev :call f#Wrap('c', 'prev', 'last')<CR>
 nnoremap <silent> <Plug>CNext :call f#Wrap('c', 'next', 'first')<CR>
 
-fun! f#LocalVimGrep(...) " {{{2
+fun! f#LocalGrep(...) " {{{2
   let pattern = substitute(a:0 ? a:1 : @/, '^/\(.*\)/$', '\1', '')
   let lnum = line('.')
 
@@ -169,12 +161,16 @@ endfun
 
 fun! f#ConcealToggle()
   if &conceallevel
-    let b:conceal_level = &conceallevel
     setlocal conceallevel=0
   else
-    exe 'setlocal conceallevel='.get(b:, 'conceal_level', get(
-                                    \g:, 'default_conceal_level', 2))
+    setlocal conceallevel<
   endif
+endfun
+
+" == Comment Toggle ======================================================= {{{1
+
+fun! f#CommentToggle(...)
+  exe 'silent '.(a:1 ? "'<,'>" : "'[,']").' normal gcc'
 endfun
 
 " == ColorColumnToggle ==================================================== {{{1
@@ -249,8 +245,6 @@ fun! s:current_hunk() abort " {{{2
 
   return current_hunk
 endfun
-
-
 
 " == Cycle Cursorlines ==================================================== {{{1
 fun! f#crosshair(n)
@@ -365,53 +359,6 @@ function! f#linewise(count, on_count, default)
   return mode == 'n' ?
         \ "\<ESC>".(a:count - 1).a:on_count :
         \ "\<ESC>".mode.(a:count - 1).a:on_count
-endfun
-
-" == Copy {motion} to register o, paste it on next line =================== {{{1
-
-fun! f#copyO(type, ...) " {{{2
-  let sel_save = &selection
-  let selection = "inclusive"
-
-  if a:0 "invoked from Visual mode, use '< and '> marks
-    silent exe "normal! gv\"oyo\<C-R>o"
-    startinsert!
-  elseif a:type == char
-    silent exe "normal! `[v`]\"oyo\<C-R>o"
-    startinsert!
-  endif
-
-  let &selection = sel_save
-endfun
-
-fun! f#double(type, ...) " {{{2
-  let sel_save = &selection
-  let selection = "inclusive"
-
-  if a:0 " invoked from visual mode
-    silent exe "normal! gv\"oy\"oP"
-  elseif a:type == 'line'
-    silent exe "normal! '[V']\"oy\"oP"
-  else
-    silent exe "normal! `[v`]\"oy\"oP"
-  endif
-  let &selection = sel_save
-endfun
-
-fun! f#replace(type, ...) " {{{2
-  let sel_save = &selection
-  let selection = 'inclusive'
-  let r_save = @r
-  let @r = @"
-  if a:0
-    silent exe "normal! gvd\"rp"
-  elseif a:type == 'line'
-    silent exe "normal! '[V']d\"rp"
-  else
-    silent exe "normal! `[v`]d\"rp"
-  endif
-  let @r = r_save
-  let &selection = sel_save
 endfun
 
 " == Toggle Profiling ===================================================== {{{1
