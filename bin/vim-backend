@@ -6,8 +6,7 @@ main() {
   binpath="${srcpath%/*}"
   backend="$(realpath "${binpath}/../backend/")"
 
-  [[ -s "$binpath" ]] || bail "could not locate binpath at '$binpath'"
-  [[ -s "$backend" ]] || bail "could not locate backend at '$backend'"
+  [[ -s "$backend/backend" ]] || bail "could not locate backend at '$backend'"
 
   while read -r pkg type args; do
     if [[ "${pkg:0:1}" == "_" ]] \
@@ -32,17 +31,17 @@ main() {
 node_update() {
   echo "Updating node package '$1'"
   cd "$backend"
-  npm update "${2:-$1}" --no-save --no-package-lock 2>&1 | no_fucking_nagging
+  _npm update "${2:-$1}"
 }
 
 node_install() {
   echo "Installing node package '$1'"
   cd "$backend"
-  npm install "${2:-$1}" --no-save --no-package-lock 2>&1 | no_fucking_nagging
+  _npm install "${2:-$1}"
 }
 
-no_fucking_nagging() {
-  awk '$0 !~ "WARN"'
+_npm() {
+  npm "$@" --no-save --no-package-lock 2>&1 | awk '$0 !~ "WARN"'
 }
 
 node_link() {
@@ -64,7 +63,7 @@ node_bin() {
 }
 
 bail() {
-  printf '%s\n' "$@" >&1
+  printf '%s\n' "$@" >&2
   exit 1
 }
 
