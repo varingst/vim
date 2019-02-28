@@ -63,23 +63,6 @@ node_bin() {
   realpath "$backend/node_modules/.bin/$1" 2>/dev/null
 }
 
-jar_installed() {
-  :
-}
-
-jar_update() {
-  echo "jar update not implemented"
-}
-
-jar_install() {
-  echo "jar install not implemented"
-}
-
-jar_link() {
-  echo "jar install not implemented"
-}
-
-
 bail() {
   printf '%s\n' "$@" >&1
   exit 1

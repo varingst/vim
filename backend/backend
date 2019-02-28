@@ -2,4 +2,3 @@ typescript-language-server node
 css-languageserver node vscode-css-languageserver-bin
 _fzf curl
 _solargraph gem
-_emmylua jar
