@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2164
+
+main() {
+  srcpath="$(realpath "$0")"
+  binpath="${srcpath%/*}"
+  backend="$(realpath "${binpath}/../backend/")"
+
+  [[ -s "$binpath" ]] || bail "could not locate binpath at '$binpath'"
+  [[ -s "$backend" ]] || bail "could not locate backend at '$backend'"
+
+  while read -r pkg type args; do
+    if [[ "${pkg:0:1}" == "_" ]] \
+       && command -v "${pkg#_}" >/dev/null 2>&1; then
+      echo "'${pkg#_}' already in \$PATH, skipping"
+      echo
+      continue
+    fi
+
+    pkg="${pkg#_}"
+
+    if "${type}_installed" "$pkg"; then
+      "${type}_update" "$pkg" "$args"
+    else
+      "${type}_install" "$pkg" "$args"
+      "${type}_link" "$pkg"
+    fi
+    echo
+  done < "$backend/backend"
+}
+
+node_update() {
+  echo "Updating node package '$1'"
+  cd "$backend"
+  npm update "${2:-$1}" --no-save --no-package-lock 2>&1 | no_fucking_nagging
+}
+
+node_install() {
+  echo "Installing node package '$1'"
+  cd "$backend"
+  npm install "${2:-$1}" --no-save --no-package-lock 2>&1 | no_fucking_nagging
+}
+
+no_fucking_nagging() {
+  awk '$0 !~ "WARN"'
+}
+
+node_link() {
+  cd "$binpath"
+  [[ -f "$1" && ! -L "$1" ]] && return
+
+  bin="$(node_bin "$1")"
+
+  echo "Creating symlink '$1'"
+  ln -srf "$bin" "$1"
+}
+
+node_installed() {
+  [[ -x "$(node_bin "$1")" ]]
+}
+
+node_bin() {
+  realpath "$backend/node_modules/.bin/$1" 2>/dev/null
+}
+
+jar_installed() {
+  :
+}
+
+jar_update() {
+  echo "jar update not implemented"
+}
+
+jar_install() {
+  echo "jar install not implemented"
+}
+
+jar_link() {
+  echo "jar install not implemented"
+}
+
+
+bail() {
+  printf '%s\n' "$@" >&1
+  exit 1
+}
+
+main "$@"

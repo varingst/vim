@@ -145,7 +145,7 @@ fun! f#SetFoldMarker(level) " {{{2
     else
       let line .= printf((s:IsAlreadyComment(line)
                         \ ? '%s'
-                        \ : &commentstring),
+                        \ : ' '.&commentstring.' '),
                         \ open_fold.a:level)
     endif
   endif
@@ -172,6 +172,8 @@ endfun
 fun! f#CommentToggle(...)
   exe 'silent '.(a:1 ? "'<,'>" : "'[,']").' normal gcc'
 endfun
+
+" == Spell Toggle ========================================================= {{{1
 
 " == ColorColumnToggle ==================================================== {{{1
 
@@ -251,76 +253,6 @@ fun! f#crosshair(n)
   let w:cross = (get(w:, 'cross', 0) + a:n) % 4
   exe ':set '.(and(w:cross, 1) ? '' : 'no').'cursorcolumn'
   exe ':set '.(and(w:cross, 2) ? '' : 'no').'cursorline'
-endfun
-
-" == vim-plugged extension ================================================ {{{1
-
-fun! f#plug_begin() " {{{2
-  call plug#begin()
-  command! -nargs=1 PlugFT    call s:AddPlugs(<args>)
-  command! -nargs=+ PlugLocal call s:MaybeLocal(<args>)
-endfun
-
-" PlugFT {
-"   'ruby': [
-"     'user/plug',
-"     'user/plug',
-"     'user/plug', { 'extra': 'opts' },
-"     'user/plug',
-"   ]
-"   'xml,html': [
-"     ...
-"   ]
-" }
-
-fun! s:AddPlugs(dict) " {{{2
-  let plugins = {}
-  let last_insert = ''
-  for [ft, plugs] in items(a:dict)
-    for repo_or_options in plugs
-      if type(repo_or_options) == type('')
-        let plugins[repo_or_options] = { 'for': split(ft, ',') }
-        let last_insert = repo_or_options
-      elseif type(repo_or_options) == v:t_dict
-        try
-          for [opt, value] in items(repo_or_options)
-            let plugins[last_insert][opt] = value
-          endfor
-        catch /^Vim\%((\a\+)\)\=:E716/
-          if last_insert ==# ''
-            echoerr 'Option passed before repo:'
-          else
-            echoerr 'Unknown error handling this entry:'
-          endif
-          echoerr repo_or_options
-        endtry
-      endif
-    endfor
-  endfor
-
-  for [repo, opts] in items(plugins)
-    call plug#(repo, opts)
-  endfor
-endfun
-
-fun! s:MaybeLocal(repo, ...)
-  if a:0 == 0
-    let opts = {}
-    let local = substitute(a:repo, '[^/]*', expand('~/dev/'), '')
-  elseif a:0 == 1
-    if type(a:1) == v:t_string
-      let opts = {}
-      let local = expand('~/dev/').a:1
-    elseif type(a:1) == v:t_dict
-      let opts = a:1
-      let local = substitute(a:repo, '[^/]*', expand('~/dev/'), '')
-    endif
-  elseif a:0 == 2
-    let local = expand('~/dev/').a:1
-    let opts = a:2
-  endif
-
-  call plug#(isdirectory(local) ? local : a:repo, opts)
 endfun
 
 " == G to closest line number n$ ========================================== {{{1
@@ -412,8 +344,138 @@ fun! f#AutoCompletionToggle()
   endif
 endfun
 
+" == Swap Window ========================================================== {{{1
+
+fun! f#SwapWindow(target)
+  let current = winnr()
+  if current == a:target || index(range(1, winnr('$')), a:target) == -1
+    return
+  endif
+  let bufnr = winbufnr(current)
+  exe 'buffer '.winbufnr(a:target)
+  exe a:target.'wincmd w'
+  exe 'buffer '.bufnr
+endfun
 
 " == PROTOTYPES =========================================================== {{{1
+
+fun! f#lsp_setup(servers)
+  for [ft, opts] in items(a:servers)
+    let server = { 'whitelist': split(ft, ',') }
+
+    if type(opts) is v:t_string
+      let cmd = split(opts)
+      let opts = {}
+    elseif type(opts.command) is v:t_string
+      let cmd = split(opts.command)
+    elseif type(opts.command) is v:t_list
+      let cmd = opts.command
+    elseif type(opts.command) is v:t_func
+      let opts.cmd = opts.command
+      let opts.whitelist = server.whitelist
+      call lsp#register_server(opts)
+      continue
+    else
+      throw "Invalid lsp format: ".ft
+    endif
+
+    let server.name = get(opts, 'name', cmd[0])
+    let server.initialization_options = get(opts, 'init', { 'diagnostics': 'true' })
+    let server.cmd = { server_info -> cmd }
+
+    call lsp#register_server(server)
+  endfor
+endfun
+
+fun! f#acomp_setup(sources)
+  for [name, opts] in items(a:sources)
+    let opts.name = name
+    if !has_key(opts, 'whitelist')
+      let opts.whitelist = ['*']
+    endif
+
+    if !has_key(opts, 'completor')
+      let opts.completor = printf(
+            \ 'asyncomplete#sources#%s#completor', name)
+    endif
+
+    let GetSourceOptions = function(
+          \ get(opts, 'getopt',
+          \   printf('asyncomplete#sources#%s#get_source_options', name)))
+
+    call asyncomplete#register_source(GetSourceOptions(opts))
+  endfor
+endfun
+
+fun! f#call(script, function, ...)
+  return call(s:snr(a:script).a:function, a:000)
+endfun
+
+fun! f#handle_diagnostics(bufnr)
+  let uri = 'file://'.fnamemodify(bufname(a:bufnr), ':p')
+  let [has_diagnostics, diagnostics] = f#call('autoload/lsp/ui/vim/diagnostics.vim',
+                                            \ 'get_diagnostics',
+                                            \ uri)
+  if !has_diagnostics
+    return
+  endif
+
+  for [server, data] in items(diagnostics)
+    call ale#other_source#StartChecking(a:bufnr, server)
+  endfor
+
+  call timer_start(0, {-> s:push_diagnostics(a:bufnr, diagnostics) })
+endfun
+
+fun! s:push_diagnostics(bufnr, diagnostics)
+  for [server, data] in items(a:diagnostics)
+    call ale#other_source#ShowResults(a:bufnr, server, lsp#ui#vim#utils#diagnostics_to_loc_list(data))
+  endfor
+endfun
+
+let s:snr_index = {}
+fun! s:index_scriptnames()
+  for line in split(execute('scriptnames'), '\n')
+    let [snr, src] = matchlist(line, '^\s*\(\d\+\): \(.*\)')[1:2]
+    let s:snr_index[src] = snr
+  endfor
+endfun
+
+fun! s:match_scripts(script)
+  return filter(s:snr_index,
+        \       {src, _ -> match(src, escape(a:script, '\/').'$') >= 0})
+endfun
+
+fun! s:last_match(matches)
+  let order = 0
+  let last = ""
+  for [src, snr] in items(a:matches)
+    if str2nr(snr) > order
+      let order = str2nr(snr)
+      let last = src
+    endif
+  endfor
+  return last
+endfun
+
+let s:script_index = {}
+fun! s:snr(script)
+  if !has_key(s:script_index, a:script)
+    let matches = s:match_scripts(a:script)
+    if empty(matches)
+      exe 'runtime '.a:script
+      call s:index_scriptnames()
+      let matches = s:match_scripts(a:script)
+      if empty(matches)
+        throw printf("Could not find '%s' in scripts", a:script)
+      endif
+    endif
+    let last_match = s:last_match(matches)
+    let s:script_index[a:script] = "<SNR>".s:snr_index[last_match]."_"
+  endif
+
+  return s:script_index[a:script]
+endfun
 
 " -- Grep revision history for file --------------------------------------_{{{2
 let s:max_matches = 50
@@ -512,21 +574,56 @@ fun! f#filter_loclist(...) " {{{2
   call setloclist(winnr, loclist)
 endfun
 
+fun! f#Rgb2Hsl(...)
+  let rgb = map(a:000, {_, c -> c / 255.0 })
 
-fun! f#comment_motion(type, ...) " {{{2
-  let sel_save = &selection
-  let &selection = 'inclusive'
-  let reg_save = @@
+  let max = max(rgb)
+  let min = min(rgb)
 
-  if a:0
-  elseif a:type == 'line'
-    exe "normal '[V'] \<Plug>NERDCommenterToggleComment"
+  let [h, s, l] = repeat([(max + min) / 2], 3)
+  let [r, g, b] = rgb
+
+  if max == min
+    let h = 0
+    let s = 0
   else
-    exe "normal `[v`] \<Plug>NERDCommenterToggleComment"
+    let d = max - min
+    let s = l > 0.5
+        \ ? d / (2 - max - min)
+        \ : d / (max + min)
+    if max == r
+      let h = (g - b) / d + (g < b ? 6 : 0)
+    elseif max == g
+      let h = (b - r) / d + 2
+    else
+      let h = (r - g) / d + 4
+    endif
   endif
 
-  let &selection = sel_save
-  let @@ = reg_save
+  return [h, s, l]
 endfun
 
-nmap <silent> <leader>C :set opfunc=f#comment_motion<CR>g@
+fun! f#Hue2Rgb(...)
+  let [p, q, t] = a:000
+  if t < 0 | let t += 1 | endif
+  if t > 1 | let t -= 1 | endif
+  if t < 1.0/6 | return p + (q - p) * 6 * t | endif
+  if t < 1.0/2 | return q | endif
+  if t < 2.0/3 | return p + (q - p) * (2.0/3 - t) * 6 | endif
+  return p
+endfun
+
+fun! f#Hsl2Rgb(h, s, l)
+  if (a:s == 0)
+    let [r, g, b] = repeat(a:l, 3)
+  else
+    let q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    let p = 2 * l - q
+
+    let r = f#Hue2Rgb(p, q, h + 1.0/3)
+    let g = f#Hue2Rgb(p, q, h)
+    let b = f#Hue2Rgb(p, q, h - 1.0/3)
+  endif
+
+  return map([r, g, b], {_, c -> round(c * 255)})
+endfun

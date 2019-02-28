@@ -1,49 +1,75 @@
+let $PATH = $HOME."/.vim/bin:".$PATH
+
 " == PLUG ================================================================= {{{1
-call f#plug_begin()
+call plug_extend#begin({
+      \ 'local_paths': '~/dev/',
+      \ 'local_users': 'varingst',
+      \ 'formats': {
+      \   'b': 'git@bitbucket.org:%s.git',
+      \ }
+      \})
+
+" -- Bling ---------------------------------------------------------------- {{{2
+
+Plug 'vim-airline/vim-airline'     " statusline
+Plug 'b:varingst/vim-stylin'
+Plug 'markonm/traces.vim'
 
 " -- Programmer QoL ------------------------------------------------------- {{{2
 
-" Code search, nav, vim-bling
-Plug 'mileszs/ack.vim'             " code grepper (ag/ack) wapper
-PlugLocal 'varingst/ack-extend'
-PlugLocal 'varingst/vim-superg'
+Plug 'mileszs/ack.vim'
+Plug 'varingst/ack-extend'
+Plug 'varingst/no_history_search.vim'
 Plug 'majutsushi/tagbar', { 'on' : 'TagbarToggle' }
 Plug 'junegunn/fzf.vim'            " fuzzy file, buffer, everything nav
-Plug 'vim-airline/vim-airline'     " statusline
 Plug 'KabbAmine/zeavim.vim'        " doc lookup
-Plug 'airblade/vim-gitgutter'
-Plug 'junegunn/vim-easy-align'
-PlugLocal 'varingst/vim-skeleton', 'vim-skeleton-fork'
 
-" -- Programming Language Extras ------------------------------------------ {{{2
+Plug 'junegunn/vim-easy-align'
+Plug 'varingst/vim-skeleton', { 'local': 'vim-skeleton-fork' }
+Plug 'tpope/vim-projectionist'
+
+Plug 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+Plug 'junegunn/gv.vim'            " commit browser
+
+" lsp
+Plug 'prabirshrestha/async.vim'
+Plug 'prabirshrestha/vim-lsp'
+
+" ale
+Plug 'w0rp/ale'
+Plug 'varingst/ale-silence'
+
+" asynccomplete
+Plug 'prabirshrestha/asyncomplete.vim'
+Plug 'prabirshrestha/asyncomplete-lsp.vim'
+Plug 'prabirshrestha/asyncomplete-buffer.vim'
+Plug 'prabirshrestha/asyncomplete-file.vim'
+Plug 'yami-beta/asyncomplete-omni.vim'
+Plug 'Shougo/neco-syntax'
+Plug 'prabirshrestha/asyncomplete-necosyntax.vim'
+Plug 'prabirshrestha/asyncomplete-necovim.vim'
+
+" -- Language Extras ------------------------------------------------------ {{{2
 "
 Plug 'sheerun/vim-polyglot'        " language pack
 
-PlugFT {
-    \ 'javascript': [
-      \ 'maxmellon/vim-jsx-pretty',
-      \ 'othree/jspc.vim',
-      \ 'othree/javascript-libraries-syntax.vim',
-      \ 'moll/vim-node'
-    \ ],
-    \ 'haxe': [
-      \ 'jdonaldson/vaxe'
-    \ ],
-    \ 'ejs': [
-      \ 'nikvdp/ejs-syntax'
-    \ ],
-    \ 'vim': [
-      \ 'tomtom/spec_vim',
-      \ 'h1mesuke/vim-unittest',
-      \ 'kana/vim-vspec'
-    \ ]
-  \ }
+Plug 'maxmellon/vim-jsx-pretty',
+Plug 'othree/jspc.vim',
+Plug 'othree/javascript-libraries-syntax.vim',
+Plug 'moll/vim-node'
 
+Plug 'othree/html5-syntax.vim'     " handles HTML5 syntax highlighting
+
+Plug 'jdonaldson/vaxe'
+
+Plug 'nikvdp/ejs-syntax'
+
+Plug 'kana/vim-vspec'
 Plug 'junegunn/vader.vim'
 
 " -- Tim Pope obviously --------------------------------------------------- {{{2
 
-Plug 'tpope/vim-fugitive'         " Git wrapper
 Plug 'tpope/vim-surround'         " XML tags, brackets, quotes, etc
 Plug 'tpope/vim-speeddating'      " increment/decrement dates +++
 Plug 'tpope/vim-endwise'          " autoadd closing symbols (end/endif/endfun)
@@ -56,7 +82,6 @@ Plug 'tpope/vim-commentary'
 " Ruby snaxx
 Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-rake'
-Plug 'tpope/vim-projectionist'
 Plug 'tpope/vim-rails'
 Plug 'tpope/vim-rbenv'            " Tell vim to use the right ruby
 Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
@@ -64,12 +89,14 @@ Plug 'tpope/gem-ctags'            " RubyGems Automatic Ctags Invoker
 " -- Vim motions and objects ---------------------------------------------- {{{2
 
 Plug 'vim-scripts/camelcasemotion'
-PlugLocal 'varingst/vim-indent-object', 'indent-object'
-PlugLocal 'varingst/vim-text-objects'
+Plug 'nathanaelkane/vim-indent-guides'
+Plug 'michaeljsmith/vim-indent-object'
+Plug 'varingst/vim-indent-object', { 'local': 'vim-indent-objects' }
+Plug 'varingst/vim-text-objects'
+Plug 'varingst/vim-superg'
 
 " -- Markup, Template, Formatting, et al ---------------------------------- {{{2
 
-Plug 'othree/html5-syntax.vim'     " handles HTML5 syntax highlighting
 
 " Todo/Project
 Plug 'vim-scripts/SyntaxRange'
@@ -81,9 +108,6 @@ Plug 'dhruvasagar/vim-table-mode'
 
 Plug 'rhysd/vim-grammarous'
 
-Plug 'nathanaelkane/vim-indent-guides'
-Plug 'michaeljsmith/vim-indent-object'
-
 " -- Homerolled ----------------------------------------------------------- {{{2
 
 for proto in glob('~/.vim/proto/*', v:false, v:true)
@@ -91,11 +115,11 @@ for proto in glob('~/.vim/proto/*', v:false, v:true)
 endfor
 
 " }}}
-call ide#plug('ale', 'ncm2', 'lc')
 
 call plug#end()
 
 runtime macros/matchit.vim
+
 
 " == SYMBOLS ============================================================== {{{1
 
@@ -133,7 +157,8 @@ let g:sym = {
       \ 'nowrap_extends':            '›',
       \ 'fill_vert':                 '\ ',
       \ 'fill_fold':                 '\ ',
-      \ 'fill_diff_removed':         '…',
+      \ 'fill_end_of_buffer':        '\ ',
+      \ 'fill_diff_removed':         '\ ',
       \ 'gutter_error':              '»',
       \ 'gutter_warning':            '›',
       \ 'gutter_info':               '°',
@@ -153,6 +178,15 @@ let g:sym = {
 " vim-plug handles these automatically
 " filetype plugin indent on
 " syntax enable
+augroup highlight-overrides
+  au!
+  autocmd ColorScheme * highlight ALEWarningSign    ctermfg=166
+        \             | highlight SpellBad          ctermfg=166               cterm=underline
+        \             | highlight DiffAdd           ctermfg=NONE ctermbg=NONE cterm=NONE
+        \             | highlight DiffChange        ctermfg=NONE ctermbg=0    cterm=NONE
+        \             | highlight DiffDelete        ctermfg=NONE ctermbg=NONE cterm=NONE
+        \             | highlight DiffText          ctermfg=NONE ctermbg=NONE cterm=underline
+augroup END
 
 set background=dark
 let g:solarized_termcolors = 256
@@ -187,7 +221,8 @@ set ttimeout
 set history=1000    " command and search history
 set undolevels=1000
 
-set nohlsearch   " highlight search terms
+set hlsearch     " highlight search terms
+nohlsearch
 set incsearch    " show matches as you type
 set ignorecase   " ignore case when searching
 set smartcase    " case-insensitive when all lowercase
@@ -200,6 +235,7 @@ set shiftwidth=2             " ident width for autoindent
 set expandtab                " turn tabs into whitespace
 set foldmethod=marker        " type of folding
 set foldtext=printf('%s%3d\ %s',v:folddashes,(v:foldend-v:foldstart),getline(v:foldstart))
+set diffopt+=foldcolumn:0
 set backspace=2              " make backspace work like most other apps
 set list                     " replace whitespace with listchars
 exe ':set listchars='.join([
@@ -209,11 +245,13 @@ exe ':set listchars='.join([
       \ 'precedes:'   .g:sym.nowrap_precedes,
       \ 'extends:'    .g:sym.nowrap_extends
       \  ], ',')
-exe ':set fillchars='.join([
+exe ':set fillchars='.join(extend([
       \ 'vert:'       .g:sym.fill_vert,
       \ 'fold:'       .g:sym.fill_fold,
       \ 'diff:'       .g:sym.fill_diff_removed,
-      \ ], ',')
+      \ ], !has('nvim') ? [] : [
+      \ 'eob:'        .g:sym.fill_end_of_buffer,
+      \ ]), ',')
 
 set conceallevel=2
 set concealcursor=nc         " conceal cursorline in normal and commandmode
@@ -225,6 +263,7 @@ set synmaxcol=128     " limit max number of columns to search for syntax items
 set signcolumn=yes
 set iskeyword=@,48-57,_,192-255,-
 set viewoptions=cursor,folds
+set spelllang=en_us
 
 set ttyfast      " send more chars to screen for redrawing
 set lazyredraw   " don't redraw while executing macros
@@ -261,6 +300,9 @@ augroup vimrc_autocmd
         \                                 ? fnamemodify(FugitiveWorkTree(), ':~')
         \                                 : expand('%:~:.'),
         \                          '^\~/\.sync/dotfiles/', '~/.', '')))
+  au VimLeave * call system(printf("tmux rename-window '%s'",
+        \                          fnamemodify($PWD, ':~')))
+  au VimEnter * nnoremap <silent><ESC> :nohlsearch<CR><ESC>
 augroup END
 
 
@@ -305,10 +347,6 @@ KeyCodes {
 nnoremap <C-;> :
 " prevent editing from fumbling with tmux key
 nnoremap <C-A> <nop>
-" increment under cursor
-nnoremap + <C-A>
-" decrement under cursor
-nnoremap - <C-X>
 " line/column guides
 nnoremap ^ :<C-U>call f#crosshair(v:count1)<CR>
 " insert on N additional lines
@@ -349,12 +387,6 @@ inoremap <C-B> <ESC>:let @b = @.<CR>a
 
 inoremap <leader><C-V> <C-V>
 
-imap <Tab>   <Plug>CompleteNext
-imap <S-Tab> <Plug>CompletePrev
-
-" TODO: C-Y shouldn't be remapped here
-imap <expr><CR> pumvisible() ? "\<C-Y>" : "\<CR>\<Plug>DiscretionaryEnd"
-
 for pair in ['()', '{}', '[]']
   execute printf('imap <leader>%s <Plug>Isurround%s', pair[0], pair[1])
   execute printf('imap <leader>%s <Plug>ISurround%s<C-T>', pair[1], pair[0])
@@ -363,6 +395,11 @@ for char in ["'", '"']
   execute printf('imap <leader>%s <Plug>Isurround%s', char, char)
 endfor
 
+" -- Various Visual ------------------------------------------------------- {{{2
+
+xnoremap <expr>J ":move '>+".v:count1."\<CR>gv"
+xnoremap <expr>K ":move '<-".(v:count1+1)."\<CR>gv"
+xnoremap <expr>M ":move ".(superg#(line('.'), v:count1) - 1)."\<CR>"
 
 " -- Various Command ------------------------------------------------------ {{{2
 
@@ -384,7 +421,7 @@ nnoremap <C-W>i <ESC>90<C-W><BAR>
 nnoremap <C-W>I <ESC>180<C-W><BAR>
 
 " swap window with window <count>
-nnoremap <C-W>p <C-W>x
+nnoremap <C-W>p :<C-U>call f#SwapWindow(v:count1)<CR>
 
 " close window <count>, or current window
 nnoremap <expr> <C-W>x (v:count ? v:count."\<C-W>w\<BAR>" : "").":close\<CR>"
@@ -400,6 +437,17 @@ endfor
 
 call op#map('<leader>R', 'op#replace')
 call op#map('<leader>D', 'op#double')
+call op#map('S', 'op#substitute')
+
+" -- Various Text Objects ------------------------------------------------- {{{2
+
+" n-1 lines, linewise
+xnoremap <silent><expr> <space> printf("\<ESC>V%d_", v:count1)
+onoremap <silent>       <space> _
+
+" -- Various Abbr --------------------------------------------------------- {{{2
+
+iabbr #! #!/usr/bin/env
 
 " -- Arrowkeys/Buffernav -------------------------------------------------- {{{2
 
@@ -429,41 +477,24 @@ nmap <expr><C-Up>    get(b:, 'table_mode_active')
 nmap <expr><C-Down>  get(b:, 'table_mode_active')
       \ ? '<Plug>(table-mode-motion-down)'  : '<C-W>j'
 
-" -- SuperG --------------------------------------------------------------- {{{2
+" -- Completion ----------------------------------------------------------- {{{2
 
-let g:superg_fallback = "\<CR>"
-map <CR> <Plug>SuperG
-map $ <Plug>Super$
-map _ <Plug>Super_
 
-" -- <space> mapping ------------------------------------------------------ {{{2
-
-nmap <space>gg <Plug>Goto
-nmap <space>gd <Plug>Definition
-nmap <space>gc <Plug>Declaration
-nmap <space>gi <Plug>Implementation
-nmap <space>gt <Plug>TypeDefinition
-nmap <space>gr <Plug>References
-nmap <space>gu <Plug>Include
-nmap <space>gp <Plug>Parent
-nmap <space>go <Plug>Doc
-
-nnoremap <space>f :Files<CR>
-nnoremap <space>F :GFiles<CR>
-nnoremap <space>s :Snippets<CR>
-nnoremap <space>t :BTags<CR>
-nnoremap <space>T :Tags<CR>
-nnoremap <space>h :History<CR>
-
-nnoremap <space>v :AV<CR>
-
-nnoremap <space>? :nmap <lt>space><CR>
-
-" -- pum movement --------------------------------------------------------- {{{2
+inoremap <expr><Tab>   pumvisible() ? "\<C-N>" : "\<Tab>"
+inoremap <expr><S-Tab> pumvisible() ? "\<C-P>" : "\<S-Tab>"
+imap <expr><CR>        pumvisible() ? "\<C-Y>" : "\<CR>\<Plug>DiscretionaryEnd"
 
 for i in range(2, 9)
   exe printf("inoremap <expr> <leader>%d pumvisible() ? repeat('<C-N>', %d) : '%d'", i, i-1, i)
 endfor
+
+" -- SuperG --------------------------------------------------------------- {{{2
+
+let g:superg_fallback = "\<CR>"
+map <CR> <Plug>SuperG
+map _ <Plug>SuperSOL
+map $ <Plug>SuperEOL
+
 
 " -- Set fold markers ----------------------------------------------------- {{{2
 
@@ -491,13 +522,30 @@ map <leader>" cs'"
 
 " -- Code Search ---------------------------------------------------------- {{{2
 
-nnoremap <leader>*  :call f#LocalVimGrep('\<'.expand("<cword>").'\>')<CR>
-nnoremap <leader>#  :call f#LocalVimGrep('\<'.expand("<cword>").'\>')<CR>
-nnoremap <leader>g* :call f#LocalVimGrep(expand("<cword>"))<CR>
-nnoremap <leader>g# :call f#LocalVimGrep(expand("<cword>"))<CR>
+let g:no_history_search_prepend = '\<'
+map / <Plug>(no-history-/)
+map ? <Plug>(no-history-?)
+
+noremap <space>/ /
+noremap <space>? ?
+
+nnoremap <space>f :Files<CR>
+nnoremap <space>F :GFiles<CR>
+nnoremap <space>s :Snippets<CR>
+nnoremap <space>t :BTags<CR>
+nnoremap <space>T :Tags<CR>
+nnoremap <space>h :History<CR>
+
+nnoremap <space>v :AV<CR>
+
+nnoremap <space>? :nmap <lt>space><CR>
+
+nnoremap <leader>*  :call f#LocalGrep('\<'.expand("<cword>").'\>')<CR>
+nnoremap <leader>#  :call f#LocalGrep('\<'.expand("<cword>").'\>')<CR>
+nnoremap <leader>g* :call f#LocalGrep(expand("<cword>"))<CR>
+nnoremap <leader>g# :call f#LocalGrep(expand("<cword>"))<CR>
 nnoremap <leader>/ :LocalGrep<space>
 
-Key ':Ack (word under cursor)', '<leader>a/A'
 nnoremap <leader>a :Ack<space>
 
 " -- Open file under cursor in split window ------------------------------- {{{2
@@ -517,7 +565,7 @@ Key 'yank current line until . to @o, put on next line', '<leader>o', 'i'
 " open line above
 inoremap <C-O><C-O> <C-O>O
 inoremap <silent><leader>o <ESC>^:set opfunc=op#copyO<CR>g@
-call op#map('<leader>o', 'copyO')
+call op#map('<leader>o', 'op#copyO')
 
 vnoremap <expr>O line('.') == line("'<")
       \ ? "o\<ESC>o\<ESC>gvo"
@@ -546,8 +594,8 @@ vnoremap <C-X> "+d
 " -- Sticky Shift Camel Case Relief --------------------------------------- {{{2
 
 Key 'Downcase last uppercase letter', '<leader>u', 'ni'
-nnoremap <silent><leader>u md:s/.*\zs\(\u\)/\L\1/e<CR>`d
-inoremap <silent><leader>u <ESC>:s/.*\zs\(\u\)/\L\1/e<CR>`^i
+nnoremap <silent><leader>u m`:keeppatterns s/.*\zs\(\u\)/\L\1/e<CR>``
+inoremap <silent><leader>u <ESC>:keeppatterns s/.*\zs\(\u\)/\L\1/e<CR>`^i
 
 " -- Line join/break ------------------------------------------------------ {{{2
 
@@ -556,23 +604,23 @@ nnoremap <leader>j J
 nnoremap <leader>J v}J
 
 Key 'Break/Join function arguments', '<leader>f/F'
-nnoremap <silent><leader>f 0f(:let c=col('.')-1<CR>:s/,/\=",\r".repeat(' ', c)/ge<CR>
+nnoremap <silent><leader>f 0f(:let c=col('.')-1<CR>:keeppatterns s/,/\=",\r".repeat(' ', c)/ge<CR>
 nnoremap <silent><leader>F 0f(v%J
 
 Key 'Break/Join XML attributes',   '<leader>x/X'
-nnoremap <silent><leader>x :s/\(<\w\+\\|\w\+=\({[^}]*}\\|"[^"]*"\\|'[^']*'\)\)\s*/\1\r/ge<CR>:redraw<CR>='[
-nnoremap <silent><leader>X v/\/\?><CR>J:s/\s\(\/\?>\)/\1/<CR>
+nnoremap <silent><leader>x :keeppatterns s/\(<\w\+\\|\w\+=\({[^}]*}\\|"[^"]*"\\|'[^']*'\)\)\s*/\1\r/ge<CR>:redraw<CR>='[
+nnoremap <silent><leader>X v/\/\?><CR>J:keeppatterns s/\s\(\/\?>\)/\1/<CR>
 
 " -- EasyAlign ------------------------------------------------------------ {{{2
 
 xmap ga <Plug>(EasyAlign)
 nmap ga <Plug>(EasyAlign)
 
-xmap <bar> gaip
-nmap <bar> gaip
+xmap <bar> <Plug>(EasyAlign)ip
+nmap <bar> <Plug>(EasyAlign)ip
 
 Key '(EasyAlign) Align operator',  'ga', 'nv'
-Key '(EasyAlign) inner paragraph', '|',  'nv'
+Key '(EasyAlign) inner paragraph', 'ip',  'nv'
 
 " -- ZeaVim --------------------------------------------------------------- {{{2
 "
@@ -628,7 +676,6 @@ FKeys {
   \ '<leader><F1>':   ':set wrap!',
   \ '<leader><F2>':   ':call f#QuickFixFlush()',
   \ '<leader><F3>':   ':TableModeToggle',
-  \ '<leader><F4>':   ':set hlsearch!',
   \ '<leader><F5>':   ':call f#ConcealToggle()',
   \ '<leader><F6>':   ':call f#ColorColumnToggle()',
   \ '<leader><F8>':   ':call f#GdiffToggle()',
@@ -647,6 +694,9 @@ command! -nargs=? ReplaceEach  silent call f#ReplaceEach(<q-args>)
 command! -nargs=1 Profile      silent call f#Profile(<q-args>)
 command! -nargs=* LocalGrep    silent call f#LocalGrep(<q-args>)
 command! -nargs=* Date         read !date --date=<q-args> "+\%Y-\%m-\%d"
+
+command! -nargs=0 -range Hex2Rgb <line1>,<line2>s/#\(\x\+\)/\='rgb'.(strlen(submatch(1))==6?'(':'a(').join(map(split(submatch(1),'\x\{2}\zs'),{_,x->str2nr(x,16)}),', ').')'/ge
+command! -nargs=0 -range Rgb2Hex <line1>,<line2>s/\(rgba\?\)(\([^)]*\))/\=call('printf',['#'.repeat('%X',strlen(submatch(1)))]+split(submatch(2),'\s*,\s*'))/ge
 
 " diff file and buffer, see :he :DiffOrig
 command! -nargs=0 DiffOrig vert new
@@ -710,7 +760,7 @@ command! -nargs=? -complete=function Function silent execute
       \             : get(filter(map(split(execute('messages'), '\n'),
       \                              {_, m -> matchstr(m, 'processing function \zs[^:]*\ze')}),
       \                          {_, f -> strlen(f) }),
-      \                   -1, '')
+      \                   -1, ''),
       \             '(.*$', '', '')),
       \         'Last set from \(\S\+\) line \(\d\+\)')[1:2]))
 
@@ -750,8 +800,57 @@ let g:gcc_flags = {
 
 " -- COMPLETION/LSP ------------------------------------------------------- {{{2
 
-" ~/.vim/autoload/ide.vim
-call ide#init()
+let g:lsp_diagnostics_enabled = 1
+let g:lsp_signs_enabled = 0
+
+augroup LSP
+  au!
+  au User lsp_setup call f#lsp_setup({
+          \ 'ruby': 'solargraph stdio',
+          \ 'lua': {
+          \   'command': 'java -cp '.expand('~/.jars/EmmyLua-LS-all.jar').' com.tang.vscode.MainKt',
+          \   'name': 'EmmyLua',
+          \  },
+          \ 'javascript,javascript.jsx': {
+          \   'name': 'js@tss',
+          \   'command':  { ->[&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
+          \   'root_uri': { ->lsp#utils#path_to_uri(
+          \                     lsp#utils#find_nearest_parent_directory(
+          \                       lsp#utils#get_buffer_path(), '.git/..'))},
+          \  },
+          \ 'css,less,sass': {
+          \   'name': 'css-ls',
+          \   'command': { ->[&shell, &shellcmdflag, 'css-languageserver --stdio'] },
+          \ },
+          \})
+  au User ALEWantResults call f#handle_diagnostics(g:ale_want_results_buffer)
+augroup END
+
+let g:asyncomplete_remove_duplicates = 1
+let g:asyncomplete_smart_completion = 1
+
+call f#acomp_setup({
+      \ 'buffer': {
+      \   'blacklist': ['go'],
+      \ },
+      \ 'file': {
+      \   'priority': 10,
+      \ },
+      \ 'omni': {
+      \   'blacklist': [
+      \     'c',
+      \     'cpp',
+      \     'html',
+      \     'javascript',
+      \     'javascript.jsx',
+      \     'ruby'
+      \   ],
+      \ },
+      \ 'necosyntax': {},
+      \ 'necovim': {
+      \   'whitelist': ['vim'],
+      \ },
+      \})
 
 
 " -- CHEATSHEET ----------------------------------------------------------- {{{2
@@ -808,8 +907,10 @@ let g:projectionist_heuristics = f#projectionist({
       \ 'spec/*_spec.js' : { 'alternate': 'src/{}.js' },
       \ 'src/*.js'       : { 'alternate': 'spec/{}_spec.js' },
     \ },
-    \ 'autoload/&plugin/': {
-      \ '*.vim' : { 'alternate': 'test/{}.vader' },
+    \ 'doc/&plugin/': {
+      \ 'plugin/*.vim'   : { 'alternate': 'test/plugin/{}.vader' },
+      \ 'autoload/*.vim' : { 'alternate': 'test/autoload/{}.vader' },
+      \ 'doc/*.txt'      : { 'type': 'doc' },
     \ },
   \ })
 
@@ -828,7 +929,7 @@ let g:ale_linters = {
       \ 'python': ['flake8'],
       \ 'sh':     ['shellcheck'],
       \ 'vim':    [],
-      \ 'ruby':   ['rubocop', 'solargraph'],
+      \ 'ruby':   [],
       \ }
 
 let g:ale_c_gcc_options   = join(g:gcc_flags['common'] + g:gcc_flags['c'])
@@ -836,9 +937,6 @@ let g:ale_cpp_gcc_options = join(g:gcc_flags['common'] + g:gcc_flags['cpp'])
 
 " temp fix for https://github.com/w0rp/ale/issues/1656#issuecomment-423017658
 let g:ale_python_auto_pipenv = 0
-
-" highlight ALEWarning ctermfg=166
-highlight ALEWarningSign ctermfg=166
 
 " -- AIRLINE -------------------------------------------------------------- {{{2
 
@@ -894,13 +992,7 @@ let g:airline_symbols = extend(get(g:, 'airline_symbols', {}), {
 " extend default mode sections with table mode status
 let g:airline_section_a = airline#section#create_left([
       \ 'mode',
-      \ 'crypt',
-      \ 'paste',
-      \ 'keymap',
-      \ 'spell',
-      \ 'capslock',
-      \ 'xkblayout',
-      \ 'iminsert']).
+      \ ]).
       \ '%{(get(b:, "table_mode_active") ? g:sym.table : "")}'
 
 
@@ -1129,3 +1221,15 @@ xmap i<leader>b <Plug>CamelCaseMotion_ib
 omap i<leader>b <Plug>CamelCaseMotion_ib
 xmap i<leader>e <Plug>CamelCaseMotion_ie
 omap i<leader>e <Plug>CamelCaseMotion_ie
+
+" -- SPEEDDATING ---------------------------------------------------------- {{{2
+
+let g:speeddating_no_mappings = 1
+
+nmap + <Plug>SpeedDatingUp
+nmap - <Plug>SpeedDatingDown
+xmap + <Plug>SpeecDatingUp
+xmap - <Plug>SpeedDatingDown
+
+nmap d+ <Plug>SpeedDatingNowUTC
+nmap d- <Plug>SpeedDatingNowLocal

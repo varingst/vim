@@ -647,7 +647,7 @@ exe "hi! DiffText"       .s:fmt_revr   .s:fg_blue   .s:bg_none
 elseif  (g:solarized_diffmode ==# "low")
 exe "hi! DiffAdd"        .s:fmt_undr   .s:fg_green  .s:bg_none   .s:sp_green
 exe "hi! DiffChange"     .s:fmt_undr   .s:fg_yellow .s:bg_none   .s:sp_yellow
-exe "hi! DiffDelete"     .s:fmt_bold   .s:fg_red    .s:bg_none
+exe "hi! DiffDelete"     .s:fmt_bold   .s:bg_none   .s:bg_none
 exe "hi! DiffText"       .s:fmt_undr   .s:fg_blue   .s:bg_none   .s:sp_blue
 else " normal
     if has("gui_running")
@@ -656,10 +656,10 @@ exe "hi! DiffChange"     .s:fmt_bold   .s:fg_yellow .s:bg_base02 .s:sp_yellow
 exe "hi! DiffDelete"     .s:fmt_bold   .s:fg_red    .s:bg_base02
 exe "hi! DiffText"       .s:fmt_bold   .s:fg_blue   .s:bg_base02 .s:sp_blue
     else
-exe "hi! DiffAdd"        .s:fmt_none   .s:fg_green  .s:bg_base02 .s:sp_green
-exe "hi! DiffChange"     .s:fmt_none   .s:fg_yellow .s:bg_base02 .s:sp_yellow
-exe "hi! DiffDelete"     .s:fmt_none   .s:fg_red    .s:bg_base02
-exe "hi! DiffText"       .s:fmt_none   .s:fg_blue   .s:bg_base02 .s:sp_blue
+exe "hi! DiffAdd"        .s:fmt_none   .s:fg_none   .s:bg_none .s:sp_green
+exe "hi! DiffChange"     .s:fmt_none   .s:fg_yellow .s:bg_none .s:sp_yellow
+exe "hi! DiffDelete"     .s:fmt_none   .s:fg_red    .s:bg_none
+exe "hi! DiffText"       .s:fmt_none   .s:fg_blue   .s:bg_none .s:sp_blue
     endif
 endif
 exe "hi! EndOfBuffer"    .s:fmt_none   .s:fg_black  .s:bg_none
