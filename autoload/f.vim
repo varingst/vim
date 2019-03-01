@@ -145,7 +145,7 @@ fun! f#SetFoldMarker(level) " {{{2
     else
       let line .= printf((s:IsAlreadyComment(line)
                         \ ? '%s'
-                        \ : ' '.&commentstring.' '),
+                        \ : ' '.&commentstring),
                         \ open_fold.a:level)
     endif
   endif

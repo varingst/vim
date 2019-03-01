@@ -175,9 +175,6 @@ let g:sym = {
 
 " == OPTIONS ============================================================== {{{1
 
-" vim-plug handles these automatically
-" filetype plugin indent on
-" syntax enable
 augroup highlight-overrides
   au!
   autocmd ColorScheme * highlight ALEWarningSign    ctermfg=166
@@ -194,11 +191,12 @@ let g:solarized_termtrans = 1
 let g:solarized_menu = 0
 colorscheme solarized
 
-set number                " current line numbered
-set scrolloff=5           " min lines to keep above/below cursor when scrolling
-set wildmode=longest,list " bash style completion
-set nomore                " remove more message after shell command
-set winminheight=0        " windows may be minimized down to just a status bar
+set number
+set scrolloff=5
+set wildmenu
+set wildmode=longest:list
+set nomore
+set winminheight=0
 set splitright
 set splitbelow
 set completeopt=menuone
@@ -210,34 +208,34 @@ if &modifiable && !has('nvim')
   scriptencoding utf-8
 endif
 set noswapfile
-set autoread     " reloads file if changed and buffer not dirty
+set autoread
 
-set title        " set terminal title
-set visualbell   " dont beep
-set noerrorbells " dont beep
+set title
+set visualbell
+set noerrorbells
 set noshowmode
 set ttimeout
 
-set history=1000    " command and search history
+set history=1000
 set undolevels=1000
 
-set hlsearch     " highlight search terms
+set hlsearch
 nohlsearch
-set incsearch    " show matches as you type
-set ignorecase   " ignore case when searching
-set smartcase    " case-insensitive when all lowercase
-set magic        " set magic on for regex
-set hidden       " hides buffers instead of closing on new open
+set incsearch
+set ignorecase
+set smartcase
+set magic
+set hidden
 
-set autoindent               " auto indenting
-set tabstop=2                " set tab character to 2 characters
-set shiftwidth=2             " ident width for autoindent
-set expandtab                " turn tabs into whitespace
-set foldmethod=marker        " type of folding
+set autoindent
+set tabstop=2
+set shiftwidth=2
+set expandtab
+set foldmethod=marker
 set foldtext=printf('%s%3d\ %s',v:folddashes,(v:foldend-v:foldstart),getline(v:foldstart))
 set diffopt+=foldcolumn:0
-set backspace=2              " make backspace work like most other apps
-set list                     " replace whitespace with listchars
+set backspace=2
+set list
 exe ':set listchars='.join([
       \ 'tab:'        .g:sym.whitespace_tab.g:sym.whitespace_tab_pad,
       \ 'trail:'      .g:sym.whitespace_trailing,
@@ -254,19 +252,19 @@ exe ':set fillchars='.join(extend([
       \ ]), ',')
 
 set conceallevel=2
-set concealcursor=nc         " conceal cursorline in normal and commandmode
+set concealcursor=nc
 
 set nowrap
 set textwidth=80
 set formatoptions=cqj
-set synmaxcol=128     " limit max number of columns to search for syntax items
+set synmaxcol=128
 set signcolumn=yes
 set iskeyword=@,48-57,_,192-255,-
 set viewoptions=cursor,folds
 set spelllang=en_us
 
-set ttyfast      " send more chars to screen for redrawing
-set lazyredraw   " don't redraw while executing macros
+set ttyfast
+set lazyredraw
 
 let g:netrw_browsex_viewer = 'xdg-open'
 let g:vimsyn_embed = 0 " no embedded perl, lua, ruby, etc syntax in .vim files
@@ -302,17 +300,9 @@ augroup vimrc_autocmd
         \                          '^\~/\.sync/dotfiles/', '~/.', '')))
   au VimLeave * call system(printf("tmux rename-window '%s'",
         \                          fnamemodify($PWD, ':~')))
+
   au VimEnter * nnoremap <silent><ESC> :nohlsearch<CR><ESC>
 augroup END
-
-
-" -- VimWiki -------------------------------------------------------------- {{{2
-
-augroup vimwiki_mapping
-  autocmd!
-  au FileType vimwiki nmap <buffer><leader><CR> <Plug>VimwikiVSplitLink
-augroup END
-
 
 " == KEY MAPPING ========================================================== {{{1
 
@@ -403,9 +393,9 @@ xnoremap <expr>M ":move ".(superg#(line('.'), v:count1) - 1)."\<CR>"
 
 " -- Various Command ------------------------------------------------------ {{{2
 
-cmap w!! w !sudo tee % > /dev/null
-cmap e!! silent Git checkout -- % <BAR> redraw!
-cmap r!! Read<space>
+cnoremap w!! w !sudo tee % > /dev/null
+cnoremap e!! silent Git checkout -- % <BAR> redraw!
+cnoremap r!! Read<space>
 cnoremap <C-K> <up>
 cnoremap <C-J> <down>
 cnoremap <C-V> <HOME><S-Right><Right><C-W>vsplit<space><END>
@@ -487,13 +477,6 @@ imap <expr><CR>        pumvisible() ? "\<C-Y>" : "\<CR>\<Plug>DiscretionaryEnd"
 for i in range(2, 9)
   exe printf("inoremap <expr> <leader>%d pumvisible() ? repeat('<C-N>', %d) : '%d'", i, i-1, i)
 endfor
-
-" -- SuperG --------------------------------------------------------------- {{{2
-
-let g:superg_fallback = "\<CR>"
-map <CR> <Plug>SuperG
-map _ <Plug>SuperSOL
-map $ <Plug>SuperEOL
 
 
 " -- Set fold markers ----------------------------------------------------- {{{2
@@ -578,8 +561,7 @@ nnoremap <expr> j v:count ? 'j' : 'gj'
 nnoremap <expr> k v:count ? 'k' : 'gk'
 " navigate folds with J/K
 nnoremap <expr><silent>J foldlevel('.') && foldclosed('.') != -1 ? "zo" : "zj"
-nnoremap <expr><silent>K foldlevel('.') &&
-      \ (foldclosed('.') == -1 <BAR><BAR> foldlevel('.') > 1) ? "zc" : "gk"
+nnoremap <expr><silent>K foldlevel('.') && foldclosed('.') == -1 ? "zc" : "gk"
 
 noremap <expr> H getcharsearch().forward ? ',' : ';'
 noremap <expr> L getcharsearch().forward ? ';' : ','
@@ -635,31 +617,6 @@ vmap <leader>z <Plug>ZVVisSelection
 nmap <leader><leader>z <Plug>ZVKeyDocset
 nmap gz <Plug>ZVOperator
 
-" -- Surround ------------------------------------------------------------- {{{2
-xmap s <Plug>VSurround
-imap <C-S> <Plug>Isurround
-imap <leader>s <Plug>Isurround
-imap <leader>S <Plug>ISurround
-
-" -- Table mode ----------------------------------------------------------- {{{2
-
-" cell movement is in Arrowkeys section, <C-arrows>
-
-Key '(TableMode) cell object',       'a/i|', 'xo'
-Key '(TableMode) delete row/column', '<leader>tdr/c'
-Key '(TableMode) insert table',      '<leader>tc'
-Key '(TableMode) sort',              '<leader>ts'
-
-omap a<Bar> <Plug>(table-mode-cell-text-object-a)
-xmap a<Bar> <Plug>(table-mode-cell-text-object-a)
-omap i<Bar> <Plug>(table-mode-cell-text-object-i)
-xmap i<Bar> <Plug>(table-mode-cell-text-object-i)
-
-nmap <leader>tdr <Plug>(table-mode-delete-row)
-nmap <leader>tdc <Plug>(table-mode-delete-column)
-nmap <leader>ts  <Plug>(table-mode-sort)
-
-nnoremap <leader>tc :TableModeInsert<space>
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
@@ -684,9 +641,6 @@ FKeys {
   \ '<leader><F11>':  ':Make!'
   \ }
 
-" -- Commentary Extension ------------------------------------------------- {{{2
-nnoremap <silent> gC :set opfunc=f#CommentToggle<CR>g@
-xnoremap <silent> gC :<C-U>call f#CommentToggle(v:true)<CR>
 
 " == COMMANDS ============================================================= {{{1
 
@@ -1233,3 +1187,40 @@ xmap - <Plug>SpeedDatingDown
 
 nmap d+ <Plug>SpeedDatingNowUTC
 nmap d- <Plug>SpeedDatingNowLocal
+
+" -- SUPERG --------------------------------------------------------------- {{{2
+
+let g:superg_fallback = "\<CR>"
+map <CR> <Plug>SuperG
+map _ <Plug>SuperSOL
+map $ <Plug>SuperEOL
+
+" -- TABLE MODE ----------------------------------------------------------- {{{2
+
+Key '(TableMode) cell object',       'a/i|', 'xo'
+Key '(TableMode) delete row/column', '<leader>tdr/c'
+Key '(TableMode) insert table',      '<leader>tc'
+Key '(TableMode) sort',              '<leader>ts'
+
+omap a<Bar> <Plug>(table-mode-cell-text-object-a)
+xmap a<Bar> <Plug>(table-mode-cell-text-object-a)
+omap i<Bar> <Plug>(table-mode-cell-text-object-i)
+xmap i<Bar> <Plug>(table-mode-cell-text-object-i)
+
+nmap <leader>tdr <Plug>(table-mode-delete-row)
+nmap <leader>tdc <Plug>(table-mode-delete-column)
+nmap <leader>ts  <Plug>(table-mode-sort)
+
+nnoremap <leader>tc :TableModeInsert<space>
+
+" -- SURROUND ------------------------------------------------------------- {{{2
+
+xmap s <Plug>VSurround
+imap <C-S> <Plug>Isurround
+imap <leader>s <Plug>Isurround
+imap <leader>S <Plug>ISurround
+
+" -- COMMENTARY EXTENSION ------------------------------------------------- {{{2
+
+nnoremap <silent> gC :set opfunc=f#CommentToggle<CR>g@
+xnoremap <silent> gC :<C-U>call f#CommentToggle(v:true)<CR>
