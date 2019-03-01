@@ -12,7 +12,6 @@ call plug_extend#begin({
 " -- Bling ---------------------------------------------------------------- {{{2
 
 Plug 'vim-airline/vim-airline'     " statusline
-Plug 'b:varingst/vim-stylin'
 Plug 'markonm/traces.vim'
 
 " -- Programmer QoL ------------------------------------------------------- {{{2
