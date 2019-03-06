@@ -1,4 +1,6 @@
 typescript-language-server node
 css-languageserver node vscode-css-languageserver-bin
+cquery git git@github.com:cquery-project/cquery.git cmake
+emmylua git git@github.com:EmmyLua/EmmyLua-LanguageServer gradle
 _fzf curl
 _solargraph gem

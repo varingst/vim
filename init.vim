@@ -660,6 +660,14 @@ command! -nargs=0 DiffOrig vert new
                        \ | wincmd p
                        \ | diffthis
 
+" run diffs in tabs for each modified file
+command! -nargs=? GitDiffs for f in systemlist(
+                       \       'git diff --name-only --diff-filter=AM '.
+                       \       (empty(<q-args>) ? "HEAD~1" : <q-args>))
+                       \ |   execute '$tabnew '.f
+                       \ |   execute 'Gvdiff '.(empty(<q-args>) ? "HEAD~1" : <q-args>)
+                       \ | endfor
+
 " close all open non-dirty buffers
 command! -nargs=0 CloseBuffers for buf in getbufinfo({ 'listed': 1 })
                            \ |   if !buf.changed && empty(buf.windows)
@@ -696,9 +704,10 @@ command! -nargs=? -complete=file Open silent call
       \               netrw#CheckIfRemote())
 
 command! -nargs=1 -complete=file Move call mkdir(fnamemodify(<q-args>, ":p:h"), "p")
-                                  \ | call rename(expand('%'), <q-args>)
-                                  \ | bwipeout %
+                                  \ | let bufname = expand('%')
+                                  \ | call rename(bufname, <q-args>)
                                   \ | exe 'e '.<q-args>
+                                  \ | exe 'bdelete '.bufname
 
 " open vim function definition, default previous with error
 command! -nargs=? -complete=function Function silent execute
@@ -760,10 +769,7 @@ augroup LSP
   au!
   au User lsp_setup call f#lsp_setup({
           \ 'ruby': 'solargraph stdio',
-          \ 'lua': {
-          \   'command': 'java -cp '.expand('~/.jars/EmmyLua-LS-all.jar').' com.tang.vscode.MainKt',
-          \   'name': 'EmmyLua',
-          \  },
+          \ 'lua': 'emmylua',
           \ 'javascript,javascript.jsx': {
           \   'name': 'js@tss',
           \   'command':  { ->[&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
@@ -774,6 +780,15 @@ augroup LSP
           \ 'css,less,sass': {
           \   'name': 'css-ls',
           \   'command': { ->[&shell, &shellcmdflag, 'css-languageserver --stdio'] },
+          \ },
+          \ 'c,cpp,objc,objcpp,cc': {
+          \   'name': 'cquery',
+          \   'command': { -> ['cquery'] },
+          \   'root_uri': { ->lsp#utils#path_to_uri(
+          \                     lsp#utils#find_nearest_parent_directory(
+          \                       lsp#utils#get_buffer_path(), 'compile_commands.json'))},
+          \   'init': { 'cacheDirectory': '/tmp/cquery/cache' },
+          \
           \ },
           \})
   au User ALEWantResults call f#handle_diagnostics(g:ale_want_results_buffer)
