@@ -471,7 +471,7 @@ nmap <expr><C-Down>  get(b:, 'table_mode_active')
 
 inoremap <expr><Tab>   pumvisible() ? "\<C-N>" : "\<Tab>"
 inoremap <expr><S-Tab> pumvisible() ? "\<C-P>" : "\<S-Tab>"
-imap <expr><CR>        pumvisible() ? "\<C-Y>" : "\<CR>\<Plug>DiscretionaryEnd"
+imap <expr><CR>        pumvisible() ? "\<C-Y>\<CR>" : "\<CR>\<Plug>DiscretionaryEnd"
 
 for i in range(2, 9)
   exe printf("inoremap <expr> <leader>%d pumvisible() ? repeat('<C-N>', %d) : '%d'", i, i-1, i)
@@ -1196,7 +1196,7 @@ let g:speeddating_no_mappings = 1
 
 nmap + <Plug>SpeedDatingUp
 nmap - <Plug>SpeedDatingDown
-xmap + <Plug>SpeecDatingUp
+xmap + <Plug>SpeedDatingUp
 xmap - <Plug>SpeedDatingDown
 
 nmap d+ <Plug>SpeedDatingNowUTC
