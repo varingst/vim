@@ -38,6 +38,52 @@ main() {
   done < "$backend/backend"
 }
 
+curl_installed() {
+  [[ -x "$backend/curl/$1/$1" ]]
+}
+
+curl_install() {
+  echo "Installing '$1' with curl"
+  dest="$backend/curl/$1"
+  mkdir -p "$dest"
+  cd "$dest"
+  curl_latest "$2" > latest || bail
+  curl_fetch "$1" "$(< latest)" || bail
+  chmod +x "$1"
+}
+
+curl_update() {
+  cd "$backend/curl/$1" || bail "directory for '$1' missing!"
+  latest=$(curl_latest "$2")
+  installed="$(< latest)"
+
+  if [[ "$latest" == "$installed" ]]; then
+    echo "'$1' up to date"
+    return
+  else
+    curl_fetch "$1" "$latest" || bail
+    chmod +x "$1"
+    echo "$latest" > latest
+  fi
+}
+
+curl_link() {
+  cd "$binpath"
+
+  echo "Creating symlink '$1'"
+  ln -srf "$backend/curl/$1/$1" "$1"
+}
+
+curl_latest() {
+  curl --silent --show-error --location --dump-header >(
+  awk '/Location/ { gsub(/[[:space:]]/, "", $2); print $2 }'
+  ) -o /dev/null "$1"
+}
+
+curl_fetch() {
+  curl --silent --show-error --location -o "$1" "${2/\/tag\//\/download\/}/$1"
+}
+
 node_update() {
   echo "Updating node package '$1'"
   cd "$backend"

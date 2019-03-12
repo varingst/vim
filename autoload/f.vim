@@ -359,33 +359,42 @@ endfun
 
 " == PROTOTYPES =========================================================== {{{1
 
-fun! f#lsp_setup(servers)
+fun! f#lsp_setup(servers) abort
   for [ft, opts] in items(a:servers)
-    let server = { 'whitelist': split(ft, ',') }
+    let server = type(opts) is v:t_string ? { 'cmd': opts } : opts
+    let server.whitelist = split(ft, ',')
 
-    if type(opts) is v:t_string
-      let cmd = split(opts)
-      let opts = {}
-    elseif type(opts.command) is v:t_string
-      let cmd = split(opts.command)
-    elseif type(opts.command) is v:t_list
-      let cmd = opts.command
-    elseif type(opts.command) is v:t_func
-      let opts.cmd = opts.command
-      let opts.whitelist = server.whitelist
-      call lsp#register_server(opts)
-      continue
-    else
-      throw "Invalid lsp format: ".ft
+    if type(server.cmd) is v:t_string
+      let server.cmd = f#lsp_cmd(server.cmd)
     endif
 
-    let server.name = get(opts, 'name', cmd[0])
-    let server.initialization_options = get(opts, 'init', { 'diagnostics': 'true' })
-    let server.cmd = { server_info -> cmd }
+    if has_key(server, 'root_uri') && type(server.root_uri) is v:t_string
+      let server.root_uri = f#lsp_root(server.root_uri)
+    endif
+
+    if !has_key(server, 'name')
+      let server.name = split(server.cmd()[-1], ' ')[0]
+    endif
+
+    if !has_key(server, 'initialization_options')
+      let server.initialization_options =
+            \ get(server, 'init', { 'diagnostics': 'true' })
+    endif
 
     call lsp#register_server(server)
   endfor
 endfun
+
+fun! f#lsp_root(root_marker)
+  return { -> lsp#utils#path_to_uri(
+        \       lsp#utils#find_nearest_parent_directory(
+        \         lsp#utils#get_buffer_path(), a:root_marker))}
+endfun
+
+fun! f#lsp_cmd(cmd)
+  return { -> [&shell, &shellcmdflag, a:cmd] }
+endfun
+
 
 fun! f#acomp_setup(sources)
   for [name, opts] in items(a:sources)
@@ -395,8 +404,8 @@ fun! f#acomp_setup(sources)
     endif
 
     if !has_key(opts, 'completor')
-      let opts.completor = printf(
-            \ 'asyncomplete#sources#%s#completor', name)
+      let opts.completor = function(printf(
+            \ 'asyncomplete#sources#%s#completor', name))
     endif
 
     let GetSourceOptions = function(
@@ -626,4 +635,35 @@ fun! f#Hsl2Rgb(h, s, l)
   endif
 
   return map([r, g, b], {_, c -> round(c * 255)})
+endfun
+
+fun! f#changes()
+  let reg_save = @@
+  let @r = ""
+  while v:true
+    try
+      normal! g;
+      let @r .= printf('%s:%d', expand('%'), line('.'))
+      silent -2,+2yank R
+    catch /E662:/
+      break
+    endtry
+  endwhile
+  split dump
+  silent 0put r
+  normal! gg
+  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nomodifiable
+  let @@ = reg_save
+endfun
+
+fun! f#flatten(list)
+  let rtn = []
+  for e in a:list
+    if type(e) is v:t_list
+      call extend(rtn, e)
+    else
+      call add(rtn, e)
+    endif
+  endfor
+  return rtn
 endfun

@@ -231,7 +231,7 @@ set tabstop=2
 set shiftwidth=2
 set expandtab
 set foldmethod=marker
-set foldtext=printf('%s%3d\ %s',v:folddashes,(v:foldend-v:foldstart),getline(v:foldstart))
+set foldtext=printf('%s%3d\ %s',get(g:sym.num,v:foldlevel,v:foldlevel),(v:foldend-v:foldstart),getline(v:foldstart))
 set diffopt+=foldcolumn:0
 set backspace=2
 set list
@@ -290,6 +290,10 @@ augroup vimrc_autocmd
 
   au BufWinEnter ~/.vimrc cd ~/.vim | call FugitiveDetect(expand('~/.vim'))
 
+  au BufWritePre * if '<afile>' != '^scp:' && !isdirectory(expand('<afile>:h'))
+        \        |   call mkdir(expand('<afile>:h'), 'p')
+        \        | endif
+
   " set tmux window title to repo root dir or current file name
   au BufReadPost,FileReadPost,BufNewFile,WinEnter * call
         \ system(printf("tmux rename-window '%s'",
@@ -301,6 +305,10 @@ augroup vimrc_autocmd
         \                          fnamemodify($PWD, ':~')))
 
   au VimEnter * nnoremap <silent><ESC> :nohlsearch<CR><ESC>
+
+  au User lsp_setup          call f#lsp_setup(g:lsp_servers)
+  au User ALEWantResults     call f#handle_diagnostics(g:ale_want_results_buffer)
+  au User asyncomplete_setup call f#acomp_setup(g:completion_sources)
 augroup END
 
 " == KEY MAPPING ========================================================== {{{1
@@ -532,12 +540,7 @@ nnoremap <leader>a :Ack<space>
 
 " -- Open file under cursor in split window ------------------------------- {{{2
 
-nnoremap <expr><silent>gf v:count ? "gf" : join([
-       \ ":let cur=winbufnr('.')",
-       \ "gF:let new=winbufnr('.')",
-       \ ":exe 'buffer '.cur",
-       \ ":exe (winwidth('.') > 140 ? 'vertical ' : '').'sbuffer '.new",
-       \ ""], "\<CR>")
+nnoremap <expr><silent>gf (winwidth('.') > 140 ? ':vsplit' : ':split')."\<CR>gf"
 
 " -- Fun with o ----------------------------------------------------------- {{{2
 
@@ -707,7 +710,7 @@ command! -nargs=1 -complete=file Move call mkdir(fnamemodify(<q-args>, ":p:h"), 
                                   \ | let bufname = expand('%')
                                   \ | call rename(bufname, <q-args>)
                                   \ | exe 'e '.<q-args>
-                                  \ | exe 'bdelete '.bufname
+                                  \ | exe 'bdelete '.fnameescape(bufname)
 
 " open vim function definition, default previous with error
 command! -nargs=? -complete=function Function silent execute
@@ -760,44 +763,40 @@ let g:gcc_flags = {
       \ ],
   \ }
 
-" -- COMPLETION/LSP ------------------------------------------------------- {{{2
+" -- LSP ------------------------------------------------------------------ {{{2
 
 let g:lsp_diagnostics_enabled = 1
 let g:lsp_signs_enabled = 0
+let g:lsp_servers = {
+      \ 'ruby': {
+      \   'cmd': 'solargraph stdio',
+      \   'keyword_pattern': ':\?\w\+$',
+      \ },
+      \ 'lua': 'emmylua',
+      \ 'clojure': {
+      \   'name': 'clj-lsp',
+      \   'cmd': 'clojure-lsp',
+      \ },
+      \ 'javascript,javascript.jsx': {
+      \   'name': 'js@tss',
+      \   'cmd': 'typescript-language-server --stdio',
+      \ },
+      \ 'css,less,sass': {
+      \   'name': 'css-lsp',
+      \   'cmd': 'css-languageserver --stdio',
+      \   'root_uri': '.git/..',
+      \ },
+      \ 'c,cpp,objc,objcpp,cc': {
+      \   'cmd': 'cquery',
+      \   'root_uri': 'compile_commands.json',
+      \ },
+      \}
 
-augroup LSP
-  au!
-  au User lsp_setup call f#lsp_setup({
-          \ 'ruby': 'solargraph stdio',
-          \ 'lua': 'emmylua',
-          \ 'javascript,javascript.jsx': {
-          \   'name': 'js@tss',
-          \   'command':  { ->[&shell, &shellcmdflag, 'typescript-language-server --stdio'] },
-          \   'root_uri': { ->lsp#utils#path_to_uri(
-          \                     lsp#utils#find_nearest_parent_directory(
-          \                       lsp#utils#get_buffer_path(), '.git/..'))},
-          \  },
-          \ 'css,less,sass': {
-          \   'name': 'css-ls',
-          \   'command': { ->[&shell, &shellcmdflag, 'css-languageserver --stdio'] },
-          \ },
-          \ 'c,cpp,objc,objcpp,cc': {
-          \   'name': 'cquery',
-          \   'command': { -> ['cquery'] },
-          \   'root_uri': { ->lsp#utils#path_to_uri(
-          \                     lsp#utils#find_nearest_parent_directory(
-          \                       lsp#utils#get_buffer_path(), 'compile_commands.json'))},
-          \   'init': { 'cacheDirectory': '/tmp/cquery/cache' },
-          \
-          \ },
-          \})
-  au User ALEWantResults call f#handle_diagnostics(g:ale_want_results_buffer)
-augroup END
+" -- COMPLETION ------------------------------------------------------- {{{2
 
 let g:asyncomplete_remove_duplicates = 1
 let g:asyncomplete_smart_completion = 1
-
-call f#acomp_setup({
+let g:completion_sources = {
       \ 'buffer': {
       \   'blacklist': ['go'],
       \ },
@@ -805,21 +804,13 @@ call f#acomp_setup({
       \   'priority': 10,
       \ },
       \ 'omni': {
-      \   'blacklist': [
-      \     'c',
-      \     'cpp',
-      \     'html',
-      \     'javascript',
-      \     'javascript.jsx',
-      \     'ruby'
-      \   ],
+      \   'blacklist': f#flatten(map(keys(g:lsp_servers), {_, e -> split(e, ',')}))
       \ },
       \ 'necosyntax': {},
       \ 'necovim': {
       \   'whitelist': ['vim'],
       \ },
-      \})
-
+      \}
 
 " -- CHEATSHEET ----------------------------------------------------------- {{{2
 
@@ -892,6 +883,9 @@ let g:ale_echo_msg_error_str   = g:sym.error
 let g:ale_echo_msg_warning_str = g:sym.warning
 let g:ale_echo_msg_info_str    = g:sym.info
 let g:ale_echo_msg_format      = '%severity% [%linter%] %s'
+
+let g:ale_completion_enabled = 0
+let g:ale_linters_explicit = 1
 
 let g:ale_linters = {
       \ 'python': ['flake8'],
