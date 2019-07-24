@@ -8,7 +8,7 @@ fun! f#VimRcExtra()
   command! Source :source ~/.vimrc<BAR>:source ~/.vim/autoload/f.vim
 endfunction
 
-" == ReplaceEach =========================================================== {{{1
+" == ReplaceEach ========================================================== {{{1
 
 fun! f#ReplaceEach(pattern) abort
   let pattern = strlen(a:pattern) ? a:pattern : '{\w*}'
@@ -70,9 +70,9 @@ fun! f#LocListToggle() " {{{2
   endif
 endfun
 
-fun! f#Wrap(prefix, next, wrap)
+fun! f#Wrap(prefix, next, wrap, count)
   try
-    exe a:prefix.a:next
+    exe a:count.a:prefix.a:next
   catch /^Vim\%((\a\+)\)\=:E42/
     return
   catch /^Vim\%((\a\+)\)\=:E776/
@@ -82,10 +82,10 @@ fun! f#Wrap(prefix, next, wrap)
   endtry
 endfun
 
-nnoremap <silent> <Plug>LPrev :call f#Wrap('l', 'prev', 'last')<CR>
-nnoremap <silent> <Plug>LNext :call f#Wrap('l', 'next', 'first')<CR>
-nnoremap <silent> <Plug>CPrev :call f#Wrap('c', 'prev', 'last')<CR>
-nnoremap <silent> <Plug>CNext :call f#Wrap('c', 'next', 'first')<CR>
+nnoremap <silent> <Plug>LPrev :<C-U>call f#Wrap('l', 'prev', 'last', v:count1)<CR>
+nnoremap <silent> <Plug>LNext :<C-U>call f#Wrap('l', 'next', 'first', v:count1)<CR>
+nnoremap <silent> <Plug>CPrev :<C-U>call f#Wrap('c', 'prev', 'last', v:count1)<CR>
+nnoremap <silent> <Plug>CNext :<C-U>call f#Wrap('c', 'next', 'first', v:count1)<CR>
 
 fun! f#LocalGrep(...) " {{{2
   let pattern = substitute(a:0 ? a:1 : @/, '^/\(.*\)/$', '\1', '')
@@ -355,6 +355,27 @@ fun! f#SwapWindow(target)
   exe 'buffer '.winbufnr(a:target)
   exe a:target.'wincmd w'
   exe 'buffer '.bufnr
+endfun
+
+" == Set Tmux Window Title ================================================ {{{1
+
+fun! f#SetTmuxWindowTitle(...)
+  if !exists("$TMUX")
+    return
+  endif
+  if a:0 && a:1 " leaving
+    let title = fnamemodify($PWD, ':~')
+  else
+    let project_root = FugitiveWorkTree()
+    let title = substitute(strlen(project_root)
+          \                ? fnamemodify(project_root, ':~')
+          \                : expand('%:~:.'),
+          \                '^\~/\.sync/dotfiles/', '~/.', '')
+  endif
+  call system(printf("tmux rename-window '%s'",
+        \            strlen(title) > 30
+        \            ? pathshorten(title)
+        \            : title))
 endfun
 
 " == PROTOTYPES =========================================================== {{{1
@@ -667,3 +688,23 @@ fun! f#flatten(list)
   endfor
   return rtn
 endfun
+
+fun! f#iter(list)
+  if type(a:list) isnot v:list
+    throw "can only take list"
+  endif
+
+  let i = 0
+  let len = len(l:list)
+
+  fun! Iter() closure
+    if i < len
+      let i += 1
+      return l:list[i-1]
+    endif
+    return v:null
+  endfun
+
+  return funcref('Iter')
+endfun
+

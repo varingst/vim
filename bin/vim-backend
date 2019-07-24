@@ -8,13 +8,13 @@ main() {
 
   [[ -s "$backend/backend" ]] || bail "could not locate backend at '$backend'"
 
-  declare -Ag args
-  for arg; do
-    args["$arg"]=1
+  declare -Ag named
+  for pkg; do
+    named["$pkg"]=1
   done
 
   while read -r pkg type args; do
-    if (( "${#args[@]}" > 0 )) && [[ -z "${args["${pkg#_}"]}" ]]; then
+    if (( "${#named[@]}" > 0 )) && [[ -z "${named["${pkg#_}"]}" ]]; then
       continue
     fi
 
@@ -29,6 +29,7 @@ main() {
 
 
     if "${type}_installed" "$pkg" "$args"; then
+      echo "updating $pkg"
       "${type}_update" "$pkg" "$args"
     else
       "${type}_install" "$pkg" "$args"

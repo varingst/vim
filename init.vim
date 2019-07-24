@@ -11,7 +11,7 @@ call plug_extend#begin({
 
 " -- Bling ---------------------------------------------------------------- {{{2
 
-Plug 'vim-airline/vim-airline'     " statusline
+Plug 'vim-airline/vim-airline'
 Plug 'markonm/traces.vim'
 
 " -- Programmer QoL ------------------------------------------------------- {{{2
@@ -20,8 +20,8 @@ Plug 'mileszs/ack.vim'
 Plug 'varingst/ack-extend'
 Plug 'varingst/no_history_search.vim'
 Plug 'majutsushi/tagbar', { 'on' : 'TagbarToggle' }
-Plug 'junegunn/fzf.vim'            " fuzzy file, buffer, everything nav
-Plug 'KabbAmine/zeavim.vim'        " doc lookup
+Plug 'junegunn/fzf.vim'
+Plug 'KabbAmine/zeavim.vim'
 
 Plug 'junegunn/vim-easy-align'
 Plug 'varingst/vim-skeleton', { 'local': 'vim-skeleton-fork' }
@@ -29,7 +29,7 @@ Plug 'tpope/vim-projectionist'
 
 Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
-Plug 'junegunn/gv.vim'            " commit browser
+Plug 'junegunn/gv.vim'
 
 " lsp
 Plug 'prabirshrestha/async.vim'
@@ -50,19 +50,11 @@ Plug 'prabirshrestha/asyncomplete-necosyntax.vim'
 Plug 'prabirshrestha/asyncomplete-necovim.vim'
 
 " -- Language Extras ------------------------------------------------------ {{{2
-"
-Plug 'sheerun/vim-polyglot'        " language pack
 
-Plug 'maxmellon/vim-jsx-pretty',
-Plug 'othree/jspc.vim',
-Plug 'othree/javascript-libraries-syntax.vim',
-Plug 'moll/vim-node'
-
-Plug 'othree/html5-syntax.vim'     " handles HTML5 syntax highlighting
+Plug 'MaxMEllon/vim-jsx-pretty'
+Plug 'sheerun/vim-polyglot'
 
 Plug 'jdonaldson/vaxe'
-
-Plug 'nikvdp/ejs-syntax'
 
 Plug 'kana/vim-vspec'
 Plug 'junegunn/vader.vim'
@@ -107,6 +99,8 @@ Plug 'dhruvasagar/vim-table-mode'
 
 Plug 'rhysd/vim-grammarous'
 
+Plug 'ledger/vim-ledger'
+
 " -- Homerolled ----------------------------------------------------------- {{{2
 
 for proto in glob('~/.vim/proto/*', v:false, v:true)
@@ -150,14 +144,14 @@ let g:sym = {
       \ 'close':                     '-',
       \ 'whitespace_trailing':       '§',
       \ 'whitespace_tab':            '›',
-      \ 'whitespace_tab_pad':        '\ ',
+      \ 'whitespace_tab_pad':        ' ',
       \ 'whitespace_nobreak':        '¬',
       \ 'nowrap_precedes':           '‹',
       \ 'nowrap_extends':            '›',
-      \ 'fill_vert':                 '\ ',
-      \ 'fill_fold':                 '\ ',
-      \ 'fill_end_of_buffer':        '\ ',
-      \ 'fill_diff_removed':         '\ ',
+      \ 'fill_vert':                 ' ',
+      \ 'fill_fold':                 ' ',
+      \ 'fill_end_of_buffer':        ' ',
+      \ 'fill_diff_removed':         ' ',
       \ 'gutter_error':              '»',
       \ 'gutter_warning':            '›',
       \ 'gutter_info':               '°',
@@ -195,10 +189,10 @@ set scrolloff=5
 set wildmenu
 set wildmode=longest:list
 set nomore
+set shortmess+=c
 set winminheight=0
 set splitright
 set splitbelow
-set completeopt=menuone
 
 if &modifiable && !has('nvim')
   set fileencoding=utf-8
@@ -235,20 +229,19 @@ set foldtext=printf('%s%3d\ %s',get(g:sym.num,v:foldlevel,v:foldlevel),(v:folden
 set diffopt+=foldcolumn:0
 set backspace=2
 set list
-exe ':set listchars='.join([
+let &g:listchars = join([
       \ 'tab:'        .g:sym.whitespace_tab.g:sym.whitespace_tab_pad,
       \ 'trail:'      .g:sym.whitespace_trailing,
       \ 'nbsp:'       .g:sym.whitespace_nobreak,
       \ 'precedes:'   .g:sym.nowrap_precedes,
       \ 'extends:'    .g:sym.nowrap_extends
       \  ], ',')
-exe ':set fillchars='.join(extend([
+let &g:fillchars = join([
       \ 'vert:'       .g:sym.fill_vert,
       \ 'fold:'       .g:sym.fill_fold,
       \ 'diff:'       .g:sym.fill_diff_removed,
-      \ ], !has('nvim') ? [] : [
       \ 'eob:'        .g:sym.fill_end_of_buffer,
-      \ ]), ',')
+      \ ], ',')
 
 set conceallevel=2
 set concealcursor=nc
@@ -276,7 +269,7 @@ augroup vimrc_autocmd
   au BufWinLeave *.* mkview
   au BufWinEnter *.* silent! loadview
 
-  au FileType gitcommit,qf wincmd J | setlocal nonumber | setlocal signcolumn=no
+  au FileType gitcommit,qf wincmd J | setlocal relativenumber | setlocal signcolumn=no
 
   " Dont show tabs in vim help, vsplit if space available
   au FileType help setlocal nolist | if winwidth('.') > 140 | wincmd L | endif
@@ -290,25 +283,26 @@ augroup vimrc_autocmd
 
   au BufWinEnter ~/.vimrc cd ~/.vim | call FugitiveDetect(expand('~/.vim'))
 
-  au BufWritePre * if '<afile>' != '^scp:' && !isdirectory(expand('<afile>:h'))
+  au BufWritePre * if '<afile>' !~? '^scp:' && !isdirectory(expand('<afile>:h'))
         \        |   call mkdir(expand('<afile>:h'), 'p')
         \        | endif
 
-  " set tmux window title to repo root dir or current file name
-  au BufReadPost,FileReadPost,BufNewFile,WinEnter * call
-        \ system(printf("tmux rename-window '%s'",
-        \               substitute(strlen(FugitiveWorkTree())
-        \                                 ? fnamemodify(FugitiveWorkTree(), ':~')
-        \                                 : expand('%:~:.'),
-        \                          '^\~/\.sync/dotfiles/', '~/.', '')))
-  au VimLeave * call system(printf("tmux rename-window '%s'",
-        \                          fnamemodify($PWD, ':~')))
+  au BufWritePost * if empty(&filetype) && expand('<afile>:t') !~# '\.' && getline(1) =~# '^#!'
+        \         |   filetype detect
+        \         |   call setfperm(expand('<afile>'),
+        \                           substitute(getfperm(expand('<afile>')),
+        \                                      '\(r[w-]\)-', '\1x', 'g'))
+        \         | endif
+
+  au BufReadPost,FileReadPost,BufNewFile,WinEnter * call f#SetTmuxWindowTitle()
+  au VimLeave * call f#SetTmuxWindowTitle(v:true)
 
   au VimEnter * nnoremap <silent><ESC> :nohlsearch<CR><ESC>
 
   au User lsp_setup          call f#lsp_setup(g:lsp_servers)
   au User ALEWantResults     call f#handle_diagnostics(g:ale_want_results_buffer)
   au User asyncomplete_setup call f#acomp_setup(g:completion_sources)
+
 augroup END
 
 " == KEY MAPPING ========================================================== {{{1
@@ -322,7 +316,6 @@ let g:mapleader = ';'
 
 map , <nop>
 let g:maplocalleader = ','
-inoremap <leader><ESC> ;<ESC>
 
 " -- KeyCodes ------------------------------------------------------------- {{{2
 
@@ -388,9 +381,6 @@ for pair in ['()', '{}', '[]']
   execute printf('imap <leader>%s <Plug>Isurround%s', pair[0], pair[1])
   execute printf('imap <leader>%s <Plug>ISurround%s<C-T>', pair[1], pair[0])
 endfor
-for char in ["'", '"']
-  execute printf('imap <leader>%s <Plug>Isurround%s', char, char)
-endfor
 
 " -- Various Visual ------------------------------------------------------- {{{2
 
@@ -403,6 +393,7 @@ xnoremap <expr>M ":move ".(superg#(line('.'), v:count1) - 1)."\<CR>"
 cnoremap w!! w !sudo tee % > /dev/null
 cnoremap e!! silent Git checkout -- % <BAR> redraw!
 cnoremap r!! Read<space>
+cnoremap <C-;> %:h
 cnoremap <C-K> <up>
 cnoremap <C-J> <down>
 cnoremap <C-V> <HOME><S-Right><Right><C-W>vsplit<space><END>
@@ -450,29 +441,20 @@ iabbr #! #!/usr/bin/env
 
 nmap <expr><Left>  v:count ? '<C-W><' : '<Plug>AirlineSelectPrevTab'
 nmap <expr><Right> v:count ? '<C-W>>' : '<Plug>AirlineSelectNextTab'
-nmap <expr><Up>    v:count ? '<C-W>+' : '<Plug>LPrev'
-nmap <expr><Down>  v:count ? '<C-W>-' : '<Plug>LNext'
-nmap       <S-Up>                        <Plug>CPrev
-nmap       <S-Down>                      <Plug>CNext
 
-nmap <leader>1 <Plug>AirlineSelectTab1
-nmap <leader>2 <Plug>AirlineSelectTab2
-nmap <leader>3 <Plug>AirlineSelectTab3
-nmap <leader>4 <Plug>AirlineSelectTab4
-nmap <leader>5 <Plug>AirlineSelectTab5
-nmap <leader>6 <Plug>AirlineSelectTab6
-nmap <leader>7 <Plug>AirlineSelectTab7
-nmap <leader>8 <Plug>AirlineSelectTab8
-nmap <leader>9 <Plug>AirlineSelectTab9
+for i in range(1, 9)
+  exe printf('nmap <leader>%d <Plug>AirlineSelectTab%d', i, i)
+endfor
 
-nmap <expr><C-Left>  get(b:, 'table_mode_active')
-      \ ? '<Plug>(table-mode-motion-left)'  : '<C-W>h'
-nmap <expr><C-Right> get(b:, 'table_mode_active')
-      \ ? '<Plug>(table-mode-motion-right)' : '<C-W>l'
-nmap <expr><C-Up>    get(b:, 'table_mode_active')
-      \ ? '<Plug>(table-mode-motion-up)'    : '<C-W>k'
-nmap <expr><C-Down>  get(b:, 'table_mode_active')
-      \ ? '<Plug>(table-mode-motion-down)'  : '<C-W>j'
+nmap <Up>      <Plug>LPrev
+nmap <Down>    <Plug>LNext
+nmap <S-Up>    <Plug>CPrev
+nmap <S-Down>  <Plug>CNext
+
+nmap <expr><C-Left>  get(b:, 'table_mode_active') ? '<Plug>(table-mode-motion-left)'  : '<C-W>h'
+nmap <expr><C-Right> get(b:, 'table_mode_active') ? '<Plug>(table-mode-motion-right)' : '<C-W>l'
+nmap <expr><C-Up>    get(b:, 'table_mode_active') ? '<Plug>(table-mode-motion-up)'    : '<C-W>k'
+nmap <expr><C-Down>  get(b:, 'table_mode_active') ? '<Plug>(table-mode-motion-down)'  : '<C-W>j'
 
 " -- Completion ----------------------------------------------------------- {{{2
 
@@ -562,15 +544,14 @@ vnoremap <expr>O line('.') == line("'<")
 nnoremap <expr> j v:count ? 'j' : 'gj'
 nnoremap <expr> k v:count ? 'k' : 'gk'
 " navigate folds with J/K
-nnoremap <expr><silent>J foldlevel('.') && foldclosed('.') != -1 ? "zo" : "zj"
-nnoremap <expr><silent>K foldlevel('.') && foldclosed('.') == -1 ? "zc" : "gk"
+nnoremap <expr> J foldlevel('.') && foldclosed('.') != -1 ? 'zo' : 'zj'
+nnoremap <expr> K foldlevel('.') && foldclosed('.') == -1 ? 'zc' : 'gk'
 
 noremap <expr> H getcharsearch().forward ? ',' : ';'
 noremap <expr> L getcharsearch().forward ? ';' : ','
 
 " -- System Clipboard ----------------------------------------------------- {{{2
 
-" TODO: "+ is Xwin clipboard, set this up for osx as well
 inoremap <C-V> <C-O>"+p
 vnoremap <C-C> "+y
 vnoremap <C-X> "+d
@@ -690,10 +671,6 @@ command! -nargs=0 SynStack echo join(map(synstack(line('.'), col('.')),
       \                                  'synIDattr(v:val, "name")'),
       \                              "\n")
 
-" set executable bit on current file
-command! -nargs=0 Exe silent call
-      \ system(printf('chmod +x "%s"', expand("%")))
-
 " append output of given shell command or current line
 command! -nargs=? Read silent call
       \ append(line('.'),
@@ -741,6 +718,8 @@ command! -nargs=+ TableModeInsert
       \ | exe 'TableModeEnable'
       \ | call append(line('.'), lines)
 
+command! -nargs=0 -range=% StripAnsi <line1>,<line2>s/\[\(\d\{1,2}\(;\d\{1,2}\)\?\)\?[m\|K]//ge
+
 " == PLUGINS ============================================================== {{{1
 
 " == COMMON =============================================================== {{{2
@@ -770,16 +749,13 @@ let g:lsp_signs_enabled = 0
 let g:lsp_servers = {
       \ 'ruby': {
       \   'cmd': 'solargraph stdio',
+      \   'refresh_pattern': '\(\k\+$\|\.$\|>$\|:\zs:$\)',
       \   'keyword_pattern': ':\?\w\+$',
       \ },
       \ 'lua': 'emmylua',
       \ 'clojure': {
       \   'name': 'clj-lsp',
       \   'cmd': 'clojure-lsp',
-      \ },
-      \ 'javascript,javascript.jsx': {
-      \   'name': 'js@tss',
-      \   'cmd': 'typescript-language-server --stdio',
       \ },
       \ 'css,less,sass': {
       \   'name': 'css-lsp',
@@ -791,22 +767,38 @@ let g:lsp_servers = {
       \   'root_uri': 'compile_commands.json',
       \ },
       \}
+      " \ 'javascript,javascript.jsx': {
+      " \   'name': 'js@tss',
+      " \   'cmd': 'typescript-language-server --stdio',
+      " \ },
 
 " -- COMPLETION ------------------------------------------------------- {{{2
 
 let g:asyncomplete_remove_duplicates = 1
 let g:asyncomplete_smart_completion = 1
+let g:asyncomplete_log_file = '/tmp/asyncomplete.log'
 let g:completion_sources = {
       \ 'buffer': {
-      \   'blacklist': ['go'],
+      \   'blacklist': [
+      \     'go',
+      \     'ruby',
+      \   ],
       \ },
       \ 'file': {
       \   'priority': 10,
+      \   'blacklist': [
+      \     'ruby',
+      \   ],
       \ },
       \ 'omni': {
-      \   'blacklist': f#flatten(map(keys(g:lsp_servers), {_, e -> split(e, ',')}))
+      \   'blacklist': f#flatten(map(
+      \      keys(g:lsp_servers) + [
+      \        'ledger',
+      \      ], {_, e -> split(e, ',')}))
       \ },
-      \ 'necosyntax': {},
+      \ 'necosyntax': {
+      \ 'whitelist': ['vim'],
+      \ },
       \ 'necovim': {
       \   'whitelist': ['vim'],
       \ },
@@ -888,10 +880,11 @@ let g:ale_completion_enabled = 0
 let g:ale_linters_explicit = 1
 
 let g:ale_linters = {
-      \ 'python': ['flake8'],
-      \ 'sh':     ['shellcheck'],
-      \ 'vim':    [],
-      \ 'ruby':   [],
+      \ 'python':     ['flake8'],
+      \ 'sh':         ['shellcheck'],
+      \ 'javascript': ['eslint'],
+      \ 'vim':        [],
+      \ 'ruby':       [],
       \ }
 
 let g:ale_c_gcc_options   = join(g:gcc_flags['common'] + g:gcc_flags['c'])
@@ -1125,14 +1118,16 @@ let g:calendar_wruler = join(g:sym.day, ' ')
 "
 let g:polyglot_disabled = [
       \ 'markdown',
-      \ 'lua',
+      \ 'jsx',
       \ ]
 
+      " \ 'lua',
 
 " -- MARKDOWN ------------------------------------------------------------- {{{2
 
 let g:markdown_fenced_languages = [
       \ 'c',
+      \ 'cmake',
       \ 'ruby',
       \ 'eruby',
       \ 'sh'
@@ -1202,6 +1197,10 @@ let g:superg_fallback = "\<CR>"
 map <CR> <Plug>SuperG
 map _ <Plug>SuperSOL
 map $ <Plug>SuperEOL
+
+noremap <expr> <Plug>SuperG v:count1 ? "G" : "\<CR>"
+noremap        <Plug>SuperSOL _
+noremap        <Plug>SuperEOL $
 
 " -- TABLE MODE ----------------------------------------------------------- {{{2
 
