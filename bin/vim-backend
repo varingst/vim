@@ -184,6 +184,7 @@ gradle_build() {
   [[ -x "$binpath/$1" ]] && return
 
   cat >"$binpath/$1" <<EOS
+#!/usr/bin/env bash
 java -cp $backend/emmylua/EmmyLua-LS/build/libs/EmmyLua-LS-all.jar com.tang.vscode.MainKt
 EOS
 

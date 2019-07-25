@@ -35,6 +35,8 @@ def MakeRelativePathsInFlagsAbsolute(flags, working_directory):
 
 
 def Settings(**kwargs):
+    if kwargs['language'] == 'ruby':
+        return {'ls': {'solargraph.diagnostics': True}}
     data = kwargs['client_data']
     filetype = data['&filetype']
 

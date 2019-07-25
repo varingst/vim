@@ -16,6 +16,10 @@ Plug 'markonm/traces.vim'
 
 " -- Programmer QoL ------------------------------------------------------- {{{2
 
+Plug 'ycm-core/YouCompleteMe'
+Plug 'w0rp/ale'
+Plug 'varingst/ale-silence'
+
 Plug 'mileszs/ack.vim'
 Plug 'varingst/ack-extend'
 Plug 'varingst/no_history_search.vim'
@@ -30,24 +34,6 @@ Plug 'tpope/vim-projectionist'
 Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
 Plug 'junegunn/gv.vim'
-
-" lsp
-Plug 'prabirshrestha/async.vim'
-Plug 'prabirshrestha/vim-lsp'
-
-" ale
-Plug 'w0rp/ale'
-Plug 'varingst/ale-silence'
-
-" asynccomplete
-Plug 'prabirshrestha/asyncomplete.vim'
-Plug 'prabirshrestha/asyncomplete-lsp.vim'
-Plug 'prabirshrestha/asyncomplete-buffer.vim'
-Plug 'prabirshrestha/asyncomplete-file.vim'
-Plug 'yami-beta/asyncomplete-omni.vim'
-Plug 'Shougo/neco-syntax'
-Plug 'prabirshrestha/asyncomplete-necosyntax.vim'
-Plug 'prabirshrestha/asyncomplete-necovim.vim'
 
 " -- Language Extras ------------------------------------------------------ {{{2
 
@@ -265,7 +251,7 @@ let g:vimsyn_embed = 0 " no embedded perl, lua, ruby, etc syntax in .vim files
 
 augroup vimrc_autocmd
   autocmd!
-  " auto save and load folds, options, and cursor
+
   au BufWinLeave *.* mkview
   au BufWinEnter *.* silent! loadview
 
@@ -299,10 +285,7 @@ augroup vimrc_autocmd
 
   au VimEnter * nnoremap <silent><ESC> :nohlsearch<CR><ESC>
 
-  au User lsp_setup          call f#lsp_setup(g:lsp_servers)
-  au User ALEWantResults     call f#handle_diagnostics(g:ale_want_results_buffer)
-  au User asyncomplete_setup call f#acomp_setup(g:completion_sources)
-
+  " au User ALEWantResults     call f#handle_diagnostics(g:ale_want_results_buffer)
 augroup END
 
 " == KEY MAPPING ========================================================== {{{1
@@ -373,7 +356,6 @@ inoremap <C-;> <C-O>d$
 inoremap <C-E> <C-O>dv?^\<BAR>_\<BAR>\u\<BAR>\<\<BAR>\s<CR>
 " like i_<C-W> but WORD rather than word
 inoremap <C-Q> <C-O>dB
-inoremap <C-B> <ESC>:let @b = @.<CR>a
 
 inoremap <leader><C-V> <C-V>
 
@@ -720,6 +702,11 @@ command! -nargs=+ TableModeInsert
 
 command! -nargs=0 -range=% StripAnsi <line1>,<line2>s/\[\(\d\{1,2}\(;\d\{1,2}\)\?\)\?[m\|K]//ge
 
+command! -nargs=+ -complete=file Tail
+      \   for f in split(expand(<q-args>))
+      \ |   exe 'term ++rows=10 tail -F '.f
+      \ | endfor
+
 " == PLUGINS ============================================================== {{{1
 
 " == COMMON =============================================================== {{{2
@@ -742,10 +729,130 @@ let g:gcc_flags = {
       \ ],
   \ }
 
-" -- LSP ------------------------------------------------------------------ {{{2
+" -- YCM ------------------------------------------------------------------ {{{1
 
-let g:lsp_diagnostics_enabled = 1
-let g:lsp_signs_enabled = 0
+let g:ycm_filetype_whitelist = { '*': 1 }
+let g:ycm_filetype_blacklist = {
+      \ 'tagbar': 1,
+      \ 'markdown': 1,
+      \ 'vimwiki': 1,
+      \ }
+
+" minimum chars to trigger identifier completion (2)
+let g:ycm_min_num_of_chars_for_completion = 2
+" minimum matching characters for candidate to be shown (0)
+let g:ycm_min_num_identifier_candidate_chars = 0
+" max number of indentifier suggestions in menu (10)
+let g:ycm_max_num_identifier_candidates = 50
+
+" max number of semantic suggestions in menu (50)
+let g:ycm_max_num_candidates = 100
+
+" completion menu auto popup (1)
+let g:ycm_auto_trigger = 1
+
+let g:ycm_complete_in_comments = 0
+let g:ycm_complete_in_strings = 1
+
+" filetypes for which to disable filepath completion
+let g:ycm_filepath_blacklist = {
+      \ 'html': 1,
+      \ 'jsx': 1,
+      \ 'xml': 1,
+      \ }
+" -- diagnostics -- {{{4
+"
+" Let ALE handle diagnostics
+
+" diagnostics for c, cpp, objc, objcpp, cuda
+let g:ycm_show_diagnostics_ui = 1
+
+" put icons in vim's gutter
+let g:ycm_enable_diagnostic_signs = 0
+let g:ycm_enable_diagnostic_highlighting = 0
+
+" echo diagnostic of current line
+let g:ycm_echo_current_diagnostic = 0
+
+" gutter symbols
+let g:ycm_error_symbol = g:sym.gutter_error
+let g:ycm_warning_symbol = g:sym.gutter_warning
+
+
+" filter
+" 'filetype: { 'regex': [ ... ], 'level': 'error',
+let g:ycm_filter_diagnostics = {}
+
+" populate location list on new data
+let g:ycm_always_populate_location_list = 0
+
+" auto open location list after :YcmDiags
+let g:ycm_open_loclist_on_ycm_diags = 0
+
+" --- }}}
+
+let g:ycm_use_ultisnips_completer = 0
+
+let g:ycm_add_preview_to_completeopt = 0
+
+
+"let g:ycm_filetype_specific_completion_to}
+let g:ycm_collect_identifiers_from_tags_files = 1
+let g:ycm_seed_identifiers_with_syntax = 1
+
+let g:ycm_key_invoke_completion = '<C-space>'
+let g:ycm_key_list_select_completion = ['<C-j>', '<Tab>', '<Down>']
+let g:ycm_key_list_previous_completion = ['<C-k>', '<S-Tab>', '<Up>']
+
+
+let g:ycm_global_ycm_extra_conf = expand('$HOME').'/.vim/ycm.py'
+let g:ycm_extra_conf_vim_data = [
+      \ '&filetype',
+      \ 'g:gcc_flags',
+      \]
+" let g:ycm_config_extra_conf = 0
+
+let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_autoclose_preview_window_after_insertion = 1
+
+let g:ycm_semantic_triggers = {
+      \ 'c':          ['->', '.'],
+      \ 'objc':       ['->', '.'],
+      \ 'ocaml':      ['.', '#'],
+      \ 'cpp,objcpp': ['->', '.', '::'],
+      \ 'perl':       ['->'],
+      \ 'php':        ['->', '::'],
+      \ join([
+      \   'cs',
+      \   'd',
+      \   'elixir',
+      \   'haskell',
+      \   'java',
+      \   'javascript',
+      \   'python',
+      \   'perl6',
+      \   'ruby',
+      \   'scala',
+      \   'vb',
+      \   'vim'
+      \ ], ','):      ['.' ],
+      \ 'lua':        ['.', ':'],
+      \ 'erlang':     [':'],
+      \ }
+
+let g:ycm_language_server = [
+      \   {
+      \     'name': 'ruby',
+      \     'cmdline': [ 'solargraph', 'stdio' ],
+      \     'filetypes': [ 'ruby' ],
+      \   },
+      \   {
+      \     'name': 'lua',
+      \     'cmdline': [ 'emmylua' ],
+      \     'filetypes': [ 'lua' ],
+      \   }
+      \ ]
+
 let g:lsp_servers = {
       \ 'ruby': {
       \   'cmd': 'solargraph stdio',
@@ -765,42 +872,6 @@ let g:lsp_servers = {
       \ 'c,cpp,objc,objcpp,cc': {
       \   'cmd': 'cquery',
       \   'root_uri': 'compile_commands.json',
-      \ },
-      \}
-      " \ 'javascript,javascript.jsx': {
-      " \   'name': 'js@tss',
-      " \   'cmd': 'typescript-language-server --stdio',
-      " \ },
-
-" -- COMPLETION ------------------------------------------------------- {{{2
-
-let g:asyncomplete_remove_duplicates = 1
-let g:asyncomplete_smart_completion = 1
-let g:asyncomplete_log_file = '/tmp/asyncomplete.log'
-let g:completion_sources = {
-      \ 'buffer': {
-      \   'blacklist': [
-      \     'go',
-      \     'ruby',
-      \   ],
-      \ },
-      \ 'file': {
-      \   'priority': 10,
-      \   'blacklist': [
-      \     'ruby',
-      \   ],
-      \ },
-      \ 'omni': {
-      \   'blacklist': f#flatten(map(
-      \      keys(g:lsp_servers) + [
-      \        'ledger',
-      \      ], {_, e -> split(e, ',')}))
-      \ },
-      \ 'necosyntax': {
-      \ 'whitelist': ['vim'],
-      \ },
-      \ 'necovim': {
-      \   'whitelist': ['vim'],
       \ },
       \}
 
