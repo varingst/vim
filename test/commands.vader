@@ -1,0 +1,34 @@
+Given(sh):
+  $ echo Line 1
+  # this is a comment to be ignored
+  $ echo Line 2
+
+Execute():
+  Read
+
+Expect(inserts result after line):
+  $ echo Line 1
+  Line 1
+  # this is a comment to be ignored
+  $ echo Line 2
+
+Execute():
+  1,3Read
+
+Expect(range inserts result after respective lines):
+  $ echo Line 1
+  Line 1
+  # this is a comment to be ignored
+  $ echo Line 2
+  Line 2
+
+Execute():
+  Read echo foo; echo bar; echo baz
+
+Expect(inserts output of commands after line):
+  $ echo Line 1
+  foo
+  bar
+  baz
+  # this is a comment to be ignored
+  $ echo Line 2

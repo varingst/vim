@@ -1,60 +1,137 @@
+if has('patch-8.1.1116')
+  scriptversion 3
+endif
 
-" copy {motion} to @o, put on next line
-fun! op#copyO(type, ...) " {{{1
-  let sel_save = &selection
-  let &selection = "inclusive"
+" -- COPY LINE ------------------------------------------------------------ {{{1
 
-  if a:0
-    silent exe "normal! gv\"oyo\<C-R>o"
-    startinsert!
-  elseif a:type == char
-    silent exe "normal! `[v`]\"oyo\<C-R>o"
-    startinsert!
-  endif
+fun! op#CopyLine(register, ...) "{{{2
+  normal! m`
+  let s:copyline_register = a:register
 
-  let &selection = sel_save
-endfun
-
-" double {motion}
-fun! op#double(type, ...) " {{{1
-  let sel_save = &selection
-  let &selection = "inclusive"
-
-  let reg_save = @@
-
-  if a:0 " invoked from visual mode
-    silent exe "normal! gvyP"
-  elseif a:type == 'line'
-    silent exe "normal! '[V']yP"
+  if a:0 && a:1
+    let l:lnum = a:1
   else
-    silent exe "normal! `[v`]yP"
+    call inputsave()
+    let l:lnum = superg#(line('.'), str2nr(input('superg# > ')))
+    call inputrestore()
   endif
 
-  let @@ = reg_save
-  let &selection = sel_save
+  let l:startofline = &startofline
+  let &startofline = 0
+  exe l:lnum
+  let &startofline = l:startofline
+ 
+  let &opfunc = s:sid('CopyLine')
 endfun
 
-" swap {motion} with @"
-fun! op#replace(type, ...) " {{{1
+fun! s:CopyLine(type) "{{{2
+  if a:type == 'char'
+    silent exe 'normal! `[v`]"'..s:copyline_register..'y'
+  endif
+  normal! g``
+  if a:type == 'char'
+    silent exe 'normal! "'..s:copyline_register..'p'
+  endif
+  normal! g`]
+
+  let l:ve = &virtualedit
+  let &virtualedit = 'onemore'
+  normal! l
+  startinsert
+  let &virtualedit = l:ve
+endfun
+
+" -- FILL LINE ------------------------------------------------------------ {{{1
+
+fun! op#FillLine(char, ...) "{{{2
+  normal! m`
+
+  let s:fillchar = a:char
+
+  if a:0 && a:1
+    let l:lnum = a:1
+  else
+    call inputsave()
+    let l:lnum = superg#(line('.'), str2nr(input('superg# > ')))
+    call inputrestore()
+  endif
+
+  let l:startofline = &startofline
+  let &startofline = 0
+  exe l:lnum
+  let &startofline = l:startofline
+
+  let &opfunc = s:sid('FillLine')
+endfun
+
+fun! s:FillLine(type) "{{{2
+  if a:type == 'char'
+    let l:pad = col("']") - col("'[")
+  else
+    return
+  end
+
+  normal! g``
+  let g:exe = printf("normal! \"=repeat('%s', %d)\<CR>p", s:fillchar, l:pad)
+  let g:airline_debug = g:exe
+
+  exe g:exe
+  normal! g`]
+
+  let l:ve = &virtualedit
+  let &virtualedit = 'onemore'
+  normal! l
+  startinsert
+  let &virtualedit = l:ve
+endfun
+
+" -- REPLACE -------------------------------------------------------------- {{{1
+
+fun! op#Replace(type, ...) abort "{{{2
+  let l:reg = v:register
+
+  if l:reg =~! '\C[a-z"*+]'
+    throw 'can only use registers [a-z"*+]'
+  endif
+
   let sel_save = &selection
   let &selection = 'inclusive'
 
-  let r_save = @r
-  let @r = @"
+  let l:unnamed = @"
+  let l:reg_save = getreg(l:reg)
+  let l:reg_type = getregtype(l:reg)
 
   if a:0
-    silent exe "normal! gvd\"rp"
+    let l:cmd = 'normal! gv"'
   elseif a:type == 'line'
-    silent exe "normal! '[V']d\"rp"
+    let l:cmd = "normal! '[V']\""
   else
-    silent exe "normal! `[v`]d\"rp"
+    let l:cmd = "normal! `[v`]\""
   endif
 
-  let @r = r_save
+  silent exe l:cmd..l:reg.."d"
+
+  " store the new line
+  let l:new = getreg(l:reg)
+
+  " put old line in register and paste
+  call setreg(l:reg, l:reg_save, l:reg_type)
+  silent exe "normal! \""..l:reg.."p"
+  " put new line in register
+  call setreg(l:reg, l:new, l:reg_type)
+
+  if l:reg != '"'
+    " reset unnamed register to last user command
+    " if user specified a register
+    let @" = l:unnamed
+  endif
+
   let &selection = sel_save
 endfun
 
-fun! op#substitute(type, ...) " {{{1
+" -- SUBSTITUTE ----------------------------------------------------------- {{{1
+
+fun! op#Substitute(type, ...)
   let s = @s
   if a:0
     normal! gv"sy
@@ -68,17 +145,48 @@ fun! op#substitute(type, ...) " {{{1
   call feedkeys(printf("\<ESC>:%%s/%s//g\<Left>\<Left>", sel))
 endfun
 
-fun! op#map(key, func, ...) " {{{1
-  for mode in split(a:0 ? a:1 : 'nx', '\zs')
-    if 'n' == mode
-      exe printf('nnoremap <silent>%s :set opfunc=%s<CR>g@',
-            \    a:key, a:func)
-    elseif 'xv' =~# mode
-      exe printf('%snoremap <silent>%s :<C-U>call %s(visualmode(), v:true)<CR>',
-            \    mode, a:key, a:func)
-    elseif 'i' == mode
-      exe printf('inoremap <silent>%s <ESC>:set opfunc=%s<CR>g@',
-            \    a:key, a:func)
-    endif
+" -- SHIFT ---------------------------------------------------------------- {{{1
+
+fun! op#Shift(direction, count) "{{{2
+  let s:shift_direction = a:direction
+  let s:shift_count = a:count
+  let &opfunc = s:sid('Shift')
+endfun
+
+fun! s:Shift(type) "{{{2
+  if a:type == 'line'
+    exe "normal! '[v']"..s:count1(s:shift_count)..s:shift_direction
+  else
+    exe "normal! `[v`]"..s:count1(s:shift_count)..s:shift_direction
+  endif
+endfun
+
+" -- UTIL ----------------------------------------------------------------- {{{1
+
+fun! op#Expr(func) "{{{2
+  " must do it this way to provide register
+  let &opfunc = a:func =~ '#' ? a:func : s:sid(a:func)
+  return 'g@'
+endfun
+
+fun! s:sid(func) "{{{2
+  return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID$')..a:func
+endfun
+
+fun! s:count1(count) "{{{2
+  return a:count == 0 ? 1 : a:count
+endfun
+
+fun! s:savereg(...) "{{{2
+  let s:registers = {}
+  for l:reg in range(9) + a:000
+    let s:registers[l:reg] = [getreg(l:reg), getregtype(l:reg)]
   endfor
 endfun
+
+fun! s:restorereg() "{{{2
+  for [reg, pair] in items(get(s:, 'registers', {}))
+    call setreg(reg, pair[0], pair[1])
+  endfor
+endfun
+

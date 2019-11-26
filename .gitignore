@@ -1,9 +1,7 @@
-bin/*
-!bin/vim-backend
-backend/*
-!backend/backend
 plugged/
 proto/
 view/
 .netrwhist
 .language-client-version
+coverage.xml
+.coverage_covimerage

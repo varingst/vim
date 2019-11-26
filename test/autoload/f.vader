@@ -1,0 +1,13 @@
+Execute:
+  let g:f_TESTING = 1
+  let g:f_TESTING_input = ['foo', 'bar', 'baz', 'quux', '']
+
+Given:
+  <td>{foo}</td><td>{foo}</td><td>{bar}</td>
+
+Execute:
+  call f#ReplaceEach('')
+
+Expect:
+  <td>foo</td><td>foo</td><td>bar</td>
+  <td>baz</td><td>baz</td><td>quux</td>

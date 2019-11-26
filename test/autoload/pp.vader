@@ -1,0 +1,30 @@
+Execute:
+  let dictlist = [
+  \ { 'one': '1', 'two': '2', 'three': '3' },
+  \ { 'one': 'one', 'two': 'two', 'three': 'three' },
+  \ { 'one': 'en', 'two': 'to', 'three': 'tre' },
+  \ { 'one': 'ein', 'two': 'zwei', 'three': 'drei' },
+  \ { 'one': 'ichi', 'two': 'ni', 'three': 'san' },
+  \]
+
+  let expected = [
+  \ 'one   two   three',
+  \ '----  ----  -----',
+  \ '1     2     3',
+  \ 'one   two   three',
+  \ 'en    to    tre',
+  \ 'ein   zwei  drei',
+  \ 'ichi  ni    san',
+  \]
+
+  AssertEqual expected, pp#DictList(dictlist, 'one', 'two', 'three')
+
+Execute:
+  let dict = { 'foobar': 'baz', 'bar': 'quux' }
+
+  let expected = [
+  \ 'bar    => quux',
+  \ 'foobar => baz',
+  \]
+
+  AssertEqual expected, pp#Dict(dict)

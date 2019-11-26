@@ -1,0 +1,55 @@
+Execute:
+  let g:autoload_popup_TESTING = 1
+
+Given:
+  Foo()
+
+Execute:
+  normal! $
+  call popup#FuncName()
+  let [what, opts] = g:popup_args
+
+  AssertEqual 'Foo(', what[0].text
+
+Execute:
+  let g:autoload_popup_TESTING_now = '2019-11-01'
+
+  call popup#HumanDay('2019-11-02')
+  AssertEqual 'Tomorrow', g:popup_args[0]
+
+  call popup#HumanDay('2019-11-03')
+  AssertEqual 'Next Sunday', g:popup_args[0]
+
+  call popup#HumanDay('2019-11-04')
+  AssertEqual 'Monday next week', g:popup_args[0]
+
+  call popup#HumanDay('2019-11-11')
+  AssertEqual 'Monday in 2 weeks', g:popup_args[0]
+
+  call popup#HumanDay('2019-10-31')
+  AssertEqual 'Yesterday', g:popup_args[0]
+
+  call popup#HumanDay('2019-10-30')
+  AssertEqual 'Last Wednesday', g:popup_args[0]
+
+  call popup#HumanDay('2019-10-23')
+  AssertEqual 'Wednesday last week', g:popup_args[0]
+
+  call popup#HumanDay('2019-10-16')
+  AssertEqual 'Wednesday 2 weeks ago', g:popup_args[0]
+
+Execute:
+  let F = { winid, result -> result }
+  call popup#selector(['hey', 'ho', 'yo'], F)
+  let [lines, opts] = g:popup_args
+  AssertEqual ['f hey', 'j ho', 'd yo'], lines
+
+  fun! Foo(...)
+  endfun
+
+  call popup#selector({ 'h': 'hey', 'o': 'ho', 'y': 'yo' }, 'Foo')
+  let [lines, opts] = g:popup_args
+  AssertEqual ['h hey', 'o ho', 'y yo'], lines
+
+  call popup#selector({ 'h': 'hey', 'o': 'ho', 'y': 'yo' }, { 'callback': F })
+  let [lines, opts] = g:popup_args

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+main() {
+  for testfile; do
+    [[ -s "$testfile" ]] || continue
+    out="${testfile##*/}.out"
+    file="${testfile##*/}"
+    file=( coc/data/"${file%.*}".* )
+    if [[ ! -s "${file[0]}" ]]; then
+      echo "could not find file $file" >&2
+      exit 1
+    fi
+    [[ -s "$out" ]] && rm -f "$out"
+    export TESTIN="$testfile"
+    export TESTOUT="$out"
+    vim -c "source coc/helpers.vim" "$file"
+    if [[ -s "$out" ]]; then
+      echo "=== $testfile ==="
+      cat "$out"
+    else
+      echo "=== $testfile ALL OK! ==="
+    fi
+  done
+}
+
+main "$@"

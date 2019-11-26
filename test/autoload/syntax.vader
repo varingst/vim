@@ -1,0 +1,80 @@
+Execute:
+  fun! HLEql(hl, start_col, end_col, item)
+    call vader#assert#equal(a:hl, a:item.highlight, printf(
+    \ 'Expected highlight to be "%s" but was "%s"', a:hl, a:item.highlight))
+    call vader#assert#equal(a:start_col, a:item.col, printf(
+    \ 'Expected highlight %s to start at column %d, but was %d',
+    \ a:item.highlight, a:start_col, a:item.col))
+    call vader#assert#equal(a:end_col, a:item.end_col, printf(
+    \ 'Expected highlight %s to end at column %d, but was %d',
+    \ a:item.highlight, a:end_col, a:item.end_col))
+  endfun
+  command! -nargs=+ AssertHL call HLEql(<args>)
+
+  command! -nargs=1 LogList for l in <args> | exe 'Log l' | endfor
+
+  fun! First(list, F)
+    return filter(copy(a:list), { _, e -> a:F(e) })[0]
+  endfun
+
+  fun! Item(parsed, str) abort
+    try
+      return First(a:parsed.props, { e -> e.string ==# a:str })
+    catch /E684/
+      throw "Could not find item matching '".a:str."'"
+    endtry
+  endfun
+
+Given vim:
+  let foo = "bar"
+  call getline('.')
+
+Execute(syntax#PropString):
+  let parsed = syntax#PropString(1)
+  AssertEqual parsed.text, getline(1)
+
+  AssertHL 'vimLet', 1, 4, Item(parsed, 'let')
+  AssertHL 'vimVar', 5, 8, Item(parsed, 'foo')
+  AssertHL 'vimOper', 9, 10, Item(parsed, '=')
+  AssertHL 'vimString', 11, 15, Item(parsed, '"bar')
+  AssertHL 'vimStringEnd', 15, 16, Item(parsed, '"')
+
+  let parsed = syntax#PropString(2, 5)
+
+  AssertEqual "getline('.')", parsed.text
+  AssertHL 'vimFuncName', 1, 8, Item(parsed, 'getline')
+  AssertHL 'vimParenSep', 8, 9, Item(parsed, '(')
+  AssertHL 'vimString', 9, 12, Item(parsed, "'.'")
+  AssertHL 'vimParenSep', 12, 13, Item(parsed, ')')
+
+  let parsed = syntax#PropString(2, 5, 11)
+
+  AssertEqual "getline", parsed.text
+  AssertHL 'vimFuncName', 1, 8, Item(parsed, 'getline')
+
+  let parsed = syntax#PropString(2, 5, 7)
+  AssertHL 'vimFuncName', 1, 4, Item(parsed, 'get')
+
+  let parsed = syntax#PropString(2, 'get')
+  AssertHL 'vimFuncName', 1, 4, Item(parsed, 'get')
+
+  let s = syntax#PropString(2, 'call ')
+  let m = syntax#PropString(2, 'getline')
+  let e = syntax#PropString(2, "('.')")
+
+  call m.prepend(s)
+  call m.append(e)
+
+  AssertEqual syntax#PropString(2), m
+
+  let parsed = syntax#PropString(1)
+  let highlights = map(copy(parsed.props), { _, prop -> prop.highlight })
+  for hl in highlights
+    call prop_type_delete('syntax#'..hl)
+  endfor
+  Assert empty(filter(copy(highlights), { _, hl -> !empty(prop_type_get(hl)) }))
+
+  call parsed.ensure_highlight()
+  for hl in highlights
+    Assert !empty(prop_type_get('syntax#'..hl))
+  endfor

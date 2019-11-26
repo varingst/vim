@@ -1,0 +1,116 @@
+Execute:
+  let mappings = split(&rtp, ',')[0].'/plugin/plugmaps.vim'
+"   Assert filereadable(mappings), 'mappings readable'
+  exe 'source' mappings
+"   " runtime autoload/op.vim
+"   Log &rtp
+"   Assert !empty(maparg('<Plug>(op#CopyLineAbove)', 'i'))
+
+Given:
+  Foo bar baz
+
+Do(op#CopyLine above):
+  o    \<Plug>(op#CopyLineAbove)2w
+
+Expect(copies {motion} from line above):
+  Foo bar baz
+      bar baz
+
+Do(op#CopyLine above):
+  o\<Plug>(op#CopyLineAbove)3iw
+
+Expect(handles start of line):
+  Foo bar baz
+  Foo bar
+
+Do(op#CopyLine below):
+  O    \<Plug>(op#CopyLineBelow)2w
+
+Expect(copies {motion} from line below):
+      bar baz
+  Foo bar baz
+
+Do(op#CopyLine below):
+  O\<Plug>(op#CopyLineBelow)3iw
+
+Expect(handles start of line):
+  Foo bar
+  Foo bar baz
+
+Given:
+  Foo Bar Baz
+  foo bar baz
+
+Do(op#Replace replaces {motion} with @"):
+  yg$j\<Plug>(op#Replace)g$
+
+Then:
+  AssertEqual 'foo bar baz', @", 'Unnamed reg should contain replaced line "foo bar baz" : '.@"
+
+Expect:
+  Foo Bar Baz
+  Foo Bar Baz
+
+Given:
+  Foo Bar Baz
+  foo bar baz
+
+Execute:
+  let @0 = 'yank reg'
+  let @r = 'use this'
+
+Do(op#Replace uses provided register):
+  "ryg$j"r\<Plug>(op#Replace)g$
+
+Then:
+  AssertEqual 'foo bar baz', @r, 'r reg should contain replace line "foo bar baz"'
+  AssertEqual 'Foo Bar Baz', @", "Expected unnamed reg to be reset"
+
+Expect:
+  Foo Bar Baz
+  Foo Bar Baz
+
+Given:
+  Foo Bar Baz
+  Foo Bar Baz
+
+  Foo Bar Baz
+  Foo Bar Baz
+
+  Foo Bar Baz
+  Foo Bar Baz
+
+Do(op#Shift handles double count):
+  2\<Plug>(op#ShiftRight)2}
+
+Expect:
+      Foo Bar Baz
+      Foo Bar Baz
+
+      Foo Bar Baz
+      Foo Bar Baz
+
+  Foo Bar Baz
+  Foo Bar Baz
+
+Given:
+  somelongthinghere(someotherthing)
+     boo
+
+Do(op#FillLine fills until end of {motion}):
+  jA\<Plug>(op#FillLineAbove)f(foo
+
+Expect:
+  somelongthinghere(someotherthing)
+     boo           foo
+
+Given:
+  somelongthinghere(someotherthing)
+
+Do(op#FillLine handles start of line):
+  o\<Plug>(op#FillLineAbove)f(foo
+
+Expect:
+  somelongthinghere(someotherthing)
+                   foo
+

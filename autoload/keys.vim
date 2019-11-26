@@ -1,3 +1,6 @@
+if has('patch-8.1.1116')
+  scriptversion 3
+endif
 
 " == Interface ============================================================ {{{1
 
@@ -25,37 +28,37 @@ fun! keys#list(...) " {{{2
     return
   endif
 
-  let format = '%-'.(s:width['keys'] + 2).'s%-'.(s:width['mode'] + 2).'s%s'
+  let format = '%-'..(s:width['keys'] + 2)..'s%-'..(s:width['mode'] + 2)..'s%s'
   let available_width = &columns - strdisplaywidth(printf(format, '', '', '  '))
 
   for entry in keys
     echo printf(format, entry['keys'], entry['mode'],
           \ strdisplaywidth(entry['text']) > available_width
-          \ ? entry['text'][:available_width - 2].'..'
+          \ ? entry['text'][:available_width - 2]..'..'
           \ : entry['text'])
   endfor
 endfun
 
-fun! keys#flist(...) " {{{2
+fun! keys#flist(...) abort " {{{2
   let rows = [['']]
   let format = '%-7s'
-  for pre in a:0 ? a:000 : ['', '<leader>']
-    call add(rows[0], pre)
-    let max_width = strdisplaywidth(pre)
+  for fkey in a:0 ? a:000 : ['<F%d>', '<S-F%d>']
+    call add(rows[0], printf(substitute(fkey, '%d', '%s', ''), 'n'))
+    let max_width = strdisplaywidth(fkey) - 1
 
     for i in range(1, 12)
-      let key = '<F'.i.'>'
+      let key = printf(fkey, i)
       if len(rows) < i + 1
         call add(rows, [])
         call add(rows[-1], key)
       endif
-      let key = pre.key
+      let key = printf(fkey, i)
       let mapping = get(s:fkeys, key, '')
       let max_width = max([max_width, strdisplaywidth(mapping)])
       call add(rows[i], mapping)
     endfor
 
-    let format .= '%-'.(max_width + 2).'s'
+    let format ..= '%-'..(max_width + 2)..'s'
   endfor
 
   for row in rows
@@ -92,14 +95,14 @@ endfun
 fun! s:MapFkeys(keys) " {{{2
   for [key, cmd] in items(a:keys)
     let s:fkeys[key] = cmd
-    exe 'nnoremap ' . key . ' ' . cmd . '<CR>'
-    exe 'inoremap ' . key . ' <ESC>' . cmd . '<CR>'
+    exe 'nnoremap ' .. key .. ' ' .. cmd .. '<CR>'
+    exe 'inoremap ' .. key .. ' <ESC>' .. cmd .. '<CR>'
   endfor
 endfun
 
 fun! s:MapCode(code, key) " {{{2
-  exe 'map <ESC>['.a:code.' '.a:key
-  exe 'map! <ESC>['.a:code.' '.a:key
+  exe 'map <ESC>['..a:code..' '..a:key
+  exe 'map! <ESC>['..a:code..' '..a:key
 endfun
 
 let s:prefixes = ['S', 'C', 'C-S']
@@ -117,7 +120,7 @@ fun! s:MapCodes(codemap) " {{{2
                   \               substitute(key, '<\|>', '', 'g')))
           endif
         catch /E684/
-          echoerr 'No prefix for index '.i
+          echoerr 'No prefix for index '..i
         endtry
       endfor
     elseif type is v:t_string

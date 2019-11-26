@@ -1,30 +1,62 @@
-" File for keeping functions out of vimrc
+if has('patch-8.1.1116')
+  scriptversion 3
+endif
 
-" == VimRcExtra =========================================================== {{{1
-" called for ~/.vimrc only
-fun! f#VimRcExtra()
-  command! Functions :vsplit ~/.vim/autoload/f.vim
-  command! Section :call f#VimRCHeadline()
-  command! Source :source ~/.vimrc<BAR>:source ~/.vim/autoload/f.vim
-endfunction
+fun! f#Fold(list, F, ...) abort "{{{1
+  if empty(a:list)
+    throw "thou can'st not fold that which is empty"
+  endif
 
-" == ReplaceEach ========================================================== {{{1
+  if a:0
+    let acc = a:1
+    let i = 0
+  else
+    let acc = a:list[0]
+    let i = 1
+  endif
 
-fun! f#ReplaceEach(pattern) abort
+  while i < len(a:list)
+    let acc = a:F(acc, a:list[i])
+    let i += 1
+  endwhile
+
+  return acc
+endfun
+
+fun! f#Accumulate(list, acc, F) abort "{{{1
+  for e in a:list
+    call a:F(a:acc, e)
+  endfor
+
+  return a:acc
+endfun
+
+fun! f#ReplaceEach(pattern) abort "{{{1
   let pattern = strlen(a:pattern) ? a:pattern : '{\w*}'
   let template = getline('.')
   let to_replace = []
+  let stl_save = &statusline
   call substitute(template, pattern, '\=add(to_replace, submatch(0))', 'g')
-  call inputsave()
+  if empty(to_replace)
+    return
+  endif
+  let to_replace = filter(copy(to_replace), { idx, pat -> index(to_replace, pat) == idx })
   while v:true
-    for pattern in filter(to_replace, 'index(to_replace, v:val) == v:key')
-      let replacement = input('s/'.pattern.'/')
+    if !has('nvim')
+      " vim redraw bug workaround
+      set statusline=
+    endif
+
+    for pattern in to_replace
+      let replacement = s:input('s/'..pattern..'/', '')
       if !strlen(replacement)
-        call inputrestore()
         normal! "_dd
+        if !has('nvim')
+          let &statusline = stl_save
+        endif
         return
       endif
-      exe printf('s/%s/%s/g', pattern, replacement)
+      call setline('.', substitute(getline('.'), pattern, replacement, 'g'))
       redraw
     endfor
     call append('.', template)
@@ -33,678 +65,90 @@ fun! f#ReplaceEach(pattern) abort
   endwhile
 endfun
 
-" == VimRCHeadline ======================================================== {{{1
-" expands headline like ^ to 80 width
-fun! f#VimRCHeadline()
-  let line = getline('.')
-  let words = split(line)
-  let pad = 80 - (strlen(line) - strlen(words[-2]))
-  let words[-2] = repeat(words[-2][0], pad)
-  call setline('.', join(words))
-endfun
-
-" == Location/Error list ================================================== {{{1
-
-fun! f#LocListToggle() " {{{2
-  if !len(getloclist(0))
-    return
-  endif
-
-  " find if open by positive winnr
-  for bufnum in map(filter(split(execute('silent! ls!'),
-                 \               '\n'),
-                 \         'v:val =~# "Location List"'),
-                 \  'str2nr(matchstr(v:val, "\\d\\+"))')
-    if bufwinnr(bufnum) != -1
-      lclose
-      return
-    endif
-  endfor
-
-  " open and stay in current window
-  let winnr = winnr()
-  call f#filter_loclist()
-  lopen
-  if winnr() != winnr
-    wincmd p
-  endif
-endfun
-
-fun! f#Wrap(prefix, next, wrap, count)
-  try
-    exe a:count.a:prefix.a:next
-  catch /^Vim\%((\a\+)\)\=:E42/
-    return
-  catch /^Vim\%((\a\+)\)\=:E776/
-    return
-  catch /^Vim\%((\a\+)\)\=:E553/
-    exe a:prefix.a:wrap
-  endtry
-endfun
-
-nnoremap <silent> <Plug>LPrev :<C-U>call f#Wrap('l', 'prev', 'last', v:count1)<CR>
-nnoremap <silent> <Plug>LNext :<C-U>call f#Wrap('l', 'next', 'first', v:count1)<CR>
-nnoremap <silent> <Plug>CPrev :<C-U>call f#Wrap('c', 'prev', 'last', v:count1)<CR>
-nnoremap <silent> <Plug>CNext :<C-U>call f#Wrap('c', 'next', 'first', v:count1)<CR>
-
-fun! f#LocalGrep(...) " {{{2
-  let pattern = substitute(a:0 ? a:1 : @/, '^/\(.*\)/$', '\1', '')
-  let lnum = line('.')
-
-  silent! exe 'vimgrep /'.pattern.'/ %'
-  let qf = getqflist()
-  if len(qf)
-    exe "copen ".min([len(qf), 15])
-    wincmd p
-    for entry in qf
-      if entry.lnum == lnum
-        return
-      endif
-      try
-        cnext
-      catch /E553/
-        cfirst
-      endtry
-    endfor
-  endif
-endfun
-
-fun! f#QuickFixFlush() " {{{2
-  for winnr in range(1, winnr('$'))
-    if getwinvar(winnr, '&syntax') == 'qf'
-      cclose
-      break
-    endif
-  endfor
-  call setqflist([])
-endfun
-
-
-" == Set/Remove Fold Markers ============================================== {{{1
-
-fun! f#SetFoldMarker(level) " {{{2
-  let line = getline('.')
-  let open_fold = '{{{'
-  let pat = open_fold . '\d'
-
-  if a:level == 0
-    " level = 0 => clear marker
-    let cmtopen = split(printf(&commentstring, '|'), '|')[0]
-
-    let marker_start = match(line, '\s*\(' . cmtopen . '\s*\)\?' . open_fold)
-    if marker_start >= 0
-      let line = line[0:marker_start - 1]
-    else
-      return
-    endif
-  else
-    " level > 0 => add/update marker
-    if match(line, pat) >= 0
-      " update existing marker with new level
-      let line = substitute(line, pat, open_fold . a:level, '')
-    else
-      let line .= printf((s:IsAlreadyComment(line)
-                        \ ? '%s'
-                        \ : ' '.&commentstring),
-                        \ open_fold.a:level)
-    endif
-  endif
-
-  call setline('.', line)
-endfun
-
-fun! s:IsAlreadyComment(line) " {{{2
-  return synIDattr(synID(line('.'), strwidth(a:line), 1), 'name') =~? 'comment'
-endfun
-
-" == Conceal Toggle ======================================================= {{{1
-
-fun! f#ConcealToggle()
-  if &conceallevel
-    setlocal conceallevel=0
-  else
-    setlocal conceallevel<
-  endif
-endfun
-
-" == Comment Toggle ======================================================= {{{1
-
-fun! f#CommentToggle(...)
-  exe 'silent '.(a:1 ? "'<,'>" : "'[,']").' normal gcc'
-endfun
-
-" == Spell Toggle ========================================================= {{{1
-
-" == ColorColumnToggle ==================================================== {{{1
-
-fun! f#ColorColumnToggle()
-  if strlen(&colorcolumn)
-    setlocal colorcolumn=
-  else
-    setlocal colorcolumn=+1
-  endif
-endfun
-
-" == Gdiff Toggle ========================================================= {{{1
-
-fun! f#GdiffToggle() abort
-  let did_close = v:false
-
-  if exists('s:gdiff_file')
-    for buf in getbufinfo({ 'listed': 1 })
-      if buf.name == s:gdiff_file
-        exe 'bdelete '. buf.bufnr
-        let did_close = v:true
-        break
-      endif
-    endfor
-
-    unlet! s:gdiff_file
-    if did_close
-      return
-    endif
-  endif
-
-  Gdiff!
-
-  for buf in getbufinfo({ 'listed': 1 })
-    if (match(buf.name, '^fugitive.*'.expand('%').'$') == 0)
-      let s:gdiff_file = buf.name
-    endif
-  endfor
-endfun
-
-" == PreviewHunkToggle ==================================================== {{{1
-
-fun! f#PreviewHunkToggle() abort
-  let current_hunk = s:current_hunk()
-  if exists('s:viewed_hunk')
-    if empty(current_hunk) || current_hunk == s:viewed_hunk
-      unlet! s:viewed_hunk
-      pclose
-      return
-    endif
-  endif
-
-  if empty(current_hunk)
-    return
-  endif
-
-  let s:viewed_hunk = current_hunk
-  GitGutterPreviewHunk
-endfun
-
-fun! s:current_hunk() abort " {{{2
-  let current_hunk = []
-  let bufnr = bufnr('')
-
-  for hunk in gitgutter#hunk#hunks(bufnr)
-    if gitgutter#hunk#cursor_in_hunk(hunk)
-      let current_hunk = hunk
-      break
-    endif
-  endfor
-
-  return current_hunk
-endfun
-
-" == Cycle Cursorlines ==================================================== {{{1
-fun! f#crosshair(n)
-  let w:cross = (get(w:, 'cross', 0) + a:n) % 4
-  exe ':set '.(and(w:cross, 1) ? '' : 'no').'cursorcolumn'
-  exe ':set '.(and(w:cross, 2) ? '' : 'no').'cursorline'
-endfun
-
-" == G to closest line number n$ ========================================== {{{1
-
-function! f#G(n) " {{{2
-  let i = 1
-  let l = line('.')
-  let last = line('$')
-  while v:true
-    let below = l + i
-    let above = l - i
-    if above < 1 && below > last
-      return ":\<C-U>echoerr 'no line number match: ".a:n."$'\<CR>"
-    elseif below <= last && string(below) =~# a:n.'$'
-      return s:G(below)
-    elseif above >= 1 && string(above) =~# a:n.'$'
-      return s:G(above)
-    else
-      let i += 1
-    endif
-  endwhile
-endfun
-
-function! s:G(lnum) " {{{2
-  return "\<ESC>".(mode() == 'n' ? '' : 'gv').a:lnum."G"
-endfun
-
-
-" == Linewise ============================================================= {{{1
-
-function! f#linewise(count, on_count, default)
-  let mode = mode()
-  if !a:count
-    return a:default
-  endif
-  return mode == 'n' ?
-        \ "\<ESC>".(a:count - 1).a:on_count :
-        \ "\<ESC>".mode.(a:count - 1).a:on_count
-endfun
-
-" == Toggle Profiling ===================================================== {{{1
-
-fun! f#Profile(file) abort " {{{2
-  if has_key(s:, 'profiling')
-    profile pause
-    echo "quit and read ".s:profiling
-  else
-    let s:profiling = a:file
-    exe ":profile start ".a:file
-    profile func *
-    profile file *
-  endif
-endfun
-
-" == Projectionist expander =============================================== {{{1
-
-let s:readme = { 'type': 'readme' }
-fun! f#projectionist(conf)
-  for [root, config] in items(a:conf)
-    for [filematch, _] in items(config)
-      if filematch =~# '|'
-        let c = remove(config, filematch)
-        for fm in split(filematch, '|')
-          let config[fm] = c
-        endfor
-      endif
-    endfor
-    if !has_key(config, 'README.md')
-      let config['README.md'] = s:readme
-    endif
-  endfor
-  return a:conf
-endfun
-
-" == Toggle =============================================================== {{{1
-fun! f#toggle(dict, key)
-  let a:dict[a:key] = !get(a:dict, a:key)
-endfun
-
-" == Toggle Completion ==================================================== {{{1
-
-fun! f#AutoCompletionToggle()
-  if has_key(g:ycm_filetype_blacklist, &filetype)
-    call f#toggle(g:, 'ncm2#auto_popup')
-  else
-    call f#toggle(g:, 'ycm_auto_trigger')
-    " TODO: check if this is actually necessary
-    YcmRestartServer
-  endif
-endfun
-
-" == Swap Window ========================================================== {{{1
-
-fun! f#SwapWindow(target)
+fun! f#SwapWindow(target) "{{{1
   let current = winnr()
   if current == a:target || index(range(1, winnr('$')), a:target) == -1
     return
   endif
   let bufnr = winbufnr(current)
-  exe 'buffer '.winbufnr(a:target)
-  exe a:target.'wincmd w'
-  exe 'buffer '.bufnr
+  exe 'buffer '..winbufnr(a:target)
+  exe a:target..'wincmd w'
+  exe 'buffer '..bufnr
 endfun
 
-" == Set Tmux Window Title ================================================ {{{1
+" f#HumanDay() {{{1
 
-fun! f#SetTmuxWindowTitle(...)
-  if !exists("$TMUX")
-    return
-  endif
-  if a:0 && a:1 " leaving
-    let title = fnamemodify($PWD, ':~')
-  else
-    let project_root = FugitiveWorkTree()
-    let title = substitute(strlen(project_root)
-          \                ? fnamemodify(project_root, ':~')
-          \                : expand('%:~:.'),
-          \                '^\~/\.sync/dotfiles/', '~/.', '')
-  endif
-  call system(printf("tmux rename-window '%s'",
-        \            strlen(title) > 30
-        \            ? pathshorten(title)
-        \            : title))
-endfun
-
-" == PROTOTYPES =========================================================== {{{1
-
-fun! f#lsp_setup(servers) abort
-  for [ft, opts] in items(a:servers)
-    let server = type(opts) is v:t_string ? { 'cmd': opts } : opts
-    let server.whitelist = split(ft, ',')
-
-    if type(server.cmd) is v:t_string
-      let server.cmd = f#lsp_cmd(server.cmd)
-    endif
-
-    if has_key(server, 'root_uri') && type(server.root_uri) is v:t_string
-      let server.root_uri = f#lsp_root(server.root_uri)
-    endif
-
-    if !has_key(server, 'name')
-      let server.name = split(server.cmd()[-1], ' ')[0]
-    endif
-
-    if !has_key(server, 'initialization_options')
-      let server.initialization_options =
-            \ get(server, 'init', { 'diagnostics': 'true' })
-    endif
-
-    call lsp#register_server(server)
-  endfor
-endfun
-
-fun! f#lsp_root(root_marker)
-  return { -> lsp#utils#path_to_uri(
-        \       lsp#utils#find_nearest_parent_directory(
-        \         lsp#utils#get_buffer_path(), a:root_marker))}
-endfun
-
-fun! f#lsp_cmd(cmd)
-  return { -> [&shell, &shellcmdflag, a:cmd] }
-endfun
-
-
-fun! f#acomp_setup(sources)
-  for [name, opts] in items(a:sources)
-    let opts.name = name
-    if !has_key(opts, 'whitelist')
-      let opts.whitelist = ['*']
-    endif
-
-    if !has_key(opts, 'completor')
-      let opts.completor = function(printf(
-            \ 'asyncomplete#sources#%s#completor', name))
-    endif
-
-    let GetSourceOptions = function(
-          \ get(opts, 'getopt',
-          \   printf('asyncomplete#sources#%s#get_source_options', name)))
-
-    call asyncomplete#register_source(GetSourceOptions(opts))
-  endfor
-endfun
-
-fun! f#call(script, function, ...)
-  return call(s:snr(a:script).a:function, a:000)
-endfun
-
-fun! f#handle_diagnostics(bufnr)
-  let uri = 'file://'.fnamemodify(bufname(a:bufnr), ':p')
-  let [has_diagnostics, diagnostics] = f#call('autoload/lsp/ui/vim/diagnostics.vim',
-                                            \ 'get_diagnostics',
-                                            \ uri)
-  if !has_diagnostics
+let s:days = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ]
+fun! f#HumanDay(date)
+  if empty(a:date)
     return
   endif
 
-  for [server, data] in items(diagnostics)
-    call ale#other_source#StartChecking(a:bufnr, server)
-  endfor
-
-  call timer_start(0, {-> s:push_diagnostics(a:bufnr, diagnostics) })
-endfun
-
-fun! s:push_diagnostics(bufnr, diagnostics)
-  for [server, data] in items(a:diagnostics)
-    call ale#other_source#ShowResults(a:bufnr, server, lsp#ui#vim#utils#diagnostics_to_loc_list(data))
-  endfor
-endfun
-
-let s:snr_index = {}
-fun! s:index_scriptnames()
-  for line in split(execute('scriptnames'), '\n')
-    let [snr, src] = matchlist(line, '^\s*\(\d\+\): \(.*\)')[1:2]
-    let s:snr_index[src] = snr
-  endfor
-endfun
-
-fun! s:match_scripts(script)
-  return filter(s:snr_index,
-        \       {src, _ -> match(src, escape(a:script, '\/').'$') >= 0})
-endfun
-
-fun! s:last_match(matches)
-  let order = 0
-  let last = ""
-  for [src, snr] in items(a:matches)
-    if str2nr(snr) > order
-      let order = str2nr(snr)
-      let last = src
-    endif
-  endfor
-  return last
-endfun
-
-let s:script_index = {}
-fun! s:snr(script)
-  if !has_key(s:script_index, a:script)
-    let matches = s:match_scripts(a:script)
-    if empty(matches)
-      exe 'runtime '.a:script
-      call s:index_scriptnames()
-      let matches = s:match_scripts(a:script)
-      if empty(matches)
-        throw printf("Could not find '%s' in scripts", a:script)
+  let [l:this_year, l:this_week, l:this_day, l:date_year, l:date_week, l:date_day] =
+        \ map(split(system('date "+%Y %V %w"; date --date="'..a:date..'" "+%Y +%V %w"')),
+        \     {_, n -> str2nr(n)})
+  if l:this_year == l:date_year
+    let l:week_delta = l:this_week - l:date_week
+    let l:day_delta = l:this_day - l:date_day
+    if l:week_delta == 0
+      if l:day_delta == 0
+        let l:msg = 'Today'
+      else
+        let l:msg = (l:day_delta > 0 ? 'Last' : 'Next')..' '..s:days[l:date_day]
       endif
-    endif
-    let last_match = s:last_match(matches)
-    let s:script_index[a:script] = "<SNR>".s:snr_index[last_match]."_"
-  endif
-
-  return s:script_index[a:script]
-endfun
-
-" -- Grep revision history for file --------------------------------------_{{{2
-let s:max_matches = 50
-fun! f#lgrep_revision_history(file, ...)
-  if exists('s:gitrev_tmpdir')
-    if isdirectory(s:gitrev_tmpdir)
-      call delete(s:gitrev_tmpdir, 'rf')
-    endif
-    unlet! s:gitrev_tmpdir
-  endif
-
-  if !isdirectory('.git')
-    echoerr "$PWD is not a git root"
-    return
-  endif
-
-  try
-    let matches = systemlist(
-          \ "git rev-list --all -- ".a:file.
-          \ " | xargs git grep --line-number ".join(a:000, ' '))
-  catch
-    return
-  endtry
-
-  let filtered = []
-  for m in matches
-    let sections = split(m, ':')
-    if sections[1] == a:file
-      call add(filtered, sections)
-    endif
-  endfor
-
-  if len(filtered) > s:max_matches
-    echoerr printf("got %d matches, specified max is %d",
-                  \ len(filtered), s:max_matches)
-    finish
-  endif
-
-  let s:gitrev_tmpdir = tempname()
-  call mkdir(s:gitrev_tmpdir)
-
-  let llist = {
-        \ 'efm': '%f:%l:%m',
-        \ 'title': 'Revision History Grep Results',
-        \ 'lines': []
-        \ }
-
-  for m in filtered
-    let [rev, file, lnum, line] = m
-    let outfile = s:gitrev_tmpdir.'/'.rev.'/'.file
-    call mkdir(fnamemodify(outfile, ':h'), 'p')
-    call system(printf('git show %s:%s > %s', rev, file, outfile))
-
-    call add(llist.lines, join([outfile, lnum, line], ':'))
-  endfor
-
-  call setloclist(0, [], 'r', llist)
-  lopen
-endfun
-
-fun! f#fold(list, f, ...) " {{{2
-  try
-    let acc = a:0 ? a:1 : remove(a:list, 0)
-  catch /E684/
-    throw "Thou canst not fold that which is empty"
-  endtry
-
-  for e in a:list
-    let acc = a:f(acc, e)
-  endfor
-
-  return acc
-endfun
-
-fun! f#filter_loclist(...) " {{{2
-  let winnr = a:0 ? a:1 : winnr()
-  let loclist = getloclist(winnr)
-
-  if empty(loclist)
-    return
-  endif
-
-  let bufnrs = {}
-  for item in loclist
-   call remove(item, 'type')
-   let bufnrs[item.bufnr] = 1
-   call remove(item, 'col')
-  endfor
-
-  if len(bufnrs) == 1
-    for item in loclist
-      call remove(item, 'bufnr')
-    endfor
-  endif
-
-  call setloclist(winnr, loclist)
-endfun
-
-fun! f#Rgb2Hsl(...)
-  let rgb = map(a:000, {_, c -> c / 255.0 })
-
-  let max = max(rgb)
-  let min = min(rgb)
-
-  let [h, s, l] = repeat([(max + min) / 2], 3)
-  let [r, g, b] = rgb
-
-  if max == min
-    let h = 0
-    let s = 0
-  else
-    let d = max - min
-    let s = l > 0.5
-        \ ? d / (2 - max - min)
-        \ : d / (max + min)
-    if max == r
-      let h = (g - b) / d + (g < b ? 6 : 0)
-    elseif max == g
-      let h = (b - r) / d + 2
+    elseif abs(l:week_delta) == 1
+      let l:msg = s:days[l:date_day]..' '..(l:week_delta > 0 ? 'last' : 'next')..' week'
     else
-      let h = (r - g) / d + 4
+      let l:msg = s:days[l:date_day]..' '..(
+            \ l:week_delta > 0
+            \ ? l:week_delta..' weeks ago'
+            \ : 'in '..abs(l:week_delta)..' weeks')
     endif
-  endif
-
-  return [h, s, l]
-endfun
-
-fun! f#Hue2Rgb(...)
-  let [p, q, t] = a:000
-  if t < 0 | let t += 1 | endif
-  if t > 1 | let t -= 1 | endif
-  if t < 1.0/6 | return p + (q - p) * 6 * t | endif
-  if t < 1.0/2 | return q | endif
-  if t < 2.0/3 | return p + (q - p) * (2.0/3 - t) * 6 | endif
-  return p
-endfun
-
-fun! f#Hsl2Rgb(h, s, l)
-  if (a:s == 0)
-    let [r, g, b] = repeat(a:l, 3)
   else
-    let q = l < 0.5 ? l * (1 + s) : l + s - l * s
-    let p = 2 * l - q
-
-    let r = f#Hue2Rgb(p, q, h + 1.0/3)
-    let g = f#Hue2Rgb(p, q, h)
-    let b = f#Hue2Rgb(p, q, h - 1.0/3)
+    return "there's still work to be done"
   endif
-
-  return map([r, g, b], {_, c -> round(c * 255)})
+  return l:msg
 endfun
 
-fun! f#changes()
-  let reg_save = @@
-  let @r = ""
-  while v:true
-    try
-      normal! g;
-      let @r .= printf('%s:%d', expand('%'), line('.'))
-      silent -2,+2yank R
-    catch /E662:/
-      break
-    endtry
-  endwhile
-  split dump
-  silent 0put r
-  normal! gg
-  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile nomodifiable
-  let @@ = reg_save
-endfun
-
-fun! f#flatten(list)
-  let rtn = []
-  for e in a:list
-    if type(e) is v:t_list
-      call extend(rtn, e)
-    else
-      call add(rtn, e)
-    endif
-  endfor
-  return rtn
-endfun
-
-fun! f#iter(list)
-  if type(a:list) isnot v:list
-    throw "can only take list"
+fun! f#AutoloadPrefix() "{{{1
+  let l:path = split(expand((a:0 ? a:1 : '%:p')..':r'), '/')
+  let l:root = max(map(['autoload', 'plugin'], { _,v -> index(l:path, v) }))
+  if l:root == -1
+    return ''
   endif
+  return join(l:path[l:root+1:], '#')..'#'
+endfun
 
-  let i = 0
-  let len = len(l:list)
+fun! f#LastChange(cmd) "{{{1
+  let l:pos = getpos('.')
+  let l:line_length = len(getline(l:pos[1]))
+  exe 'normal! '.a:cmd
+  let l:change_pos = getpos('.')
+  if l:pos[1] == l:change_pos[1]
+    let l:pos[2] += l:line_length - len(getline(l:pos[1]))
+  endif
+  call setpos('.', l:pos)
+  return ''
+endfun
 
-  fun! Iter() closure
-    if i < len
-      let i += 1
-      return l:list[i-1]
-    endif
-    return v:null
+fun! f#TagBarSearch() " {{{1
+  if bufwinnr('__Tagbar__') == -1
+    TagbarOpen
+  endif
+  exe bufwinnr('__Tagbar__')..'wincmd w'
+  1
+  call feedkeys('/', 't')
+endfun
+
+fun! s:input(...)
+  call inputsave()
+  let input = call('input', a:000)
+  call inputrestore()
+  return input
+endfun
+
+if get(g:, 'f_TESTING')
+  fun! s:input(...)
+    return remove(g:f_TESTING_input, 0)
   endfun
-
-  return funcref('Iter')
-endfun
-
+endif
