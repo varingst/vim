@@ -1280,6 +1280,15 @@ let g:gutentags_file_list_command = {
       \ }
       \}
 
+" -- FILTER --------------------------------------------------------------- {{{2
+
+let g:filter_options = {
+      \ 'use_commentstring': v:true,
+      \}
+let g:filter_commands = {
+      \ 'dot': [ '/bin/sh', '-c', get(glob('~/.plenv/versions/*/bin/graph-easy', v:false, v:true), -1, 'false')..' --output={o} --as=ascii {i}' ],
+      \}
+
 " }}}1
 
 catch

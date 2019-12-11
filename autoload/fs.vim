@@ -15,7 +15,7 @@ fun! fs#SetExeOnShebang(filetype, filename) abort
    \ && getline(1) =~# '^#!'
     filetype detect
     call setfperm(a:filename,
-                  substitute(getfperm(a:filename),
-                             '\(r[w-]\)-', '\1x', 'g'))
+          \       substitute(getfperm(a:filename),
+          \                  '\(r[w-]\)-', '\1x', 'g'))
   endif
 endfun
