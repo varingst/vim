@@ -1,0 +1,36 @@
+Execute:
+  let g:align_TESTING = 1
+
+Given:
+  foo: bar
+  quux: baz
+
+  1,2,3,4,5
+  one,two,three,four,five
+  ichi,ni,san,yon,go
+
+Do:
+  Vj:g/:\zs/call align#run()\<CR>
+  4G
+  V3j:g/,\zs/call align#run('g')\<CR>
+
+Expect:
+  foo:  bar
+  quux: baz
+
+  1,   2,  3,    4,   5
+  one, two,three,four,five
+  ichi,ni, san,  yon, go
+
+Do:
+  Vj:g/:\zs/call align#run()\<CR>
+  4G
+  V3j:g/,\zs/call align#run('g')\<CR>
+
+Expect:
+  foo:  bar
+  quux: baz
+
+  1,   2,  3,    4,   5
+  one, two,three,four,five
+  ichi,ni, san,  yon, go

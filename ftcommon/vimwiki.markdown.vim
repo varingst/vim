@@ -37,4 +37,8 @@ nnoremap <silent><buffer><localleader>> :HeadingIncrease<CR>:silent! call repeat
 xnoremap <silent><buffer><localleader>< :HeadingDecrease<CR>
 xnoremap <silent><buffer><localleader>> :HeadingIncrease<CR>
 
+command! -buffer -nargs=* -complete=file Scrot call scrot#(<q-args>)
+command! -buffer -nargs=* -complete=file ScrotSelect call scrot#(<q-args>, '--select')
+
+setlocal textwidth=0
 

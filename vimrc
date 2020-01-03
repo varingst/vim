@@ -279,7 +279,6 @@ set lazyredraw
 
 let g:vimsyn_embed = 0 " no embedded perl, lua, ruby, etc syntax in .vim files
 
-
 " == KEY MAPPING ========================================================== {{{1
 
 " ~/.vim/autoload/keys.vim
@@ -332,14 +331,12 @@ noremap '<space> `^
 
 " command-line mode alias
 nnoremap <C-;> :
-" clear search highlighting
-nnoremap <silent><leader><ESC> :nohlsearch<CR>
 " prevent editing from fumbling with tmux key
 nnoremap <C-A> <nop>
 " separate <TAB> and <C-I>
 nnoremap <CTRL-i> <C-I>
 " line/column guides
-nnoremap <silent>^ :<C-U>call toggle#Cursorlines(v:count1)<CR>
+nnoremap <silent>^ :<C-U>call toggle#Cursorlines(v:count0)<CR>
 " insert on N additional lines
 nnoremap <expr> I v:count ? '<ESC><C-V>'.(v:count).'jI' : 'I'
 " replace with char in current column for N additional lines
@@ -357,7 +354,7 @@ nnoremap <expr>V '<ESC>V'.(v:count1 > 1 ? (v:count1 - 1).'j' : '')
 nnoremap <expr><leader>V 'V'.superg#(line('.'), v:count1).'G'
 
 nnoremap <silent> <leader><C-D> :<C-U>call popup#HumanDay(expand('<cWORD>'))<CR>
-nnoremap <silent> <leader><C-T> :<C-U>call popup#Tags({ tag -> 'fcm' =~ tag.kind })<CR>
+nnoremap <silent> <space><Tab> :<C-U>call popup#Tags({ tag -> 'fcm' =~ tag.kind })<CR>
 
 " jump to sinful whitespace
 nnoremap <expr><leader><space>
@@ -398,6 +395,9 @@ xnoremap <expr>M ":move ".(superg#(line('.'), v:count1) - 1).'<CR>'
 
 " insert blank line on 'other end' of visual selection
 xnoremap <expr>O line('.') == line("'<") ? 'o<ESC>o<ESC>gvo' : 'o<ESC>O<ESC>gvo'
+
+xmap <bar> <Plug>(align)
+xmap g<bar> <Plug>(alignG)
 
 " -- Various Command ------------------------------------------------------ {{{2
 
@@ -444,6 +444,11 @@ nmap S <Plug>(op#Substitute)iw
 imap <C-Y> <Plug>(op#CopyLineAbove)
 imap <C-E> <Plug>(op#CopyLineBelow)
 imap <C-G><C-G> <Plug>(op#CopyLine)
+
+nmap <bar> <Plug>(op#Align)
+xmap <bar> <Plug>(op#Align)
+nmap g<bar> <Plug>(op#AlignG)
+xmap g<bar> <Plug>(op#AlignG)
 
 nmap > <Plug>(op#ShiftRight)
 nmap < <Plug>(op#ShiftLeft)
@@ -568,18 +573,6 @@ nnoremap <silent><leader>F 0f(v%J
 Key 'Break/Join XML attributes',   '<leader>x/X'
 nnoremap <silent><leader>x :keeppatterns s/\(<\w\+\\|\w\+=\({[^}]*}\\|"[^"]*"\\|'[^']*'\)\)\s*/\1\r/ge<CR>:redraw<CR>='[
 nnoremap <silent><leader>X v/\/\?><CR>J:keeppatterns s/\s\(\/\?>\)/\1/<CR>
-
-" -- EasyAlign ------------------------------------------------------------ {{{2
-
-xmap ga <Plug>(EasyAlign)
-nmap ga <Plug>(EasyAlign)
-
-xmap <bar> <Plug>(EasyAlign)ip
-nmap <bar> <Plug>(EasyAlign)ip
-
-Key '(EasyAlign) Align operator',  'ga', 'nv'
-Key '(EasyAlign) inner paragraph', 'ip',  'nv'
-
 
 " -- Fkeys ---------------------------------------------------------------- {{{2
 
@@ -899,16 +892,16 @@ let g:projectionist_heuristics = projectionist_extra#expand({
     \   'src/*.js'       : { 'alternate': 'spec/{}_spec.js' },
     \ },
     \ 'doc/&autoload/': {
-    \   'plugin/*.vim'   : { 'alternate': 'test/plugin/{}.vader' },
-    \   'autoload/*.vim' : { 'alternate': 'test/autoload/{}.vader' },
+    \   'plugin/*.vim'   : { 'type': 'plugin', 'alternate': 'test/plugin/{}.vader' },
+    \   'autoload/*.vim' : { 'type': 'autoload', 'alternate': 'test/autoload/{}.vader' },
+    \   'test/*.vader'   : { 'type': 'test', 'alternate': '{}.vim' },
     \   'doc/*.txt'      : { 'type': 'doc' },
     \ },
     \ 'autoload/&plugged/&plugin/' : {
     \   'plugin/*.vim' : { 'type': 'plugin', 'alternate': 'test/plugin/{}.vader' },
     \   'autoload/*.vim' : { 'type': 'autoload', 'alternate': 'test/autoload/{}.vader' },
     \   'debugrc/*.vim' : { 'type': 'debugrc' },
-    \   'test/*.vim' : { 'type': 'test' },
-    \   'test/autoload/*.vader': { 'alternate': 'autoload/{}.vim' },
+    \   'test/*.vader' : { 'type': 'test' },
     \   'vimrc' : { 'type': 'rc' }
     \},
   \ })

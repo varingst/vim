@@ -145,6 +145,7 @@ fun! op#Substitute(type, ...)
   call feedkeys(printf("\<ESC>:%%s/%s//g\<Left>\<Left>", sel))
 endfun
 
+
 " -- SHIFT ---------------------------------------------------------------- {{{1
 
 fun! op#Shift(direction, count) "{{{2
