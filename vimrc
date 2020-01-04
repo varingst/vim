@@ -62,7 +62,8 @@ Plug 'tpope/vim-fugitive'
 Plug 'vim-scripts/camelcasemotion'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'michaeljsmith/vim-indent-object'
-Plug 'varingst/vim-indent-object', { 'local': 'vim-indent-objects' }
+" Plug 'varingst/vim-indent-object', { 'local': 'vim-indent-objects' }
+Plug 'varingst/vim-imotion'
 Plug 'varingst/vim-text-objects'
 Plug 'varingst/vim-superg'
 
@@ -336,7 +337,7 @@ nnoremap <C-A> <nop>
 " separate <TAB> and <C-I>
 nnoremap <CTRL-i> <C-I>
 " line/column guides
-nnoremap <silent>^ :<C-U>call toggle#Cursorlines(v:count0)<CR>
+nnoremap <silent>^ :<C-U>call toggle#Cursorlines(v:count1)<CR>
 " insert on N additional lines
 nnoremap <expr> I v:count ? '<ESC><C-V>'.(v:count).'jI' : 'I'
 " replace with char in current column for N additional lines
@@ -1281,6 +1282,42 @@ let g:filter_options = {
 let g:filter_commands = {
       \ 'dot': [ '/bin/sh', '-c', get(glob('~/.plenv/versions/*/bin/graph-easy', v:false, v:true), -1, 'false')..' --output={o} --as=ascii {i}' ],
       \}
+
+" -- IMOTION -------------------------------------------------------------- {{{2
+
+let g:imotion_mappings = {
+  \ 'leaders': {
+  \   'motions': '<Tab>',
+  \   'incmotions': '<S-Tab>',
+  \   'objects': 'i',
+  \   'incobjects': 'a',
+  \ },
+  \ 'motions': {
+  \   'nxo': {
+  \     'j': 'NextSibling',
+  \     'k': 'PrevSibling',
+  \     'h': 'PrevParent',
+  \     'l': 'NextChild',
+  \     'J': 'NextSection',
+  \     'K': 'PrevSection',
+  \     'H': 'RevPrevParent',
+  \     'L': 'OpenSection',
+  \     'b': 'NextBlock',
+  \     'B': 'PrevBlock',
+  \   }
+  \ },
+  \ 'objects': {
+  \   'xo': {
+  \     's': 'SurroundingSection',
+  \     'o': 'SurroundingOpenSection',
+  \   }
+  \ },
+  \}
+
+nmap <Tab>. <Plug>(imotion#Repeat)
+xmap . <Plug>(imotion#Repeat)
+omap . <Plug>(imotion#Repeat)
+
 
 " }}}1
 
