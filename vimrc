@@ -185,6 +185,7 @@ augroup vimrc_autocmd
         \             | highlight DiffChange        ctermfg=NONE ctermbg=0    cterm=NONE
         \             | highlight DiffDelete        ctermfg=NONE ctermbg=NONE cterm=NONE
         \             | highlight DiffText          ctermfg=NONE ctermbg=NONE cterm=underline
+        \             | highlight Visual            ctermfg=NONE ctermbg=236  cterm=NONE
 
   autocmd CursorHold,CursorHoldI * call popup#FuncName()
 augroup END
