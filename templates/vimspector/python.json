@@ -1,0 +1,17 @@
+{
+  "configurations": {
+    "${temp:name}: Launch": {
+      "adapter": "vscode-python",
+      "configuration": {
+        "name": "${temp:name}: Launch",
+        "type": "python",
+        "request": "launch",
+        "cwd": "${workspaceRoot}",
+        "stopOnEntry": true,
+        "console": "externalTerminal",
+        "debugOptions": [],
+        "program": "${workspaceRoot}/${temp:program}",
+      }
+    }
+  }
+}

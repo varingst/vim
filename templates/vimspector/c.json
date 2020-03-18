@@ -1,0 +1,19 @@
+{
+  "configurations": {
+    "${temp:name}: Launch": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceRoot}/${temp:program}",
+        "cwd": "${workspaceRoot}",
+        "externalConsole": true,
+        "stopAtEntry": true,
+        "MIMode": "gdb",
+        "logging": {
+          "engineLogging": false
+        }
+      }
+    }
+  }
+}

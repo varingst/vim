@@ -94,9 +94,22 @@ endfun
 
 fun! s:MapFkeys(keys) " {{{2
   for [key, cmd] in items(a:keys)
+    let [_, _, mode, key; _] = matchlist(key, '\(\(\w\+\):\)\?\(<.*>\)')
+    let mode = empty(mode) ? 'normal' : mode
+    if !has_key(s:fkeys, mode)
+      let s:fkeys[mode] = {}
+    endif
+    let s:fkeys[mode][key] = cmd
+  endfor
+  call s:SetFKeyMode()
+endfun
+
+fun! s:SetFKeyMode(...) " {{{2
+  let s:fkeymode = !a:0 || empty(a:1) ? 'normal' : a:1
+  for [key, cmd] in items(get(s:fkeys, s:fkeymode, {}))
     let s:fkeys[key] = cmd
     exe 'nnoremap ' .. key .. ' ' .. cmd .. '<CR>'
-    exe 'inoremap ' .. key .. ' <ESC>' .. cmd .. '<CR>'
+    exe 'inoremap ' .. key .. ' <C-O>' .. cmd .. '<CR>'
   endfor
 endfun
 
@@ -129,9 +142,14 @@ fun! s:MapCodes(codemap) " {{{2
   endfor
 endfun
 
+fun! keys#statusline()
+  return s:fkeymode == 'debug' ? g:sym.bug : ''
+endfun
+
 " == Commands ============================================================= {{{1
 
 command! -nargs=+ Key call s:AddKey(s:all_ft, <args>)
 command! -nargs=+ FtKey call s:AddKey(<args>)
 command! -nargs=1 FKeys call s:MapFkeys(<args>)
 command! -nargs=1 KeyCodes call s:MapCodes(<args>)
+command! -nargs=? -bar FKeyMode call s:SetFKeyMode(<q-args>)

@@ -37,6 +37,12 @@ Plug 'majutsushi/tagbar', { 'on' : 'TagbarToggle' }
 Plug 'junegunn/fzf.vim'
 Plug 'airblade/vim-gitgutter'
 Plug 'ludovicchabant/vim-gutentags'
+Plug 'puremourning/vimspector', { 'do': './install_gadget.py'
+      \ ..' --enable-c'
+      \ ..' --enable-python'
+      \ ..' --enable-bash'
+      \ ..' --force-enable-chrome'
+      \}
 
 " -- Language Extras ------------------------------------------------------ {{{2
 
@@ -77,6 +83,8 @@ Plug 'dhruvasagar/vim-table-mode'
 Plug 'rhysd/vim-grammarous'
 Plug 'ledger/vim-ledger'
 Plug 'varingst/vim-filter'
+Plug 'vim-pandoc/vim-pandoc'
+Plug 'vim-pandoc/vim-pandoc-syntax'
 
 " -- Prototypes ----------------------------------------------------------- {{{2
 
@@ -274,12 +282,15 @@ set signcolumn=yes
 set iskeyword=@,48-57,_,192-255,-
 set viewoptions=cursor,folds
 set tags^=./.git/tags
+set notagrelative
 set spelllang=en_us
 
 set ttyfast
 set lazyredraw
 
 let g:vimsyn_embed = 0 " no embedded perl, lua, ruby, etc syntax in .vim files
+
+let g:spellfile_URL = 'http://ftp.vim.org/vim/runtime/spell'
 
 " == KEY MAPPING ========================================================== {{{1
 
@@ -307,8 +318,8 @@ KeyCodes {
       \ '<End>':      ['1;2F',  '1;5F',  '1;6F'],
       \ '<PageUp>':   ['5;2~',  '5;5~',  '5;6~'],
       \ '<PageDown>': ['6;2~',  '6;5~',  '6;6~'],
-      \ '<S-F1>':     ['23~'],
-      \ '<S-F2>':     ['24~'],
+      \ '<S-F1>':     ['23;1~'],
+      \ '<S-F2>':     ['24;1~'],
       \ '<S-F3>':     ['1;2P'],
       \ '<S-F4>':     ['1;2Q'],
       \ '<S-F5>':     ['1;2R'],
@@ -584,7 +595,8 @@ FKeys {
   \ '<F3>':           ':CocStart',
   \ '<F4>':           ':TagbarToggle',
   \ '<F5>':           ':CheatSheet',
-  \ '<F6>':           ':nohlsearch',
+  \ '<F6>':           ':FKeyMode debug <BAR> call vimspector#Continue()',
+  \ '<F7>':           ':call vimspector#ToggleBreakpoint()',
   \ '<F8>':           ':call toggle#PreviewHunk()',
   \ '<F9>':           ':Gstatus',
   \ '<F10>':          ':Dispatch',
@@ -594,10 +606,18 @@ FKeys {
   \ '<S-F3>':         ':TableModeToggle',
   \ '<S-F5>':         ':call toggle#Conceal()',
   \ '<S-F6>':         ':call toggle#SetLocal("colorcolumn", "", "+1")',
+  \ '<S-F7>':         ':call vimspector#AddFunctionBreakpoint("<cexpr>")',
   \ '<S-F8>':         ':call toggle#Gdiff()',
   \ '<S-F9>':         ':Gcommit --all',
   \ '<S-F10>':        ':Dispatch!',
-  \ '<S-F11>':        ':Make!'
+  \ '<S-F11>':        ':Make!',
+  \ 'debug:<F4>':     ':FKeyMode <BAR> call vimspector#Stop()',
+  \ 'debug:<F5>':     ':call vimspector#Pause()',
+  \ 'debug:<F6>':     ':call vimspector#Continue()',
+  \ 'debug:<F8>':     ':call vimspector#StepOver()',
+  \ 'debug:<F9>':     ':call vimspector#StepInto()',
+  \ 'debug:<F10>':    ':call vimspector#StepOut()',
+  \ 'debug:<S-F6>':   ':call vimspector#Restart()',
   \ }
 
 " == COMMANDS ============================================================= {{{1
@@ -885,13 +905,13 @@ let g:projectionist_heuristics = projectionist_extra#expand({
     \   '*.h' : {
     \     'alternate': ['{}.c', '{}.cc', '{}.cpp', '{}.cxx']
     \   }
-    \   },
-    \   'package.json': {
+    \ },
+    \ 'package.json': {
     \   'package.json'   : { 'type': 'package' },
     \   'jsconfig.json'  : { 'type': 'jsconfig' },
     \   '.eslintrc'      : { 'type': 'eslint' },
-    \   'spec/*_spec.js' : { 'alternate': 'src/{}.js' },
-    \   'src/*.js'       : { 'alternate': 'spec/{}_spec.js' },
+    \   'spec/*_spec.js' : { 'type': 'test', 'alternate': 'src/{}.js' },
+    \   'src/*.js'       : { 'type': 'src', 'alternate': 'spec/{}_spec.js' },
     \ },
     \ 'doc/&autoload/': {
     \   'plugin/*.vim'   : { 'type': 'plugin', 'alternate': 'test/plugin/{}.vader' },
@@ -932,6 +952,10 @@ let g:ale_linters = {
       \ 'vim':        ['vint'],
       \ 'ruby':       [],
       \ }
+
+let g:ale_fixers = {
+      \ 'python': ['black'],
+      \}
 
 let g:ale_c_gcc_options   = join(g:gcc_flags['common'] + g:gcc_flags['c'])
 let g:ale_cpp_gcc_options = join(g:gcc_flags['common'] + g:gcc_flags['cpp'])
@@ -1043,8 +1067,12 @@ let g:airline#extensions#tabline#buffer_idx_format = {
       \ '9': g:sym.num[9]
       \}
 
-let g:airline#extensions#tabline#ignore_bufadd_pat =
-      \ '\c\v^!gdb|debugged program|gdb communication'
+let g:airline#extensions#tabline#ignore_bufadd_pat = join([
+      \ '\c\v^!',
+      \ 'debugged program',
+      \ 'gdb communication',
+      \ 'vimspector.*',
+      \ ], '|')
 
 " -- QUICKFIX ------------------------------------------------------------- {{{3
 
@@ -1168,6 +1196,8 @@ let g:vimwiki_folding = 'expr'
 
 let g:taskwiki_suppress_mappings = 'yes'
 let g:vimwiki_key_mappings = { 'all_maps': 0 }
+
+let g:vimwiki_global_ext = 0
 
 FtKey 'vimwiki', 'Follow link/split/split-keep/back', '<CR>/<S-CR>/<C-CR>/<BS>'
 FtKey 'vimwiki', 'Next/Prev link', '<Tab>/<S-Tab>'
@@ -1320,9 +1350,20 @@ xmap . <Plug>(imotion#Repeat)
 omap . <Plug>(imotion#Repeat)
 
 
+
+" -- PANDOC --------------------------------------------------------------- {{{2
+
+" remove foldcolumn
+let g:pandoc#folding#fdc = 0
+
+let g:pandoc#spell#default_langs = ['en_us', 'nb']
+
+let g:pandoc#syntax#conceal#use = 0
+
 " }}}1
 
 catch
+  " TODO: handle errors in script-private methods
   set runtimepath&
   let g:throwpoint = v:throwpoint
   let [g:file, g:line] = matchlist(g:throwpoint, '\(\f\+\), line \(\d\+\)')[1:2]

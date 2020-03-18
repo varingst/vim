@@ -8,11 +8,8 @@ fun! airline#extensions#mine#status() abort
   let msg = ''
   let msg ..= !empty(gutentags#statusline()) ? g:sym.tag : ''
   let msg ..= get(g:, 'coc_process_pid') ? g:sym.complete : ''
+  let msg ..= keys#statusline()
   return msg
 endfun
-
-" fun! airline#extensions#mine#init(ext) abort
-"   call airline#parts#define_function('mine', 'airline#extensions#mine#status')
-" endfun
 
 let &cpo = s:save_cpo

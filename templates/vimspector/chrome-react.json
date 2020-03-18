@@ -1,0 +1,13 @@
+{
+  "configurations": {
+    "${temp:name}: Launch": {
+      "adapter": "chrome",
+      "configuration": {
+        "request": "launch",
+        "url": "http://localhost:3000",
+        "webRoot": "${workspaceRoot}/src",
+        "runtimeExecutable": "/usr/bin/google-chrome-stable"
+      }
+    }
+  }
+}

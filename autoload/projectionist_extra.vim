@@ -22,3 +22,12 @@ fun! projectionist_extra#expand(conf)
   return a:conf
 endfun
 
+fun! s:activate() abort
+endfun
+
+augroup projectionist-extra
+  au!
+  au User ProjectionistActivate call s:activate()
+augroup END
+
+
