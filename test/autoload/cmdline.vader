@@ -1,0 +1,15 @@
+Execute (#incstep):
+  AssertEqual ['/foo//foo/', 5], cmdline#incstep('/foo/')
+  AssertEqual ['/foo//foo/', 5], cmdline#incstep('/foo/', 1)
+  AssertEqual ['', -5], cmdline#incstep('/foo/', 0)
+  AssertEqual ['/foo/', -5], cmdline#incstep('/foo//foo/', 0)
+
+  AssertEqual ['?foo??foo?', 5], cmdline#incstep('?foo?', 0)
+  AssertEqual ['', -5], cmdline#incstep('?foo?', 1)
+  AssertEqual ['?foo?', -5], cmdline#incstep('?foo??foo?', 1)
+
+  AssertEqual ['/fo\/o//fo\/o/', 7], cmdline#incstep('/fo\/o/')
+  AssertEqual ['?fo\?o??fo\?o?', 7], cmdline#incstep('?fo\?o?', 0)
+
+  AssertEqual ['.,?fo\?o?/ba\/r//ba\/r/', 7], cmdline#incstep('.,?fo\?o?/ba\/r/')
+  AssertEqual ['.,?fo\?o?', -7], cmdline#incstep('.,?fo\?o?/ba\/r/', 0)

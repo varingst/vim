@@ -1,0 +1,69 @@
+Before:
+  let &tags =  fnamemodify(g:vader_file, ':h:h')..'/data/complete/tags'
+
+Execute:
+  AssertEqual [
+  \ 'Bar',
+  \ 'Foo',
+  \ 'Foo',
+  \], map(taglist('.*'), 'v:val.name')
+
+Given:
+  Foo(bar)
+  Foo(bar, baz)
+
+Do(complete#select-next-arg):
+  \<Plug>(complete#select-next-arg)foo
+
+Then:
+  AssertEqual 'bar', @"
+
+Expect:
+  Foo(foo)
+  Foo(bar, baz)
+
+Do(complete#select-next-arg):
+  j\<Plug>(complete#select-next-arg)baz\<Esc>\<Plug>(complete#select-next-arg)bar
+
+Expect:
+  Foo(bar)
+  Foo(baz, bar)
+
+Given:
+  Bar
+
+Do:
+  A\<Plug>(complete#tag-args)\<C-Y>
+
+Expect(single arg auto inserted):
+  Bar(foo)
+
+Execute:
+  exe "normal A\<Plug>(complete#tag-args)"
+  exe "normal! \<C-Y>"
+  exe "normal! bar"
+
+Expect(single arg with replacement):
+  Bar(bar)
+
+Given:
+  Foo
+  Foo
+
+Execute:
+  exe "normal A\<Plug>(complete#tag-args)\<C-Y>"
+  exe "normal jA\<Plug>(complete#tag-args)\<C-N>\<C-Y>"
+
+Expect:
+  Foo()
+  Foo(bar, baz)
+
+Given:
+  Foo
+
+Execute:
+  exe "normal A\<Plug>(complete#tag-args)\<C-N>\<C-Y>"
+  exe "normal! foo"
+
+Expect:
+  Foo(foo, baz)

@@ -8,6 +8,33 @@ Execute:
 "   Assert !empty(maparg('<Plug>(op#CopyLineAbove)', 'i'))
 
 Given:
+  [ [ foo, bar ], baz ]
+
+Do(start of edge count 1):
+  /foo\<CR>Hi[x
+
+Expect:
+  [ [foo, bar ], baz ]
+
+Do:
+  /foo\<CR>H2i[x
+
+Expect:
+  [[ foo, bar ], baz ]
+
+Do:
+  /foo/e\<CR>vHi[x
+
+Expect:
+  [ [, bar ], baz ]
+
+Do:
+  /foo/e\<CR>vH2i[x
+
+Expect:
+  [, bar ], baz ]
+
+Given:
   Foo bar baz
 
 Do(op#CopyLine above):
@@ -114,3 +141,4 @@ Do(op#FillLine handles start of line):
 Expect:
   somelongthinghere(someotherthing)
                    foo
+

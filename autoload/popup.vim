@@ -100,9 +100,16 @@ endfun
 " -- FunctionTags -- {{{1
 
 fun! popup#Tags(...)
-  call popup#selector(map(call('tag#TagsInFile', a:000),
-        \                 { _, tag -> extend(tag, { 'display': tag.name })}),
-        \             funcref('s:handle_tag'))
+  let results = map(call('tag#TagsInFile', a:000),
+          \                 { _, tag -> extend(tag, { 'display': tag.name })})
+  if empty(results)
+    return
+  elseif len(results) == 1
+    return s:handle_tag(results[0])
+  else
+    call popup#selector(results,
+          \             funcref('s:handle_tag'))
+  endif
 endfun
 
 fun! s:handle_tag(tag)
@@ -266,6 +273,176 @@ fun! s:selector_filter(what, keys) abort
   return funcref('s:filter')
 endfun
 
+let s:box = g:sym.box
+let s:selector = {
+      \}
+
+fun! s:selector.viewlines()
+  let i = 0
+  let lines = []
+  let candidates = self.filtered()
+  while i < self.viewheight && i < len(candidates)
+    " TODO: fix support for several fields
+    call add(lines, printf('%s %s', self.keys[i], candidates[self.viewpos + i][0]))
+    let i += 1
+  endwhile
+  call add(lines, self.statusline())
+  return lines
+endfun
+
+fun! s:selector.scroll(delta)
+  let self.viewpos += a:delta
+  if self.viewpos < 0
+    let self.viewpos = 0
+  elseif self.viewpos > self.lastpagepos
+    let self.viewpos = self.lastpagepos
+  endif
+endfun
+
+fun! s:selector.statusline()
+  if self.len > self.viewheight
+    if self.len == self.maxlen
+      let page = printf('%d-%d/%d', self.viewpos + 1, self.viewpos + self.viewheight, self.len)
+    else
+      let page = printf('%d-%d/%d (%d)', self.viewpos + 1, self.viewpos + self.viewheight, self.len, self.maxlen)
+    endif
+  else
+    let page = ''
+  endif
+
+  let stl = printf(' %s%s %%s %s ',
+        \ self.state == 'filter' ? '> ' : '',
+        \ self.filter,
+        \ page)
+  return printf(stl, repeat(' ', 3 + self.minwidth - strdisplaywidth(stl)))
+endfun
+
+let s:pingchar = [128, 253, 96]
+
+fun! s:selector.handlekey(winid, key)
+  if a:key == "\<ESC>"
+    call popup_close(a:winid, -1)
+  endif
+
+  if self.state == 'select'
+    if a:key == "\<CR>"
+    elseif a:key == "\<Up>"
+      call self.scroll(-self.viewheight)
+    elseif a:key == "\<Down>"
+      call self.scroll(self.viewheight)
+    elseif a:key == '/'
+      let self.state = 'filter'
+      let self.viewpos = 0
+    endif
+  elseif self.state == 'filter'
+    if a:key == "\<CursorHold>"
+      :
+    elseif a:key == "\<CR>"
+      let self.state = 'select'
+    elseif a:key == "\<BS>"
+      let self.filter = self.filter[:-2]
+    elseif a:key == "\<C-W>"
+      let self.filter = substitute(self.filter, '\V\s*\w\+\$', '', '')
+    elseif a:key == "\<C-U>"
+      let self.filter = ''
+    else
+      let self.filter ..= a:key
+    endif
+  endif
+
+  call popup_settext(a:winid, self.viewlines())
+  return 1
+endfun
+
+fun! s:selector.show()
+  let self.winid = popup_create(self.viewlines(), {
+        \ 'maxheight': self.viewheight + 1,
+        \ 'minwidth': self.minwidth,
+        \ 'moved': 'WORD',
+        \ 'border': [1,1,1,1],
+        \ 'borderchars': s:box,
+        \ 'filter': function(self.handlekey),
+        \ 'mapping': v:false,
+        \})
+endfun
+
+fun! s:selector.filtered()
+  if empty(self.filter)
+    return self.candidates
+  endif
+
+  if !has_key(self.filtercache, self.filter)
+    let idx = self.filterfield
+    let filter = self.filter
+    let candidates = copy(empty(self.lastfilter)
+                 \ ? self.candidates
+                 \ : self.filtercache[self.lastfilter])
+    if filter[-1:-1] == '\'
+      let self.filtercache[self.filter] = candidates
+    else
+      try
+        let self.filtercache[self.filter] = filter(candidates,
+                  \                                { _, cand -> cand[idx] =~ filter })
+      catch
+        " regex errors, like partial atoms and multis
+        let self.filtercache[self.filter] = candidates
+      endtry
+    endif
+  endif
+  let self.len = len(self.filtercache[self.filter])
+  return self.filtercache[self.filter]
+endfun
+
+fun! s:Selector(what, opt)
+  " TODO: calculate width for all fields
+  call extend(s:selector, {
+      \ 'candidates': a:what,
+      \ 'state': 'select',
+      \ 'filtercache': {},
+      \ 'filterfield': 0,
+      \ 'len': len(a:what),
+      \ 'maxlen': len(a:what),
+      \ 'keys': a:opt.keys,
+      \ 'filter': '',
+      \ 'lastfilter': '',
+      \ 'minwidth': 15,
+      \ 'viewheight': min([len(a:opt.keys), len(a:what)]),
+      \ 'viewpos': 0,
+      \ 'width': max(map(copy(a:what), 'strdisplaywidth(v:val[0])')),
+      \})
+
+  let s:selector.lastpagepos = s:selector.len - s:selector.viewheight
+
+  return s:selector
+endfun
+
+fun! Test()
+  let lines = ['foo']
+  let pingchar = join(map([128,253,96], 'nr2char(v:val)'), '')
+
+  fun! Filter(winid, key) closure
+    if a:key == "\<ESC>"
+      call popup_close(a:winid, -1)
+    endif
+    if a:key == pingchar
+      return 1
+    endif
+    if a:key == "\<BS>"
+      let lines = lines[:-2]
+    else
+      call add(lines, printf('%d %s', strlen(a:key), join(map(split(a:key, '\zs'), 'char2nr(v:val)'), '|')))
+    endif
+    call popup_settext(a:winid, lines)
+    return 1
+  endfun
+
+  call popup_create(lines, {
+        \ 'filter': function('Filter'),
+        \ 'mapping': v:false,
+        \})
+endfun
+
+
 " -- Test ----------------------------------------------------------------- {{{1
 
 if get(g:, 'autoload_popup_TESTING')
@@ -275,5 +452,37 @@ if get(g:, 'autoload_popup_TESTING')
 
   fun! s:popup_menu(...)
     let g:popup_args = a:000
+  endfun
+
+  fun! Sel()
+    return s:Selector([
+          \['one'],
+          \['two'],
+          \['three'],
+          \['four'],
+          \['five'],
+          \['six'],
+          \['seven'],
+          \['eight'],
+          \['nine'],
+          \['ten'],
+          \['eleven'],
+          \['twelve'],
+          \['thirteen'],
+          \['fourteen'],
+          \['fifteen'],
+          \['sixteen'],
+          \['seventeen'],
+          \['eighteen'],
+          \['nineteen'],
+          \['twenty'],
+          \['twentyone'],
+          \['twentytwo'],
+          \], { 'keys': split("1234567890", '\zs') })
+  endfun
+
+  fun! SelHeavy()
+    return s:Selector(map(readfile('/usr/share/dict/words'), { _, w -> [w] }),
+          \ { 'keys': split("1234567890", '\zs') })
   endfun
 endif

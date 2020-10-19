@@ -1,6 +1,6 @@
 let s:file = printf('%s/.git/%s-changes.txt', split(&rtp, ',')[0], has('nvim') ? 'nvim' : 'vim')
 
-" TODO: neovim
+" TODO: neovim has no changelog?
 
 fun! changes#Bump()
   if has('nvim')
@@ -29,7 +29,7 @@ fun! changes#View()
   call changes#Bump()
 
   if !filereadable(s:file)
-    throw "could not read ".s:file
+    throw "could not read "..s:file
   endif
   let l:prev_version = readfile(s:file)[-2]
   let l:next_patch = str2nr(l:prev_version) + 1

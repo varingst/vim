@@ -1,0 +1,132 @@
+colors      gui       256  16
+yellow      #af8700   136  11
+orange      #d75f00   166   3
+red         #af0000   124   1
+brightred   #d70000   160   9
+magenta     #af005f   125   5
+violet      #5f5faf    61   6
+blue        #0087ff    33  12
+deepblue    #005faf    25   4
+cyan        #00afaf    37  14
+green       #5f8700    64   2
+black       #000000     0   0
+white       #ffffff   255  15
+lightgray   #808080   244   7
+gray        #4e4e4e   239   8
+darkgray    #262626   235   8
+normal      > lightgray
+background  > darkgray
+end
+
+highlights
+
+Normal         normal
+Comment        gray
+Constant       cyan
+Identifier     blue
+Statement      green
+PreProc        orange
+Type           yellow
+Special        red
+Underlined     violet with underline
+Ignore         none
+Error          red
+Todo           magenta on darkgray with bold
+
+Visual         none on darkgray
+VisualNOS      cyan on darkgray
+
+Directory      blue
+ErrorMsg       red
+MoreMsg        blue
+ModeMsg        blue
+
+Search         none on darkgray with reverse
+IncSearch      white on darkgray with reverse
+MatchParen     red on gray with bold
+
+LineNr         gray
+CursorLineNr   orange
+
+QuickFixLine   none
+
+Title          orange with bold
+Question       orange with bold
+WarningMsg     red with bold
+WildMenu       orange on darkgray
+Folded         gray with bold
+FoldColumn     normal
+
+EndOfBuffer    background
+SignColumn     none
+Conceal        > Operator
+SpecialKey     gray
+NonText        red on background
+VertSplit      background
+
+SpellBad       red with undercurl
+SpellCap       magenta with undercurl
+SpellRare      orange with undercurl
+SpellLocal     cyan with undercurl
+
+Pmenu          normal on darkgray
+PmenuSel       white on blue
+PmenuSbar      none on darkgray
+PmenuThumb     none on darkgray
+
+CursorColumn   none on darkgray
+CursorLine     none on darkgray
+ColorColumn    none on darkgray
+
+Cursor         none on darkgray
+
+DiffAdd        none
+DiffChange     none with bold
+DiffDelete     none
+DiffText       none with underline
+
+" Statusline
+
+StatusLine              blue
+StatusLineNC            deepblue
+StatusLineTerm          blue
+StatusLineTermNC        deepblue
+TabLineFill             deepblue
+
+STLServerName           deepblue on background with bold
+STLTabIndex             white on deepblue
+STLTabLineGit           white on background
+STLTabLineGitDirty      orange on background
+
+STLNormalMode           white on deepblue
+STLInsertMode           white on orange
+STLReplaceMode          white on yellow
+STLVisualMode           white on cyan
+STLSelectMode           white on green
+STLCommandMode          white on magenta
+STLTerminalMode         white on red
+
+STLBuffer               deepblue
+STLBufferReadonly       red
+STLBufferModified       orange
+STLBufferNormal         > STLBuffer
+STLBufferLink           cyan
+
+STLWinnr                deepblue on background
+STLFiletype             deepblue
+
+
+STLAleError             brightred on background
+STLAleWarning           orange on background
+STLAleInfo              green on background
+STLAleStyle             violet on background
+
+STLQuickfix             orange on background
+STLLocList              violet on background
+STLQFTitle              > STLBuffer
+STLTermTitle            > STLBuffer
+
+STLStatus               white on orange
+STLCtrlG                orange
+
+end

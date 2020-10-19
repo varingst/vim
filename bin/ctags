@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+out="/dev/null"
+sync="false"
+while (( $# )); do
+  case "$1" in
+    -v|--verbose) out="/dev/stdout";;
+    -s|--sync) sync="true";;
+  esac
+  shift
+done
+
+(
+  gitdir="$(git rev-parse --git-dir)"
+  git_ecode=$?
+
+  if (( "$git_ecode" == 0 )) && [[ -x "$gitdir/hooks/ctags" ]]; then
+      "$gitdir/hook/ctags"
+      exit
+  fi
+
+  trap 'rm -f "$$.tags"' EXIT
+
+  if (( "$git_ecode" == 0 )); then
+    git ls-files | ctags --tag-relative=yes -L - -f"$$.tags"
+  else
+    ctags -R --tag-realtive=yes -f"$$.tags"
+  fi
+  mv "$$.tags" "tags"
+) >"$out" 2>&1 &
+
+"$sync" && wait
