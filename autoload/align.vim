@@ -77,6 +77,11 @@ fun! s:Align(...)
   endif
 endfun
 
+fun! align#colword(lnum)
+  return substitute(matchstr(getline(a:lnum), '\%'..virtcol('.')..'v\%(\k\+\|.\)'),
+        \ "'", "''", 'g')
+endfun
+
 fun! s:sid(func) "{{{2
   return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID$')..a:func
 endfun

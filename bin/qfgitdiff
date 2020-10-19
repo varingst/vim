@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# TODO: more work
+git diff --no-prefix --relative -U0 \
+  | awk '
+    /^\+\+\+/ { file = $2; next }
+    file == "/dev/null" { next }
+    /^@@/ { line = gensub(/+([0-9]+)(,[0-9]+)?/, "\\1", "g", $3); next }
+    line && /^[[:space:]]/ { line++; next }
+    line && /^[+-]/ { sub(/^[+-][[:space:]]*/, ""); print file ":" line ":" $0; line = 0 }
+  '

@@ -75,4 +75,20 @@ fun! pp#EchoList(list, width) " {{{1
   endfor
 endfun
 
+fun! pp#IsKeyword() " {{{1
+  let out = []
+  for part in split(&iskeyword, ',')
+    if part == '@'
+      call add(out, '\w')
+    elseif part =~# '\d\+-\d\+'
+      call add(out, join(map(call('range', split(part, '-')), 'nr2char(v:val)'), ''))
+    elseif part =~# '\d\+'
+      call add(out, nr2char(part))
+    else
+      call add(out, part)
+    endif
+  endfor
+  return join(out, ',')
+endfun
+
 let &cpo = s:save_cpo

@@ -1,0 +1,72 @@
+Given:
+  [foo bar baz]
+  [foo bar baz]
+  [foo\ bar baz]
+
+Do:
+  vi[\<Plug>(stringlist-single)\<ESC>
+  2Gvi[\<Plug>(stringlist-double)\<ESC>
+  3Gvi[\<Plug>(stringlist-single)\<ESC>
+
+Expect:
+  ['foo', 'bar', 'baz']
+  ["foo", "bar", "baz"]
+  ['foo bar', 'baz']
+
+Do:
+  i\<Plug>(stringlist-single)\<ESC>
+  2Gi\<Plug>(stringlist-double)\<ESC>
+  3Gi\<Plug>(stringlist-single)\<ESC>
+
+Expect:
+  ['foo', 'bar', 'baz']
+  ["foo", "bar", "baz"]
+  ['foo bar', 'baz']
+
+Given:
+  [
+    foo bar
+    bar bar
+    baz bar
+  ]
+
+Do:
+  vi[\<Plug>(stringlist-single)\<ESC>
+
+Expect:
+  [
+    'foo bar',
+    'bar bar',
+    'baz bar',
+  ]
+
+Do:
+  i\<Plug>(stringlist-single)\<ESC>
+
+Expect:
+  [
+    'foo bar',
+    'bar bar',
+    'baz bar',
+  ]
+
+Do:
+  vi[\<Plug>(stringlist-double)\<ESC>
+
+Expect:
+  [
+    "foo bar",
+    "bar bar",
+    "baz bar",
+  ]
+
+Do:
+  i\<Plug>(stringlist-double)\<ESC>
+
+Expect:
+  [
+    "foo bar",
+    "bar bar",
+    "baz bar",
+  ]
+
