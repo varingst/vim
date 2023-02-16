@@ -78,6 +78,8 @@ Plug 'dhruvasagar/vim-table-mode'
 Plug 'ledger/vim-ledger'
 Plug 'vim-pandoc/vim-pandoc'
 Plug 'vim-pandoc/vim-pandoc-syntax'
+Plug 'sirtaj/vim-openscad'
+Plug 'aklt/plantuml-syntax'
 
 " -- Prototypes ----------------------------------------------------------- {{{2
 
@@ -121,6 +123,7 @@ let g:sym = {
       \ 'bug':                       '虫',
       \ 'table':                     '表',
       \ 'tag':                       '札',
+      \ 'session':                   '恒',
       \ 'ale':                       '醸',
       \ 'char':                      '字',
       \ 'virtual':                   '仮',
@@ -175,14 +178,12 @@ augroup vimrc_autocmd
   au BufWritePost * call fs#SetExeOnShebang(&filetype, expand('<afile>'))
 
   au BufReadPost,FileReadPost,BufNewFile,WinEnter * call tmux#SetWindowTitle()
-  au VimLeave * call tmux#SetWindowTitle(fnamemodify($PWD, ':~'))
+  au VimLeavePre * call tmux#SetWindowTitle(fnamemodify(getcwd(), ':~'))
   au VimEnter * call tmux#SetPaneServerName()
 
   au FileType * call ftcommon#source(expand('<amatch>'))
 
-  au BufWritePost * if get(g:, 'tags')
-        \         |   system($MYVIMHOME..'/bin/ctags')
-        \         | endif
+  au BufWritePost * Tags
 
   au CursorHold,CursorHoldI * call popup#FuncName()
 
@@ -291,6 +292,8 @@ set breakindent
 set formatoptions=cqj
 set synmaxcol=128
 set viewoptions=cursor,folds
+set path=.,,
+set tags^=.git/tags,.git/libtags,libtags
 set spelllang=en_us
 
 set ttyfast
@@ -326,7 +329,7 @@ let g:cmdline_sugar = {
       \ '\C\v^w%[rite]!!': 'write !sudo tee % > /dev/null',
       \ '\C\v^e%[dit]!!': 'silent Git checkout -- % <BAR> redraw!',
       \ '\C\v^(gr%[ep]|grepa%[dd])>!?': { cmd -> printf('silent %s', cmd) },
-      \ '\C\v^s%[plit]> ': { cmd -> substitute(cmd, '\v^s%[plit]', 'Split', '') },
+      \ '\C\v^sp%[lit]> ': { cmd -> substitute(cmd, '\v^sp%[lit]', 'Split', '') },
       \ '\C\v^sf%[ind]>': { cmd -> substitute(cmd, '\v^sf%[ind]', win#V() ? 'vertical sfind' : 'sfind', '') },
       \ '\C\v^sb%[uffer]>': { cmd -> substitute(cmd, '\v^sb%[uffer]', win#V() ? 'vertical sbuffer' : 'sbuffer', '') },
       \}
@@ -335,14 +338,12 @@ let g:winsplit_threshold = 140
 
 " == KEY MAPPING ========================================================== {{{1
 
+" ~/.vim/plugin/keys.vim
 exe 'source '..$MYVIMHOME..'/keys.vim'
 nnoremap <C-B> :call keys#list()<CR>
 
 map ; <nop>
 let g:mapleader = ';'
-
-map , <nop>
-let g:maplocalleader = '\'
 
 " -- Disable TMUX prefix -------------------------------------------------- {{{2
 
@@ -367,6 +368,13 @@ nnoremap <C-X> :<C-U>update<CR>
 nnoremap <leader>@ :<C-U>let @+ = getreg(v:register)<CR>
 nmap <leader>: ":<leader>@
 
+nnoremap <silent><expr> gf v:register == '"'
+      \ ? 'gf'
+      \ : ':<C-U>call setreg(v:register, expand("<cfile>"))<CR>'
+
+nnoremap <silent> z/ :<C-U>autocmd CursorMoved <buffer> ++once normal! zt<CR>/
+nnoremap <silent> z? :<C-U>autocmd CursorMoved <buffer> ++once normal! zt<CR>?
+
 " -- Various Insert ------------------------------------------------------- {{{2
 
 inoremap <C-O><C-O> <C-O>O
@@ -374,29 +382,6 @@ inoremap <S-CR> <C-O>o
 inoremap <C-CR> <C-O>O
 
 inoremap <C-Q> <C-\><C-O>"_dT
-
-inoremap <C-R>' <C-R>"
-inoremap <C-R><C-D> <C-R>=system('date "+%Y-%m-%d"')->trim()<CR>
-inoremap <C-R><leader><C-D> <C-R>=
-      \[inputsave(), input('date > '), inputrestore()][1]
-      \->printf('date --date="%s" "+%%Y-%%m-%%d"')
-      \->system()
-      \->trim()
-      \<CR>
-
-inoremap <C-R><C-V> <C-R>=printf(get(b:, 'assignment_format', '%s = %s'), @., @")<CR>
-inoremap <C-R><Space> <Space><C-G>U<Left>
-
-inoremap <C-R><C-W> <Plug>(stringlist-double)
-inoremap <C-R><C-Q> <Plug>(stringlist-single)
-
-inoremap <silent><C-R><Tab> <C-\><C-O>:let pos=add(getcurpos(), virtcol('.'))<CR>
-      \<Up>
-      \<C-\><C-O>:call search('\V\C'..nr2char(inputsave()+getchar()+inputrestore()), 'z', line('.'))<CR>
-      \<C-\><C-O>:let pad = repeat(' ', virtcol('.') - pos[-1])<CR>
-      \<C-\><C-O>:call setpos('.', pos[:3])<CR>
-      \<C-R>=pad<CR>
-      \<C-\><C-O>:unlet pos pad<CR>
 
 inoremap <silent><C-S> <C-R>=snip#(nr2char(getchar()), &filetype)<CR>
 
@@ -420,15 +405,6 @@ for pair in ['{}', '[]', '()']
   for group in ['', ';', ',']
     exe printf('inoremap %s%s<CR> %s<CR>%s%s<C-C>O',
           \ pair[0], group, pair[0], pair[1], group)
-    if pair == '{}'
-      exe printf('inoremap %s%s<Space> %s  %s%s%s',
-            \ pair[0], group, pair[0], pair[1], group,
-            \ repeat("<C-G>U<Left>", 2 + strlen(group)))
-    else
-      exe printf('inoremap %s%s<Space> %s%s%s%s',
-            \ pair[0], group, pair[0], pair[1], group,
-            \ repeat("<C-G>U<Left>", 1 + strlen(group)))
-    endif
   endfor
 endfor
 
@@ -463,6 +439,8 @@ cnoremap <expr><S-CR> getcmdtype() =~ '[/?]' ? "<C-\>e'\\<'..getcmdline()..'\\k*
 cnoremap <expr><C-B> getcmdline() =~# '\v^(gr%[ep]<BAR>grepa%[dd])>' ? '<S-Left>\b<S-Right>\b' : '<S-Left>\<<S-Right>\>'
 cnoremap <expr><C-]> getcmdtype() == ':' && getcmdline() =~ '^\d\+\s*' ? '<C-\>estl#mru_bufnr(getcmdline())<CR> <End>' : '<C-]>'
 cnoremap <C-R><C-Q> <C-R><C-A>
+
+cnoremap <expr> $_ getcmdtype()->substitute('?', '/', '')->histget(-1)->split()[-1]
 
 " -- Various Window ------------------------------------------------------- {{{2
 
@@ -511,7 +489,10 @@ nmap < <Plug>(op#ShiftLeft)
 nnoremap >> >>
 nnoremap << <<
 
-" -- Various Text Objects ------------------------------------------------- {{{2
+" -- Various Motions/Text Objects ----------------------------------------- {{{2
+
+" matchit: linewise to closing marker
+omap % Vg%
 
 " function call object, if from inside args, af on func name
 xnoremap if <ESC>va(obo
@@ -552,6 +533,15 @@ nmap <expr><C-Right> get(b:, 'table_mode_active') ? '<Plug>(table-mode-motion-ri
 nmap <expr><C-Up>    get(b:, 'table_mode_active') ? '<Plug>(table-mode-motion-up)'    : '<C-W>k'
 nmap <expr><C-Down>  get(b:, 'table_mode_active') ? '<Plug>(table-mode-motion-down)'  : '<C-W>j'
 
+" -- Jumps and friends ---------------------------------------------------- {{{2
+
+nnoremap <leader><C-O> :<C-U>jumps<CR>:call ExeInput("normal! %s\<C-O>", '-jumps > ', { i -> i =~ '^\d\+$' })<CR>
+nnoremap <leader><C-I> :<C-U>jumps<CR>:call ExeInput("normal! %s\<C-I>", '+jumps > ', { i -> i =~ '^\d\+$' })<CR>
+nnoremap <leader>g; :<C-U>changes<CR>:call ExeInput("normal! %sg;", '-changes > ', { i -> i =~ '^\d\+$' })<CR>
+nnoremap <leader>g, :<C-U>changes<CR>:call ExeInput("normal! %sg,", '+changes > ', { i -> i =~ '^\d\+$' })<CR>
+nnoremap <leader><C-T> :<C-U>tags<CR>:call ExeInput("%spop", '-tags > ', { i -> i =~ '\d\+$' })<CR>
+nnoremap <leader><C-]> :<C-U>tags<CR>:call ExeInput("%stag", '+tags > ', { i -> i =~ '\d\+$' })<CR>
+
 " -- Insert lines --------------------------------------------------------- {{{2
 
 nnoremap <silent> [<CR> :<C-U>call append(line('.') - 1, map(range(v:count1), '""'))<CR>
@@ -564,6 +554,12 @@ xnoremap <silent> ]<CR> :<C-U>call append(line("'>"), map(range(v:count1), '""')
 
 nnoremap <silent> z<BS>         :call fold#SetMarker(0)<CR>
 nnoremap <silent> z<Space> :<C-U>call fold#SetMarker(v:count1)<CR>
+
+" -- Insert mode completion ----------------------------------------------- {{{2
+
+for c in split('lnkti]fdvuo', '\zs')
+  exe printf('inoremap ,%s <C-X><C-%s>', c, c)
+endfor
 
 " -- Awkward symbol shorthands -------------------------------------------- {{{2
 inoremap ,. ->
@@ -597,11 +593,6 @@ nmap <leader>g# <Plug>(qf#GreqfWORD)
 
 nnoremap & :&&<CR>
 xnoremap & :&&<CR>
-
-" -- Open file under cursor in split window ------------------------------- {{{2
-
-nnoremap <silent><leader>gf :<C-U>Split<CR>gf
-nnoremap <silent><leader>gF :<C-U>Split<CR>gF
 
 " -- Tag arg completion -- {{{2
 
@@ -641,6 +632,32 @@ nnoremap <leader>N ?\V<C-R>=escape(getreg(v:register), '^?')<CR><CR>
 inoremap <C-V> <C-O>"+p
 vnoremap <C-C> "+y
 vnoremap <C-X> "+d
+
+" -- Virtual <C-Registers> ------------------------------------------------ {{{2
+
+inoremap <C-R>' <C-R>"
+inoremap <C-R><C-D> <C-R>=system('date "+%Y-%m-%d"')->trim()<CR>
+inoremap <C-R><leader><C-D> <C-R>=
+      \[inputsave(), input('date > '), inputrestore()][1]
+      \->printf('date --date="%s" "+%%Y-%%m-%%d"')
+      \->system()
+      \->trim()
+      \<CR>
+
+inoremap <C-R><C-V> <C-R>=printf(get(b:, 'assignment_format', '%s = %s'), @., @")<CR>
+inoremap <C-R><Space> <Space><C-G>U<Left>
+
+" TODO: make these operators
+inoremap <C-R><C-W> <Plug>(stringlist-double)
+inoremap <C-R><C-Q> <Plug>(stringlist-single)
+
+inoremap <silent><C-R><Tab> <C-\><C-O>:let pos=add(getcurpos(), virtcol('.'))<CR>
+      \<Up>
+      \<C-\><C-O>:call search('\V\C'..nr2char(inputsave()+getchar()+inputrestore()), 'z', line('.'))<CR>
+      \<C-\><C-O>:let pad = repeat(' ', virtcol('.') - pos[-1])<CR>
+      \<C-\><C-O>:call setpos('.', pos[:3])<CR>
+      \<C-R>=pad<CR>
+      \<C-\><C-O>:unlet pos pad<CR>
 
 " -- Sticky Shift Camel Case Relief --------------------------------------- {{{2
 
@@ -725,6 +742,7 @@ let g:coc_user_config = {
       \ },
       \ 'suggest': { 'autoTrigger': 'trigger' },
       \ 'solargraph.diagnostics': v:true,
+      \ 'solargraph.useBundler': v:true,
       \ 'solargraph.checkGemVersion': v:false,
       \ 'languageserver': {
       \   'ccls': {
@@ -737,6 +755,10 @@ let g:coc_user_config = {
       \       },
       \     },
       \   },
+      \   'openscad': {
+      \     'command': "$HOME/.cargo/bin/openscad-language-server",
+      \     'filetypes': [ 'openscad' ],
+      \   }
       \ },
       \}
 
@@ -747,8 +769,8 @@ for [key, action] in items({
       \ 'tT': 'jumpTypeDefinition',
       \ 'rR': 'jumpReferences',
       \})
-  exe printf('nnoremap <silent><space>%s :<C-U>tag#push(expand("<cword>"), { -> CocAction("%s") })<CR>', key[0], action)
-  exe printf('nnoremap <silent><space>%s :<C-U>tag#push(expand("<cword>"), { -> CocAction("%s", "Split") })<CR>', key[1], action)
+  exe printf('nnoremap <silent><space>%s :<C-U>call tag#push(expand("<cword>"), { -> CocAction("%s") })<CR>', key[0], action)
+  exe printf('nnoremap <silent><space>%s :<C-U>call tag#push(expand("<cword>"), { -> CocAction("%s", "Split") })<CR>', key[1], action)
 endfor
 
 nmap <space>q <Plug>(coc-format-selected)
@@ -1008,39 +1030,28 @@ let g:filter_commands = {
 " -- IMOTION -------------------------------------------------------------- {{{2
 
 let g:imotion_mappings = {
-  \ 'leaders': {
-  \   'motions': '<Tab>',
-  \   'incmotions': '<S-Tab>',
-  \   'objects': 'i',
-  \   'incobjects': 'a',
+  \ 'nxo': {
+  \   ']<Tab>': 'NextSection',
+  \   '[<Tab>': 'PrevSection',
+  \   ']<S-Tab>': 'NextSectionWithBlank',
+  \   '[<S-Tab>': 'PrevSectionWithBlank',
+  \   ']=': 'NextSame',
+  \   '[=': 'PrevSame',
+  \   'H': 'RevPrevLess',
+  \   'L': 'NextMore',
+  \   'M': 'OpenSection',
+  \   ']b': 'NextBlock',
+  \   '[b': 'PrevBlock',
+  \   ']B': 'NextBlockWithBlank',
+  \   '[B': 'PrevBlockWithBlank',
   \ },
-  \ 'motions': {
-  \   'nxo': {
-  \     'j': 'NextSibling',
-  \     'k': 'PrevSibling',
-  \     'h': 'PrevParent',
-  \     'l': 'NextChild',
-  \     'J': 'NextSection',
-  \     'K': 'PrevSection',
-  \     'H': 'RevPrevParent',
-  \     'L': 'OpenSection',
-  \     'b': 'NextBlock',
-  \     'B': 'PrevBlock',
-  \   }
-  \ },
-  \ 'objects': {
-  \   'xo': {
-  \     's': 'SurroundingSection',
-  \     'o': 'SurroundingOpenSection',
-  \   }
+  \ 'xo': {
+  \   'ii': 'SurroundingOpenSection',
+  \   'ai': 'SurroundingOpenSectionWithBlank',
+  \   'iI': 'SurroundingSection',
+  \   'aI': 'SurroundingSectionWithBlank',
   \ },
   \}
-
-nmap <Tab>. <Plug>(imotion#Repeat)
-xmap . <Plug>(imotion#Repeat)
-omap . <Plug>(imotion#Repeat)
-
-
 
 " -- PANDOC --------------------------------------------------------------- {{{2
 

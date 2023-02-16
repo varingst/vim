@@ -14,6 +14,7 @@ white       #ffffff   255  15
 lightgray   #808080   244   7
 gray        #4e4e4e   239   8
 darkgray    #262626   235   8
+darkergray  #131313   233   8
 normal      > lightgray
 background  > darkgray
 end

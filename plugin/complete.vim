@@ -42,7 +42,6 @@ fun! s:finish()
   stopinsert
 endfun
 
-
 augroup plugin_complete
   au!
   au CompleteDonePre *

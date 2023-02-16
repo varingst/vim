@@ -106,6 +106,15 @@ fun! GetCached(dict, key, Gen, ...) abort
   return a:dict[a:key]
 endfun
 
+fun! ExeInput(cmd, prompt, ...)
+  call inputsave()
+  let input = input(a:prompt)
+  if !a:0 || a:1(input)
+    exe printf(a:cmd, input)
+  endif
+  call inputrestore()
+endfun
+
 fun! Error(...) abort
   let ex = (a:0 ? a:1 : v:exception)
   let g:throwpoint = v:throwpoint

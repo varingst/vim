@@ -2,10 +2,13 @@
 
 out="/dev/null"
 sync="false"
+hook="true"
+
 while (( $# )); do
   case "$1" in
     -v|--verbose) out="/dev/stdout";;
     -s|--sync) sync="true";;
+    -i|--ignore-hook) hook="false";;
   esac
   shift
 done
@@ -14,19 +17,22 @@ done
   gitdir="$(git rev-parse --git-dir)"
   git_ecode=$?
 
-  if (( "$git_ecode" == 0 )) && [[ -x "$gitdir/hooks/ctags" ]]; then
-      "$gitdir/hook/ctags"
-      exit
+  if "$hook" && (( "$git_ecode" == 0 )) && [[ -x "$gitdir/hooks/ctags" ]]; then
+      "$gitdir/hooks/ctags"
+      exit $?
   fi
 
-  trap 'rm -f "$$.tags"' EXIT
+  trap 'rm -f "$tagdir/$$.tags"' EXIT
 
   if (( "$git_ecode" == 0 )); then
-    git ls-files | ctags --tag-relative=yes -L - -f"$$.tags"
+    tagdir="$gitdir"
+    git ls-files | ctags --tag-relative=yes -L - -f"$tagdir/$$.tags"
   else
-    ctags -R --tag-realtive=yes -f"$$.tags"
+    tagdir="."
+    ctags -R --tag-realtive=yes -f"$tagdir/$$.tags"
   fi
-  mv "$$.tags" "tags"
+
+  mv "$tagdir/$$.tags" "$tagdir/tags"
 ) >"$out" 2>&1 &
 
 "$sync" && wait

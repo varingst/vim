@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+dir="$1"
+ext="$2"
+
+case "$3" in
+  tags)
+
+    find "$dir" -name "*$ext" -printf '%p\n' | awk -v t="${*:4}" '
+      { files[$0] = 1 }
+      END {
+        ntags=split(t, tags, " ")
+        for (i=1; i<=ntags; i++) {
+          invert=sub("^-", "", tags[i])
+
+          for (file in files) {
+            foundmatch=!system("grep --extended-regexp --quiet \"#" tags[i] "\\>\" \"" file "\"")
+            if (invert == foundmatch) {
+              delete files[file]
+            }
+          }
+        }
+        for (file in files) {
+          print file
+        }
+    }' | xargs grep --no-filename "^# "
+  ;;
+  title)
+    grep --no-filename "^# " "$dir/"*"$ext"
+  ;;
+esac
+
+

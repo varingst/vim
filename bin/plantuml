@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+main() {
+  if [[ -v JAR ]]; then
+    jar="$JAR"
+  else
+    jar="/usr/share/plantuml/lib/plantuml.jar"
+    [[ -f "$jar" ]] || bail "don't know location of plantuml.jar"
+  fi
+
+  outdir="."
+  fmt="png"
+  viewer="feh"
+  arg_is_outdir=false
+  declare -A viewfiles
+
+  for arg; do
+    if "$arg_is_outdir"; then
+      outdir="$arg"
+      arg_is_outdir=false
+    else
+      case "$arg" in
+        -tpng) :;;
+        -tsvg) fmt="svg";;
+        -t*) fmt=""; viewer="";;
+        -o|-output) arg_is_outdir=true;;
+        -*) :;;
+        *)
+          if [[ ! -d "$arg" ]]; then
+            viewfiles["$(realpath "$outdir/${arg%.*}.$fmt" )"]=1
+          fi
+        ;;
+      esac
+    fi
+  done
+
+  outdir=$(realpath "$outdir")
+
+  java -jar "$jar" "$@" 2> /tmp/plantuml.cfile
+
+  if (( $? == 200 )); then
+    server="VIM${TMUX_PANE#%}"
+    if [[ "$server" != "VIM" ]]; then
+      vim --servername "$server" --remote-expr "execute('cfile /tmp/plantuml.cfile')"
+    fi
+  else
+    [[ -n "$viewer" ]] || exit
+
+    while read -r line; do
+      viewfiles["${line##* }"]=0
+    done < <(ps --no-headers -C "$viewer" -o cmd)
+
+    for file in "${!viewfiles[@]}"; do
+      if (( "${viewfiles[$file]}" == 1 )); then
+        feh "$file"
+      fi
+    done
+  fi
+}
+
+feh() {
+  opts=(
+      --class plantumlview
+      --draw-filename
+      --reload 1
+  )
+
+  if [[ "${1##.*}" == "svg" ]]; then
+    opts+=( --magick-timeout 1 )
+  fi
+
+  /usr/bin/feh "${opts[@]}" "$1" >/dev/null 2>&1
+}
+
+bail() {
+  echo "$@" >&2
+  exit 1
+}
+
+main "$@" &

@@ -8,15 +8,9 @@ endif
 
 let s:sym = get(g:, 'sym', {})
 
-if has('nvim')
-  let s:curwin = 1000
-endif
-
 augroup statusline
   au!
   if has('nvim')
-    au BufWinLeave * let s:lastused[expand('<abuf>')] = localtime()
-    au WinEnter * let s:curwin = win_getid()
     au TermOpen * let &l:statusline = stl#terminal()
   else
     au TerminalWinOpen * let &l:statusline = stl#terminal()
@@ -26,6 +20,7 @@ augroup statusline
   au FileType,EncodingChanged * call s:filetype.update(str2nr(expand('<abuf>')))
   au FileType qf let b:undo_ftplugin = "set stl<"
         \      | let &l:statusline = stl#quickfix()
+  au QuickFixCmdPost * call s:status.set_qf()
 augroup END
 
 " == PUBLIC =============================================================== {{{1
@@ -136,10 +131,6 @@ fun! stl#terminal()
         \]), '')
 endfun
 
-let s:isfocused = has('nvim')
-      \ ? { -> win_getid() == s:curwin }
-      \ : { -> win_getid() == g:actual_curwin }
-
 " == MODULES ============================================================== {{{1
 " -- BUFSTATE ------------------------------------------------------------- {{{2
 
@@ -148,7 +139,6 @@ let s:bufstate = {
       \ 'unnamed': get(s:sym, 'unnamed', '[No Name]'),
       \ 'readonly': get(s:sym, 'readonly', '[RO]'),
       \ 'modified': get(s:sym, 'modified', '[+]'),
-      \ 'tags': get(s:sym, 'tag', '[T]'),
       \ 'shorten': { f -> fnamemodify(f, ':~:.:gs%\(\.\?[^/]\)[^/]*/%\1/%') },
       \ 'resolved': {},
       \}
@@ -159,7 +149,7 @@ fun! s:bufstate.update()
   endif
 
   let b:statusline.mode[b:statusline.mode.last] = ''
-  if s:isfocused()
+  if win_getid() == g:actual_curwin
     let shortmode = mode(1)
     let mode = s:mode.map[shortmode]
     let b:statusline.mode[mode] = s:mode.sym[shortmode]
@@ -180,10 +170,6 @@ fun! s:bufstate.update()
   if getbufvar(b:statusline.bufnr, '&readonly')
     let bufstate = 'readonly'
     let label ..= s:bufstate.readonly
-  endif
-
-  if empty(getbufvar(b:statusline.bufnr, 'gutentags_ctags_tagfile', ''))
-    let label ..= s:bufstate.tags
   endif
 
   let b:statusline.bufstate[b:statusline.bufstate.last] = ''
@@ -237,11 +223,11 @@ fun! s:bufstate.setlabel(buf)
     let a:buf.bufshort = s:bufstate.unnamed
   else
     let a:buf.buflabel = fnamemodify(a:buf.bufname, ':~:.')
-    let a:buf.bufshort = self.shorten(a:buf.bufname)
+    let a:buf.bufshort = pathshorten(a:buf.bufname)
     let realname = fnamemodify(resolve(a:buf.bufname), ':.')
     if realname != a:buf.bufname
       let self.resolved[realname] = a:buf.bufname
-      let a:buf.realname = self.shorten(realname)
+      let a:buf.realname = pathshorten(realname)
     endif
   endif
 endfun
@@ -289,13 +275,14 @@ endfun
 " -- MODE ----------------------------------------------------------------- {{{2
 
 let s:mode = {
-      \ 'modes': ['normal', 'insert', 'visual', 'select', 'replace'],
+      \ 'modes': ['normal', 'insert', 'visual', 'select', 'replace', 'operator'],
       \ 'sym': {
       \   'table': get(s:sym, 'table', 'T'),
       \   'Rv': get(s:sym, 'replace', 'R')..get(s:sym, 'virtual', 'v'),
       \   'v': get(s:sym, 'visual', 'V')..get(s:sym, 'char', 'c'),
       \   'V': get(s:sym, 'visual', 'V')..get(s:sym, 'line', 'l'),
       \   '': get(s:sym, 'visual', 'V')..get(s:sym, 'block', 'b'),
+      \   'no': 'O',
       \ },
       \ 'map': {
       \   '__'  : 'nothing',
@@ -375,11 +362,10 @@ let s:ale = {
 
 fun! s:ale.stl()
   return [
-        \  '%#STLAleInfo#%{b:statusline.ale.sym}',
         \  map(copy(self.sections),
         \    { _, section -> [
         \      '%#STLAle',s:capitalize(section),'#',
-        \      '%( %{b:statusline.ale.',section,'}%)',
+        \      '%(%{b:statusline.ale.',section,'}%)',
         \    ]})
         \]
 endfun
@@ -387,7 +373,7 @@ endfun
 fun! s:ale.update()
   let buf = s:bufstate.get(bufnr(''))
   let e = ale#statusline#Count(buf.bufnr)
-  let buf.ale.sym = e.total ? s:ale.ale : ''
+  " let buf.ale.sym = e.total ? s:ale.ale : ''
   let buf.ale.error = e.error ? printf('%d%s', e.error, s:ale.error) : ''
   let buf.ale.warning = e.warning ? printf('%d%s', e.warning, s:ale.warning) : ''
   let buf.ale.info = e.info ? printf('%d%s', e.info, s:ale.info) : ''
@@ -441,9 +427,7 @@ let s:mru = {
       \ 'normal': '',
       \ 'modified': s:bufstate.modified,
       \ 'readonly': s:bufstate.readonly,
-      \ 'sort': has('nvim')
-      \       ? { a, b -> get(s:mru.lastused, b.bufnr) - get(s:mru.lastused, a.bufnr) }
-      \       : { a, b -> b.lastused - a.lastused },
+      \ 'sort': { a, b -> b.lastused - a.lastused },
       \}
 
 fun! s:mru.stl()
@@ -461,10 +445,9 @@ fun! s:mru.stl()
     let bufstate = s:bufstate.get(buf.bufnr)
     call add(self.buffers, buf.bufnr)
     call add(out, [
-          \ '%#STLBuffer',s:capitalize(bufstate.bufstate.last),'#',
+          \ '%#STLBufferNormal#',
           \ ' ',bufindex,' ',
           \ bufstate.git,
-          \ self[bufstate.bufstate.last],
           \ bufstate.bufshort,
           \ ' ',
           \])
@@ -570,17 +553,27 @@ endfun
 " -- STATUS --------------------------------------------------------------- {{{2
 
 let s:status = {
-      \ 'coc': get(s:sym, 'complete', 'CoC')
+      \ 'coc': get(s:sym, 'complete', 'CoC'),
+      \ 'session': get(s:sym, 'session', 'S'),
+      \ 'tag': get(s:sym, 'tag', 'T'),
+      \ 'quickfix': '',
       \}
 
 fun! s:status.stl()
   return [
         \ '%#STLStatus#',
-        \ '%([%{""}',
+        \ '%( %{"',
         \ get(g:, 'coc_process_pid') ? s:status.coc : '',
-        \ keys#statusline(),
-        \ ']%)',
+        \ empty(v:this_session) ? '' : s:status.session,
+        \ empty(tagfiles()) ? '' : s:status.tag,
+        \ s:status.quickfix,
+        \ '"} %)',
         \]
+endfun
+
+fun! s:status.set_qf()
+  let qflen = getqflist({'size': 1}).size
+  let self.quickfix = qflen ? printf('%s%d', get(s:sym, 'quickfix', 'Q'), qflen) : ''
 endfun
 
 " == UTIL ================================================================= {{{1

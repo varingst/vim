@@ -13,11 +13,37 @@ command! -nargs=+ -complete=expression PP
 command! Changes
       \ exe 'Split '..changes#View()
 
+command! -bang -register Scratch
+      \    exe empty(<q-reg>)
+      \      ? "new "..get(g:sym, 'scratch', '[scratch]')
+      \      : printf("%dnew @%s", min([len(getreg(<q-reg>, v:null, v:true)), winheight(0) / 2]), <q-reg>)
+      \ | setlocal buftype=nowrite
+      \ | setlocal noswapfile
+      \ | let &l:bufhidden = empty(<q-bang>) ? 'delete' : 'hide'
+      \ | if !empty(<q-reg>)
+      \ |   exe printf("au BufLeave <buffer> call setreg('%s', getline(1, '$'), getregtype('%s'))", <q-reg>, <q-reg>)
+      \ |   exe "normal! i\<C-R>\<C-O>"..<q-reg>.."\<ESC>`["
+      \ | endif
+
+command! -bang TempFile
+      \   let f = tempname()
+      \ | exe empty(<q-bang>) ? 'Split' : 'edit' f
+      \ | setlocal bufhidden=wipe
+
 command! -nargs=? -complete=filetype FTPlugin
       \ exe 'Split '..$MYVIMHOME..'/ftplugin/'..(empty(<q-args>) ? &filetype : <q-args>)..'.vim'
 
+command! -nargs=? -bang Tags
+      \ eval (!empty(tagfiles()) || !empty(<q-bang>)) && system($MYVIMHOME..'/bin/ctags '..<q-args>)
+
 command! -nargs=0 SynStack
       \ echo join(syntax#Stack(), "\n")
+
+command! -bang -nargs=1 -complete=file HexEdit
+      \   exe printf('%s ++binary %s +%!xxd', empty(<q-bang>) ? 'Split' : 'edit', <q-args>)
+
+command! -nargs=1 RTP
+      \ PP split(&rtp, ',')->filter({ _, p -> p =~ <q-args> })
 
 command! -nargs=0 -range=% StripAnsi
       \ <line1>,<line2>s/\[\(\d\{1,2}\(;\d\{1,2}\)\?\)\?[m\|K]//ge
@@ -30,12 +56,6 @@ command! -nargs=0 -range Rgb2Hex
 
 command! -nargs=? -complete=file Open
       \ silent eval { f -> netrw#BrowseX(f, netrw#CheckIfRemote(f)) }(expand(empty(<q-args>) ? '%' : <q-args>))
-
-command! -nargs=+ -complete=expression PostNextInsert
-      \   au InsertLeave <buffer> ++once <args>
-
-command! -nargs=+ -complete=expression PostCursorMoved
-      \   au CursorMoved <buffer> ++once <args>
 
 " :[range]Collect[!] [reg] pattern
 " collect all matches in register [reg], default "
@@ -83,14 +103,25 @@ command! -nargs=0 ScriptNames
       \ | endif
       \ | call append(0, split(execute('scriptnames'), "\n"))
 
+command! -nargs=? -bang -complete=file MkSession
+      \   let fname = v:this_session
+      \ | if empty(fname) || !empty(<q-bang>)
+      \ |   let fname = <q-args>
+      \ | endif
+      \ | if empty(fname)
+      \ |   let fname = isdirectory('.git') ? '.git/Session.vim' : 'Session.vim'
+      \ | endif
+      \ | exe 'mksession!' fname
+
+command! -nargs=0 ClearTags call settagstack(0, {'items': [] })
 
 " Highlight: echo highlight group for item under cursor, yank to register if provided {{{2
 command! -nargs=? -register Highlight
       \   if empty(<q-reg>)
-      \ |    exe 'highlight '..syntax#Stack()[-1]
+      \ |   exe 'highlight '..syntax#Stack()[-1]
       \ | else
-      \ |    silent call setreg(<q-reg>, syntax#Stack()[-1])
-      \ |    exe 'highlight '..getreg(<q-reg>)
+      \ |   silent call setreg(<q-reg>, syntax#Stack()[-1])
+      \ |   exe 'highlight '..getreg(<q-reg>)
       \ | endif
 
 " Read: append output of given or line range of shell commands {{{2
@@ -114,14 +145,13 @@ command! -nargs=* -range Read
 
 " Move: rename % and create directory structure {{{2
 command! -nargs=1 -complete=file Move
-      \   call mkdir(fnamemodify(<q-args>, ":p:h"), "p")
-      \ | let bufname = expand('%')
-      \ | let altname = expand('#')
-      \ | call rename(bufname, <q-args>)
-      \ | exe 'e '..<q-args>
-      \ | let @# = altname
-      \ | exe 'bdelete '..fnameescape(bufname)
-      \ | unlet bufname altname
+      \   let buf = @%
+      \ | let alt = @#
+      \ | saveas <args>
+      \ | let @# = alt
+      \ | call delete(buf)
+      \ | exe 'bdelete' buf
+      \ | unlet buf alt
 
 command! -nargs=+ Verbose
       \   let out = execute('verbose '..<q-args>)
@@ -179,10 +209,23 @@ command! -range=0 -nargs=+ MRU
       \ |   unlet bufnr
       \ | endif
 
-command! -nargs=+ KeepView
+command! -nargs=+ -bar KeepView
       \   let v = winsaveview()
       \ | <args>
       \ | call winrestview(v)
       \ | unlet! v
+
+command! -nargs=+ Mark
+      \   let [reg, pat] = split(expand(<q-args>))
+      \ | let v = winsaveview()
+      \ | if reg =~? '[a-z]'
+      \ |   call cursor(1, 1)
+      \ |   let pos = searchpos(pat, 'nWc')
+      \ |   if pos != [0, 0]
+      \ |     call setpos("'"..reg, [0] + pos + [0])
+      \ |   endif
+      \ | endif
+      \ | call winrestview(v)
+      \ | unlet! reg pat pos v
 
 command! -range=% SingleLines KeepView keepjumps keeppatterns <line1>,<line2>s/\(^\n\)\{2,}/\r/e
